@@ -2,6 +2,7 @@ package org.springboot.insurancemanagementsystem.entitie;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.springboot.insurancemanagementsystem.enums.ClaimStatus;
 
 import java.time.LocalDateTime;
 

@@ -1,13 +1,17 @@
 package org.springboot.insurancemanagementsystem.entitie;
 
 import jakarta.persistence.*;
+import lombok.*;
+import org.springboot.insurancemanagementsystem.enums.PolicyStatus;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Entity
-@Getter @Setter
-@NoArgsConstructor @AllArgsConstructor
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 @Builder
 public class Policy {
 
