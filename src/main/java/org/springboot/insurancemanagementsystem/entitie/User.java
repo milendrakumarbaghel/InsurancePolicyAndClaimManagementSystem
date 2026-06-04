@@ -1,4 +1,4 @@
-package org.springboot.insurancemanagementsystem.entities;
+package org.springboot.insurancemanagementsystem.entitie;
 
 import jakarta.persistence.*;
 import lombok.*;
@@ -6,24 +6,29 @@ import lombok.*;
 import java.time.LocalDateTime;
 
 @Entity
+@Table(name = "users")
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class InsuranceProduct {
+public class User {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(unique = true)
-    private String productName;
+    private String fullName;
+
+    @Column(unique = true, nullable = false)
+    private String email;
+
+    private String password;
+
+    private String mobileNumber;
 
     @Enumerated(EnumType.STRING)
-    private ProductType productType;
-
-    private String description;
+    private Role role;
 
     private boolean active;
 
