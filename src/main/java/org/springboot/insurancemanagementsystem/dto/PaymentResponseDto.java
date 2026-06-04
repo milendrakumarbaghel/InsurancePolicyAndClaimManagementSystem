@@ -1,5 +1,13 @@
 package org.springboot.insurancemanagementsystem.dto;
 
+import lombok.*;
+
+@Getter
+@Setter
+@ToString
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class PaymentResponseDto {
     private Long id;
     private String policyNumber;

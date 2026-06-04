@@ -1,5 +1,12 @@
 package org.springboot.insurancemanagementsystem.dto;
 
+import lombok.*;
+
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class PolicyPlanRequestDto {
     private Long productId;
     private String planName;
