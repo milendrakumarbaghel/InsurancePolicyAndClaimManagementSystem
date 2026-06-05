@@ -5,18 +5,15 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-public interface PolicyPlanRepository
-        extends JpaRepository<PolicyPlan, Long> {
+import java.util.List;
 
-    Page<PolicyPlan> findByProductId(Long productId,
-                                     Pageable pageable);
+public interface PolicyPlanRepository extends JpaRepository<PolicyPlan, Long> {
 
-    Page<PolicyPlan> findByActive(Boolean active,
-                                  Pageable pageable);
+    Page<PolicyPlan> findByProductId(Long productId, Pageable pageable);
 
-    Page<PolicyPlan> findByProductIdAndActive(
-            Long productId,
-            Boolean active,
-            Pageable pageable
-    );
+    Page<PolicyPlan> findByActive(Boolean active, Pageable pageable);
+
+    Page<PolicyPlan> findByProductIdAndActive(Long productId, Boolean active, Pageable pageable);
+
+    List<PolicyPlan> findByProduct_IdAndActiveTrue(Long productId);
 }

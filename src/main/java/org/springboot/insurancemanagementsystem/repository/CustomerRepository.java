@@ -15,6 +15,8 @@ public interface CustomerRepository
 
     Optional<Customer> findByUserId(Long userId);
 
+    Optional<Customer> findByUserEmail(String email);
+
     boolean existsByUserId(Long userId);
 
     Page<Customer> findByCity(String city,

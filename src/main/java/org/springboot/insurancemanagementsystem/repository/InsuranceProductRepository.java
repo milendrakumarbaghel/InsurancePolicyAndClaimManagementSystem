@@ -25,4 +25,6 @@ public interface InsuranceProductRepository
             Boolean active,
             Pageable pageable
     );
+
+    Page<InsuranceProduct> findByActiveTrue(Pageable pageable);
 }

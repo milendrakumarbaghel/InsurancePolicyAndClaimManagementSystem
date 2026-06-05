@@ -6,6 +6,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 
+import java.util.List;
+
 public interface PremiumPaymentRepository
         extends JpaRepository<PremiumPayment, Long> {
 
@@ -17,6 +19,8 @@ public interface PremiumPaymentRepository
             Long policyId,
             Pageable pageable
     );
+
+    List<PremiumPayment> findByPolicy_Id(Long policyId);
 
     Page<PremiumPayment> findByStatus(
             PaymentStatus status,
