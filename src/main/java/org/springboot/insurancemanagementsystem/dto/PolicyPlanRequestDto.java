@@ -15,4 +15,5 @@ public class PolicyPlanRequestDto {
     private String premiumType;
     private Integer duration;
     private String termsAndConditions;
+    private Boolean active;
 }
