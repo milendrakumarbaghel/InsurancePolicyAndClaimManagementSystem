@@ -1,0 +1,42 @@
+package org.springboot.insurancemanagementsystem.repository;
+
+import org.springboot.insurancemanagementsystem.entitie.Claim;
+import org.springboot.insurancemanagementsystem.enums.ClaimStatus;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+import java.util.Optional;
+
+public interface ClaimRepository
+        extends JpaRepository<Claim, Long> {
+
+    Optional<Claim> findByClaimNumber(
+            String claimNumber
+    );
+
+    boolean existsByClaimNumber(
+            String claimNumber
+    );
+
+    Page<Claim> findByPolicyId(
+            Long policyId,
+            Pageable pageable
+    );
+
+    Page<Claim> findByClaimStatus(
+            ClaimStatus claimStatus,
+            Pageable pageable
+    );
+
+    Page<Claim> findByPolicyCustomerId(
+            Long customerId,
+            Pageable pageable
+    );
+
+    Page<Claim> findByPolicyCustomerIdAndClaimStatus(
+            Long customerId,
+            ClaimStatus claimStatus,
+            Pageable pageable
+    );
+}
