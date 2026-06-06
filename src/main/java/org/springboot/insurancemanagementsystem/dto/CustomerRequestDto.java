@@ -15,6 +15,9 @@ import java.time.LocalDate;
 @Builder
 public class CustomerRequestDto {
 
+    @NotNull(message = "User id is required")
+    private Long userId;
+
     @NotNull(message = "Date of birth is required")
     @Past(message = "Date of birth must be a past date")
     private LocalDate dateOfBirth;
@@ -39,4 +42,5 @@ public class CustomerRequestDto {
 
     @NotBlank(message = "Nominee relation is required")
     private String nomineeRelation;
+
 }
