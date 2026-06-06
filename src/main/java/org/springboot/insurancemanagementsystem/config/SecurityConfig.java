@@ -35,20 +35,26 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+
         http
                 .csrf(AbstractHttpConfigurer::disable)
+
                 .exceptionHandling(ex -> ex
                         .authenticationEntryPoint(authenticationEntryPoint)
                         .accessDeniedHandler(accessDeniedHandler)
                 )
+
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
+
                 .authorizeHttpRequests(auth -> auth
-                        // Public endpoints
+
+                        // PUBLIC APIs
                         .requestMatchers(HttpMethod.POST, "/api/auth/register").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/auth/login").permitAll()
-                        // Swagger UI
+
+                        // Swagger
                         .requestMatchers(
                                 "/swagger-ui/**",
                                 "/swagger-ui.html",
@@ -56,9 +62,29 @@ public class SecurityConfig {
                                 "/swagger-resources/**",
                                 "/webjars/**"
                         ).permitAll()
-                        // All other endpoints require authentication
+
+                        // ADMIN ONLY
+                        .requestMatchers("/api/admin/**").hasRole("ADMIN")
+
+                        // AGENT ONLY
+                        .requestMatchers("/api/agent/**").hasRole("AGENT")
+
+                        // CUSTOMER ONLY
+                        .requestMatchers("/api/customer/**").hasRole("CUSTOMER")
+
+                        // SHARED ACCESS (ADMIN + AGENT)
+                        .requestMatchers("/api/products/**").hasAnyRole("ADMIN", "AGENT", "CUSTOMER")
+                        .requestMatchers("/api/plans/**").hasAnyRole("ADMIN", "AGENT", "CUSTOMER")
+
+                        .requestMatchers("/api/policies/**").hasAnyRole("ADMIN", "AGENT", "CUSTOMER")
+                        .requestMatchers("/api/payments/**").hasAnyRole("ADMIN", "AGENT", "CUSTOMER")
+
+                        .requestMatchers("/api/claims/**").hasAnyRole("ADMIN", "AGENT", "CUSTOMER")
+
+                        // fallback
                         .anyRequest().authenticated()
                 )
+
                 .authenticationProvider(authenticationProvider())
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
@@ -67,19 +93,22 @@ public class SecurityConfig {
 
     @Bean
     public AuthenticationProvider authenticationProvider() {
-        // Use the constructor that accepts UserDetailsService (Spring Security 6+)
-        DaoAuthenticationProvider provider = new DaoAuthenticationProvider(userDetailsService);
-        provider.setPasswordEncoder(passwordEncoder());
-        return provider;
-    }
 
-    @Bean
-    public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
-        return config.getAuthenticationManager();
+        DaoAuthenticationProvider provider = new DaoAuthenticationProvider(userDetailsService);
+//        provider.setUserDetailsService(userDetailsService);
+        provider.setPasswordEncoder(passwordEncoder());
+
+        return provider;
     }
 
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
+    }
+
+    @Bean
+    public AuthenticationManager authenticationManager(
+            AuthenticationConfiguration config) throws Exception {
+        return config.getAuthenticationManager();
     }
 }
