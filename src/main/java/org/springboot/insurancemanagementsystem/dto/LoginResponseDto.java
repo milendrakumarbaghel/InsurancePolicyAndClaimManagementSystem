@@ -2,8 +2,7 @@ package org.springboot.insurancemanagementsystem.dto;
 
 import lombok.*;
 
-@Getter
-@Setter
+@Data
 @ToString
 @NoArgsConstructor
 @AllArgsConstructor

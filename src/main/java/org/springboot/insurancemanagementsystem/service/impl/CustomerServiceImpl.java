@@ -34,7 +34,8 @@ public class CustomerServiceImpl implements CustomerService {
                         new ResourceNotFoundException(
                                 "User not found"));
 
-        if (customerRepository.existsByUserId(request.getUserId())) {
+        // Check if a customer profile already exists for this user
+        if (customerRepository.existsByUserId(user.getId())) {
             throw new BusinessException(
                     "Customer profile already exists");
         }

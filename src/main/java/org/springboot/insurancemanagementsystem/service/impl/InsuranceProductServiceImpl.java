@@ -35,7 +35,7 @@ public class InsuranceProductServiceImpl implements InsuranceProductService {
         }
 
         InsuranceProduct product = InsuranceProduct.builder()
-                .productType(ProductType.valueOf(String.valueOf(requestDto.getProductType())))
+                .productType(requestDto.getProductType())
                 .productName(requestDto.getProductName())
                 .description(requestDto.getDescription())
                 .createdAt(LocalDateTime.now())
@@ -59,7 +59,7 @@ public class InsuranceProductServiceImpl implements InsuranceProductService {
                                 "Product not found with id : " + productId));
 
         product.setProductName(requestDto.getProductName());
-        product.setProductType(ProductType.valueOf(String.valueOf(requestDto.getProductType())));
+        product.setProductType(requestDto.getProductType());
         product.setDescription(requestDto.getDescription());
         product.setActive(requestDto.getActive());
 
