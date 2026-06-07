@@ -11,7 +11,9 @@ import lombok.*;
 public class ClaimResponseDto {
     private Long id;
     private String claimNumber;
+    private Long policyId;
     private String policyNumber;
+    private String customerName;
     private Double claimAmount;
     private String claimStatus;
     private String agentRemarks;

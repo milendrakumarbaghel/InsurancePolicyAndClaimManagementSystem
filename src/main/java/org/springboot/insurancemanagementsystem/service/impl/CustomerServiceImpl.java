@@ -17,6 +17,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
+
 @Service
 @RequiredArgsConstructor
 public class CustomerServiceImpl implements CustomerService {
@@ -49,18 +51,14 @@ public class CustomerServiceImpl implements CustomerService {
         customer.setCity(request.getCity());
         customer.setState(request.getState());
         customer.setPinCode(request.getPinCode());
+        customer.setCreatedAt(LocalDateTime.now());
         customer.setNomineeName(request.getNomineeName());
         customer.setNomineeRelation(request.getNomineeRelation());
 
         Customer savedCustomer =
                 customerRepository.save(customer);
 
-//        return modelMapper.map(savedCustomer, CustomerResponseDto.class);
-        CustomerResponseDto customerResponseDto = modelMapper.map(savedCustomer, CustomerResponseDto.class);
-        customerResponseDto.setFullName(user.getFullName());
-
-        return  customerResponseDto;
-
+        return mapToResponseDto(savedCustomer);
     }
 
     @Override
@@ -84,13 +82,14 @@ public class CustomerServiceImpl implements CustomerService {
         customer.setCity(request.getCity());
         customer.setState(request.getState());
         customer.setPinCode(request.getPinCode());
+        customer.setUpdatedAt(LocalDateTime.now());
         customer.setNomineeName(request.getNomineeName());
         customer.setNomineeRelation(request.getNomineeRelation());
 
         Customer updatedCustomer =
                 customerRepository.save(customer);
 
-        return modelMapper.map(updatedCustomer, CustomerResponseDto.class);
+        return mapToResponseDto(updatedCustomer);
     }
 
     @Override
@@ -102,7 +101,7 @@ public class CustomerServiceImpl implements CustomerService {
                         new ResourceNotFoundException(
                                 "Customer profile not found"));
 
-        return modelMapper.map(customer, CustomerResponseDto.class);
+        return mapToResponseDto(customer);
     }
 
     @Override
@@ -113,7 +112,7 @@ public class CustomerServiceImpl implements CustomerService {
                         new ResourceNotFoundException(
                                 "Customer not found"));
 
-        return modelMapper.map(customer, CustomerResponseDto.class);
+        return mapToResponseDto(customer);
     }
 
     @Override
@@ -132,7 +131,17 @@ public class CustomerServiceImpl implements CustomerService {
 
         Page<Customer> customers = customerRepository.findAll(pageable);
 
-        return customers.map(customer ->
-                modelMapper.map(customer, CustomerResponseDto.class));
+        return customers.map(this::mapToResponseDto);
+    }
+
+    private CustomerResponseDto mapToResponseDto(Customer customer) {
+
+        CustomerResponseDto dto =
+                modelMapper.map(customer, CustomerResponseDto.class);
+
+        dto.setUserId(customer.getUser().getId());
+        dto.setFullName(customer.getUser().getFullName());
+
+        return dto;
     }
 }

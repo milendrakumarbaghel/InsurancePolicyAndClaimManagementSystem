@@ -107,7 +107,7 @@ public class ClaimServiceImpl implements ClaimService {
         Claim savedClaim =
                 claimRepository.save(claim);
 
-        return modelMapper.map(savedClaim, ClaimResponseDto.class);
+        return mapToResponseDto(savedClaim);
     }
 
     @Override
@@ -118,6 +118,8 @@ public class ClaimServiceImpl implements ClaimService {
 
         Claim claim =
                 getClaimEntity(claimId);
+        claim.setAgentRemarks(request.getRemarks());
+        claim.setUpdatedAt(LocalDateTime.now());
 
         User agent =
                 userRepository.findByEmail(
@@ -152,7 +154,7 @@ public class ClaimServiceImpl implements ClaimService {
                 request.getRemarks(),
                 agent);
 
-        return modelMapper.map(updatedClaim, ClaimResponseDto.class);
+        return mapToResponseDto(updatedClaim);
     }
 
     @Override
@@ -163,6 +165,7 @@ public class ClaimServiceImpl implements ClaimService {
 
         Claim claim =
                 getClaimEntity(claimId);
+        claim.setAgentRemarks(remarks);
 
         User admin =
                 userRepository.findByEmail(
@@ -183,6 +186,7 @@ public class ClaimServiceImpl implements ClaimService {
 
         claim.setClaimStatus(
                 ClaimStatus.APPROVED);
+        claim.setUpdatedAt(LocalDateTime.now());
 
         Claim updatedClaim =
                 claimRepository.save(claim);
@@ -194,7 +198,7 @@ public class ClaimServiceImpl implements ClaimService {
                 remarks,
                 admin);
 
-        return modelMapper.map(updatedClaim, ClaimResponseDto.class);
+        return mapToResponseDto(updatedClaim);
     }
 
     @Override
@@ -220,6 +224,7 @@ public class ClaimServiceImpl implements ClaimService {
 
         claim.setClaimStatus(
                 ClaimStatus.REJECTED);
+        claim.setUpdatedAt(LocalDateTime.now());
 
         Claim updatedClaim =
                 claimRepository.save(claim);
@@ -231,14 +236,13 @@ public class ClaimServiceImpl implements ClaimService {
                 remarks,
                 admin);
 
-        return modelMapper.map(updatedClaim, ClaimResponseDto.class);
+        return mapToResponseDto(updatedClaim);
     }
 
     @Override
     public ClaimResponseDto getClaimById(
             Long claimId) {
-
-        return modelMapper.map(getClaimEntity(claimId), ClaimResponseDto.class);
+        return mapToResponseDto(getClaimEntity(claimId));
     }
 
     @Override
@@ -252,7 +256,7 @@ public class ClaimServiceImpl implements ClaimService {
                                 new ResourceNotFoundException(
                                         "Claim not found"));
 
-        return modelMapper.map(claim, ClaimResponseDto.class);
+        return mapToResponseDto(claim);
     }
 
     @Override
@@ -263,7 +267,7 @@ public class ClaimServiceImpl implements ClaimService {
                 .findByPolicyCustomerUserEmail(
                         customerEmail)
                 .stream()
-                .map(claim -> modelMapper.map(claim, ClaimResponseDto.class))
+                .map(this::mapToResponseDto)
                 .collect(Collectors.toList());
     }
 
@@ -284,7 +288,7 @@ public class ClaimServiceImpl implements ClaimService {
 
         return claimRepository
                 .findAll(pageable)
-                .map(claim -> modelMapper.map(claim, ClaimResponseDto.class));
+                .map(this::mapToResponseDto);
     }
 
     private Claim getClaimEntity(
@@ -317,5 +321,28 @@ public class ClaimServiceImpl implements ClaimService {
                 .toString()
                 .substring(0, 8)
                 .toUpperCase();
+    }
+
+    private ClaimResponseDto mapToResponseDto(Claim claim) {
+        ClaimResponseDto dto = modelMapper.map(claim, ClaimResponseDto.class);
+
+
+        if (claim.getPolicy() != null) {
+            dto.setPolicyId(claim.getPolicy().getId());
+            dto.setPolicyNumber(claim.getPolicy().getPolicyNumber());
+
+            if (claim.getPolicy().getCustomer() != null &&
+                    claim.getPolicy().getCustomer().getUser() != null) {
+                dto.setCustomerName(claim.getPolicy().getCustomer().getUser().getFullName());
+            }
+        }
+
+        if (claim.getClaimStatus() != null) {
+            dto.setClaimStatus(claim.getClaimStatus().name());
+        }
+        dto.setAgentRemarks(claim.getAgentRemarks());
+        dto.setAdminRemarks(claim.getAdminRemarks());
+
+        return dto;
     }
 }

@@ -21,6 +21,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -78,7 +79,7 @@ public class PolicyServiceImpl implements PolicyService {
         Policy savedPolicy =
                 policyRepository.save(policy);
 
-        return modelMapper.map(savedPolicy, PolicyResponseDto.class);
+        return mapToResponseDto(savedPolicy);
     }
 
     @Override
@@ -110,6 +111,7 @@ public class PolicyServiceImpl implements PolicyService {
 
         policy.setStartDate(
                 request.getStartDate());
+        policy.setUpdatedAt(LocalDateTime.now());
 
         policy.setEndDate(
                 request.getStartDate()
@@ -124,7 +126,7 @@ public class PolicyServiceImpl implements PolicyService {
         Policy savedPolicy =
                 policyRepository.save(policy);
 
-        return modelMapper.map(savedPolicy, PolicyResponseDto.class);
+        return mapToResponseDto(savedPolicy);
     }
 
     @Override
@@ -137,7 +139,7 @@ public class PolicyServiceImpl implements PolicyService {
                                 new ResourceNotFoundException(
                                         "Policy not found"));
 
-        return modelMapper.map(policy, PolicyResponseDto.class);
+        return mapToResponseDto(policy);
     }
 
     @Override
@@ -152,7 +154,7 @@ public class PolicyServiceImpl implements PolicyService {
                                 new ResourceNotFoundException(
                                         "Policy not found"));
 
-        return modelMapper.map(policy, PolicyResponseDto.class);
+        return mapToResponseDto(policy);
     }
 
     @Override
@@ -163,7 +165,7 @@ public class PolicyServiceImpl implements PolicyService {
                 .findByCustomerUserEmail(
                         customerEmail)
                 .stream()
-                .map(policy -> modelMapper.map(policy, PolicyResponseDto.class))
+                .map(this::mapToResponseDto)
                 .collect(Collectors.toList());
     }
 
@@ -184,7 +186,7 @@ public class PolicyServiceImpl implements PolicyService {
 
         return policyRepository
                 .findAll(pageable)
-                .map(policy -> modelMapper.map(policy, PolicyResponseDto.class));
+                .map(this::mapToResponseDto);
     }
 
     @Override
@@ -210,7 +212,7 @@ public class PolicyServiceImpl implements PolicyService {
         Policy updatedPolicy =
                 policyRepository.save(policy);
 
-        return modelMapper.map(updatedPolicy, PolicyResponseDto.class);
+        return mapToResponseDto(updatedPolicy);
     }
 
     private String generatePolicyNumber() {
@@ -220,5 +222,22 @@ public class PolicyServiceImpl implements PolicyService {
                 .toString()
                 .substring(0, 8)
                 .toUpperCase();
+    }
+
+    private PolicyResponseDto mapToResponseDto(Policy policy) {
+
+        PolicyResponseDto dto =
+                modelMapper.map(policy, PolicyResponseDto.class);
+
+        dto.setCustomerName(
+                policy.getCustomer().getUser().getFullName());
+
+        dto.setPlanName(
+                policy.getPlan().getPlanName());
+
+        dto.setStatus(
+                policy.getStatus().name());
+
+        return dto;
     }
 }

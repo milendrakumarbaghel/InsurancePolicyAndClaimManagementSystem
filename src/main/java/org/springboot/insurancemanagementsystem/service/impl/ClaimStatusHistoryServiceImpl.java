@@ -17,6 +17,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
+
 @Service
 @RequiredArgsConstructor
 public class ClaimStatusHistoryServiceImpl
@@ -42,6 +44,7 @@ public class ClaimStatusHistoryServiceImpl
         history.setNewStatus(newStatus);
         history.setRemarks(remarks);
         history.setUpdatedBy(updatedBy);
+        history.setUpdatedDate(LocalDateTime.now());
 
         historyRepository.save(history);
     }
@@ -70,6 +73,43 @@ public class ClaimStatusHistoryServiceImpl
 
         return historyRepository
                 .findByClaim(claim, pageable)
-                .map(claimHistory -> modelMapper.map(claimHistory, ClaimStatusHistoryResponse.class));
+                .map(this::mapToResponseDto);
+    }
+
+    private ClaimStatusHistoryResponse mapToResponseDto(
+            ClaimStatusHistory history) {
+
+        ClaimStatusHistoryResponse dto =
+                new ClaimStatusHistoryResponse();
+
+        dto.setHistoryId(history.getId());
+
+        dto.setClaimNumber(
+                history.getClaim().getClaimNumber());
+
+        dto.setPreviousStatus(
+                history.getPreviousStatus());
+
+        dto.setNewStatus(
+                history.getNewStatus());
+
+        dto.setRemarks(
+                history.getRemarks());
+
+        dto.setUpdatedAt(
+                history.getUpdatedDate());
+
+        if (history.getUpdatedBy() != null) {
+
+            dto.setUpdatedBy(
+                    history.getUpdatedBy().getFullName());
+
+            dto.setUpdatedByRole(
+                    history.getUpdatedBy()
+                            .getRole()
+                            .name());
+        }
+
+        return dto;
     }
 }

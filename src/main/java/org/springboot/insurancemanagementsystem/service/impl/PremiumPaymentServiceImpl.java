@@ -5,12 +5,14 @@ import org.modelmapper.ModelMapper;
 import org.springboot.insurancemanagementsystem.dto.PaymentRequestDto;
 import org.springboot.insurancemanagementsystem.dto.PaymentResponseDto;
 import org.springboot.insurancemanagementsystem.entitie.Policy;
+import org.springboot.insurancemanagementsystem.entitie.PolicyPlan;
 import org.springboot.insurancemanagementsystem.entitie.PremiumPayment;
 import org.springboot.insurancemanagementsystem.enums.PaymentMode;
 import org.springboot.insurancemanagementsystem.enums.PaymentStatus;
 import org.springboot.insurancemanagementsystem.enums.PolicyStatus;
 import org.springboot.insurancemanagementsystem.exception.BusinessException;
 import org.springboot.insurancemanagementsystem.exception.ResourceNotFoundException;
+import org.springboot.insurancemanagementsystem.repository.PolicyPlanRepository;
 import org.springboot.insurancemanagementsystem.repository.PolicyRepository;
 import org.springboot.insurancemanagementsystem.repository.PremiumPaymentRepository;
 import org.springboot.insurancemanagementsystem.service.PremiumPaymentService;
@@ -22,6 +24,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -31,6 +34,7 @@ public class PremiumPaymentServiceImpl
 
     private final PremiumPaymentRepository paymentRepository;
     private final PolicyRepository policyRepository;
+    private final PolicyPlanRepository policyPlanRepository;
     private final ModelMapper modelMapper;
 
     @Override
@@ -39,11 +43,21 @@ public class PremiumPaymentServiceImpl
             PaymentRequestDto request) {
 
         Policy policy =
-                policyRepository.findById(
-                                request.getPolicyId())
+                policyRepository.findByPolicyNumber(
+                                request.getPolicyNumber())
                         .orElseThrow(() ->
                                 new ResourceNotFoundException(
                                         "Policy not found"));
+        Optional<PolicyPlan> byId = policyPlanRepository.findById(request.getPolicyPlanId());
+        if (byId.isEmpty()) {
+            throw new ResourceNotFoundException("Policy plan not found with Id: " + request.getPolicyPlanId());
+        }
+
+        Double premiumAmount = byId.get().getPremiumAmount();
+        if (premiumAmount > request.getAmount()
+                || premiumAmount < request.getAmount()) {
+            throw new BusinessException("Payment amount must be equal to Premium Amount: " + premiumAmount);
+        }
 
         String transactionRef =
                 "TXN-" + System.currentTimeMillis();
@@ -96,7 +110,7 @@ public class PremiumPaymentServiceImpl
             policyRepository.save(policy);
         }
 
-        return modelMapper.map(savedPayment, PaymentResponseDto.class);
+        return mapToResponseDto(savedPayment);
     }
 
     @Override
@@ -110,7 +124,7 @@ public class PremiumPaymentServiceImpl
                                 new ResourceNotFoundException(
                                         "Payment not found"));
 
-        return modelMapper.map(payment, PaymentResponseDto.class);
+        return mapToResponseDto(payment);
     }
 
     @Override
@@ -120,7 +134,7 @@ public class PremiumPaymentServiceImpl
         return paymentRepository
                 .findByPolicy_Id(policyId)
                 .stream()
-                .map(premiumPayment -> modelMapper.map(premiumPayment, PaymentResponseDto.class))
+                .map(this::mapToResponseDto)
                 .collect(Collectors.toList());
     }
 
@@ -141,6 +155,30 @@ public class PremiumPaymentServiceImpl
 
         return paymentRepository
                 .findAll(pageable)
-                .map(premiumPayment -> modelMapper.map(premiumPayment, PaymentResponseDto.class));
+                .map(this::mapToResponseDto);
+    }
+
+    private PaymentResponseDto mapToResponseDto(
+            PremiumPayment payment) {
+
+        PaymentResponseDto dto =
+                modelMapper.map(
+                        payment,
+                        PaymentResponseDto.class);
+
+        dto.setPolicyNumber(
+                payment.getPolicy().getPolicyNumber());
+
+        if (payment.getPaymentMode() != null) {
+            dto.setPaymentMode(
+                    payment.getPaymentMode().name());
+        }
+
+        if (payment.getStatus() != null) {
+            dto.setStatus(
+                    payment.getStatus().name());
+        }
+
+        return dto;
     }
 }

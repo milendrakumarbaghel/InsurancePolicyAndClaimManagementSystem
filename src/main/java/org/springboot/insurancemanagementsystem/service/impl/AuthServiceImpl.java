@@ -22,6 +22,8 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
+
 @Service
 @RequiredArgsConstructor
 public class AuthServiceImpl implements AuthService {
@@ -48,6 +50,7 @@ public class AuthServiceImpl implements AuthService {
                 .password(passwordEncoder.encode(request.getPassword()))
                 .role(Role.CUSTOMER)
                 .active(true)
+                .createdAt(LocalDateTime.now())
                 .build();
 
         User savedUser = userRepository.save(user);
@@ -105,6 +108,7 @@ public class AuthServiceImpl implements AuthService {
                 .email(request.getEmail())
                 .mobileNumber(request.getMobileNumber())
                 .password(passwordEncoder.encode(request.getPassword()))
+                .createdAt(LocalDateTime.now())
                 .role(Role.AGENT)
                 .active(true)
                 .build();
