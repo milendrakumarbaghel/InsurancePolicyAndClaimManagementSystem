@@ -43,6 +43,7 @@ public class CustomerServiceImpl implements CustomerService {
         Customer customer = new Customer();
 
         customer.setUser(user);
+
         customer.setDateOfBirth(request.getDateOfBirth());
         customer.setAddress(request.getAddress());
         customer.setCity(request.getCity());
@@ -54,7 +55,12 @@ public class CustomerServiceImpl implements CustomerService {
         Customer savedCustomer =
                 customerRepository.save(customer);
 
-        return modelMapper.map(savedCustomer, CustomerResponseDto.class);
+//        return modelMapper.map(savedCustomer, CustomerResponseDto.class);
+        CustomerResponseDto customerResponseDto = modelMapper.map(savedCustomer, CustomerResponseDto.class);
+        customerResponseDto.setFullName(user.getFullName());
+
+        return  customerResponseDto;
+
     }
 
     @Override

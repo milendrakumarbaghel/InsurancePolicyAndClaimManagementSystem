@@ -127,4 +127,16 @@ public class InsuranceProductServiceImpl implements InsuranceProductService {
 
         productRepository.save(product);
     }
+
+    @Override
+    public void activateProduct(Long productId) {
+        InsuranceProduct product = productRepository.findById(productId)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException(
+                                "Product not found with id : " + productId));
+
+        product.setActive(true);
+
+        productRepository.save(product);
+    }
 }

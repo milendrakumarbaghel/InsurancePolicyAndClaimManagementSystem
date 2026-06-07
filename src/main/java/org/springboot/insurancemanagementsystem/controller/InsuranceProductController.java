@@ -111,4 +111,15 @@ public class InsuranceProductController {
         return ResponseEntity.ok(
                 "Product deactivated successfully");
     }
+
+    @PatchMapping("/{productId}/activate")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<String> activateProduct(
+            @PathVariable Long productId) {
+
+        insuranceProductService.activateProduct(productId);
+
+        return ResponseEntity.ok(
+                "Product activated successfully");
+    }
 }

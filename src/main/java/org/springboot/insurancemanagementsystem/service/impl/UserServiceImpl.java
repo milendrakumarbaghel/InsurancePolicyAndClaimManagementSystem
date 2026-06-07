@@ -29,7 +29,7 @@ public class UserServiceImpl implements UserService {
         Pageable pageable = PageRequest.of(
                 page,
                 size,
-                Sort.by("createdDate").descending());
+                Sort.by("createdAt").descending());
 
         return userRepository.findAll(pageable)
                 .map(this::mapToResponse);

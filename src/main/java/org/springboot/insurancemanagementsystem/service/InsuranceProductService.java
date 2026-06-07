@@ -24,4 +24,5 @@ public interface InsuranceProductService {
                                                String sortDir);
 
     void deactivateProduct(Long productId);
+    void activateProduct(Long productId);
 }
