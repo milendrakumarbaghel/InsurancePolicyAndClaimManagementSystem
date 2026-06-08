@@ -105,13 +105,10 @@ public class ClaimServiceImpl implements ClaimService {
         Claim savedClaim =
                 claimRepository.save(claim);
 
-<<<<<<< Updated upstream
         log.info("Claim {} raised successfully by customer {}",
                 savedClaim.getClaimNumber(),
                 customerEmail);
 
-        return mapToResponseDto(savedClaim);
-=======
         List<ClaimDocument> savedDocs = new ArrayList<>();
         for (ClaimDocumentRequest d : request.getDocuments()) {
             savedDocs.add(claimDocumentRepository.save(ClaimDocument.builder()
@@ -124,7 +121,6 @@ public class ClaimServiceImpl implements ClaimService {
         }
         recordHistory(savedClaim, null, ClaimStatus.SUBMITTED, "Claim submitted by customer", customer.getUser());
         return toClaimResponse(savedClaim, savedDocs);
->>>>>>> Stashed changes
     }
 
     @Override
@@ -176,7 +172,6 @@ public class ClaimServiceImpl implements ClaimService {
                 updatedClaim.getClaimStatus(),
                 request.getRemarks(),
                 agent);
-<<<<<<< Updated upstream
 
         log.info("Claim {} reviewed by agent {}. Status changed from {} to {}",
                 updatedClaim.getClaimNumber(),
@@ -184,10 +179,7 @@ public class ClaimServiceImpl implements ClaimService {
                 oldStatus,
                 updatedClaim.getClaimStatus());
 
-        return mapToResponseDto(updatedClaim);
-=======
         return toClaimResponse(updatedClaim, byClaimId);
->>>>>>> Stashed changes
     }
 
     @Override
@@ -202,12 +194,8 @@ public class ClaimServiceImpl implements ClaimService {
 
         Claim claim =
                 getClaimEntity(claimId);
-<<<<<<< Updated upstream
 
-        claim.setAgentRemarks(remarks);
-=======
         claim.setAdminRemarks(remarks);
->>>>>>> Stashed changes
 
         User admin =
                 userRepository.findByEmail(adminEmail)
@@ -245,15 +233,10 @@ public class ClaimServiceImpl implements ClaimService {
                 remarks,
                 admin);
 
-<<<<<<< Updated upstream
         log.info("Claim {} approved by admin {}",
                 updatedClaim.getClaimNumber(),
                 adminEmail);
-
-        return mapToResponseDto(updatedClaim);
-=======
         return toClaimResponse(updatedClaim, byClaimId);
->>>>>>> Stashed changes
     }
 
     @Override
@@ -295,32 +278,21 @@ public class ClaimServiceImpl implements ClaimService {
                 remarks,
                 admin);
 
-<<<<<<< Updated upstream
         log.info("Claim {} rejected by admin {}",
                 updatedClaim.getClaimNumber(),
                 adminEmail);
-
-        return mapToResponseDto(updatedClaim);
-=======
         List<ClaimDocument> byClaimId = claimDocumentRepository.findByClaimId(updatedClaim.getId());
         return toClaimResponse(updatedClaim, byClaimId);
->>>>>>> Stashed changes
     }
 
     @Override
     public ClaimResponseDto getClaimById(
             Long claimId) {
-<<<<<<< Updated upstream
 
         log.debug("Fetching claim by id={}", claimId);
-
-        return mapToResponseDto(
-                getClaimEntity(claimId));
-=======
         Claim claimEntity = getClaimEntity(claimId);
         List<ClaimDocument> byClaimId = claimDocumentRepository.findByClaimId(claimEntity.getId());
         return toClaimResponse(claimEntity, byClaimId);
->>>>>>> Stashed changes
     }
 
     @Override
@@ -343,15 +315,9 @@ public class ClaimServiceImpl implements ClaimService {
     @Override
     public List<ClaimResponseDto> getMyClaims(String customerEmail) {
 
-<<<<<<< Updated upstream
         log.debug("Fetching claims for customer={}",
                 customerEmail);
 
-        return claimRepository
-                .findByPolicyCustomerUserEmail(customerEmail)
-                .stream()
-                .map(this::mapToResponseDto)
-=======
         List<Claim> claims =
                 claimRepository.findByPolicyCustomerUserEmail(customerEmail);
 
@@ -362,7 +328,6 @@ public class ClaimServiceImpl implements ClaimService {
 
                     return toClaimResponse(claim, docs);
                 })
->>>>>>> Stashed changes
                 .collect(Collectors.toList());
     }
 
