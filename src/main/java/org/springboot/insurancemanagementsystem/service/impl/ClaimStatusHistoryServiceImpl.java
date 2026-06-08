@@ -1,6 +1,7 @@
 package org.springboot.insurancemanagementsystem.service.impl;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springboot.insurancemanagementsystem.dto.ClaimStatusHistoryResponse;
 import org.springboot.insurancemanagementsystem.entitie.Claim;
@@ -21,6 +22,7 @@ import java.time.LocalDateTime;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class ClaimStatusHistoryServiceImpl
         implements ClaimStatusHistoryService {
 
@@ -36,6 +38,14 @@ public class ClaimStatusHistoryServiceImpl
             String remarks,
             User updatedBy) {
 
+        log.info(
+                "Recording claim status change for claimNumber={}, oldStatus={}, newStatus={}, updatedBy={}",
+                claim.getClaimNumber(),
+                oldStatus,
+                newStatus,
+                updatedBy != null ? updatedBy.getEmail() : "SYSTEM"
+        );
+
         ClaimStatusHistory history =
                 new ClaimStatusHistory();
 
@@ -47,6 +57,11 @@ public class ClaimStatusHistoryServiceImpl
         history.setUpdatedDate(LocalDateTime.now());
 
         historyRepository.save(history);
+
+        log.info(
+                "Claim status history saved successfully for claimNumber={}",
+                claim.getClaimNumber()
+        );
     }
 
     @Override
@@ -57,11 +72,25 @@ public class ClaimStatusHistoryServiceImpl
             String sortBy,
             String sortDir) {
 
+        log.info(
+                "Fetching claim history for claimId={}, page={}, size={}",
+                claimId,
+                page,
+                size
+        );
+
         Claim claim = claimRepository
                 .findById(claimId)
-                .orElseThrow(() ->
-                        new ResourceNotFoundException(
-                                "Claim not found"));
+                .orElseThrow(() -> {
+
+                    log.warn(
+                            "Claim not found while fetching history. claimId={}",
+                            claimId
+                    );
+
+                    return new ResourceNotFoundException(
+                            "Claim not found");
+                });
 
         Sort sort =
                 sortDir.equalsIgnoreCase("asc")
@@ -71,9 +100,18 @@ public class ClaimStatusHistoryServiceImpl
         Pageable pageable =
                 PageRequest.of(page, size, sort);
 
-        return historyRepository
-                .findByClaim(claim, pageable)
-                .map(this::mapToResponseDto);
+        Page<ClaimStatusHistoryResponse> historyPage =
+                historyRepository
+                        .findByClaim(claim, pageable)
+                        .map(this::mapToResponseDto);
+
+        log.info(
+                "Claim history fetched successfully for claimNumber={}, records={}",
+                claim.getClaimNumber(),
+                historyPage.getTotalElements()
+        );
+
+        return historyPage;
     }
 
     private ClaimStatusHistoryResponse mapToResponseDto(

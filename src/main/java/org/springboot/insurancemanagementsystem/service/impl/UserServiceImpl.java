@@ -24,7 +24,14 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional(readOnly = true)
-    public Page<UserResponseDto> getAllUsers(int page, int size) {
+    public Page<UserResponseDto> getAllUsers(
+            int page,
+            int size) {
+
+        log.debug(
+                "Fetching all users. page={}, size={}",
+                page,
+                size);
 
         Pageable pageable = PageRequest.of(
                 page,
@@ -37,47 +44,82 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional(readOnly = true)
-    public UserResponseDto getUserById(Long id) {
+    public UserResponseDto getUserById(
+            Long id) {
+
+        log.debug(
+                "Fetching user by id={}",
+                id);
 
         User user = userRepository.findById(id)
-                .orElseThrow(() ->
-                        new ResourceNotFoundException(
-                                "User not found with id : " + id));
+                .orElseThrow(() -> {
+                    log.warn(
+                            "User not found with given id={}",
+                            id);
+
+                    return new ResourceNotFoundException(
+                            "User not found with id : " + id);
+                });
 
         return mapToResponse(user);
     }
 
     @Override
-    public void activateUser(Long id) {
+    public void activateUser(
+            Long id) {
+
+        log.info(
+                "User activation requested. userId={}",
+                id);
 
         User user = userRepository.findById(id)
-                .orElseThrow(() ->
-                        new ResourceNotFoundException(
-                                "User not found with id : " + id));
+                .orElseThrow(() -> {
+                    log.warn(
+                            "User not found with the id={}",
+                            id);
+
+                    return new ResourceNotFoundException(
+                            "User not found with id : " + id);
+                });
 
         user.setActive(true);
 
         userRepository.save(user);
 
-        log.info("User activated : {}", user.getEmail());
+        log.info(
+                "User activated successfully. email={}",
+                user.getEmail());
     }
 
     @Override
-    public void deactivateUser(Long id) {
+    public void deactivateUser(
+            Long id) {
+
+        log.info(
+                "User deactivation requested. userId={}",
+                id);
 
         User user = userRepository.findById(id)
-                .orElseThrow(() ->
-                        new ResourceNotFoundException(
-                                "User not found with id : " + id));
+                .orElseThrow(() -> {
+                    log.warn(
+                            "User not found with id={}",
+                            id);
+
+                    return new ResourceNotFoundException(
+                            "User not found with id : " + id);
+                });
 
         user.setActive(false);
 
         userRepository.save(user);
 
-        log.info("User deactivated : {}", user.getEmail());
+        log.info(
+                "User deactivated successfully. email={}",
+                user.getEmail());
     }
 
-    private UserResponseDto mapToResponse(User user) {
+    private UserResponseDto mapToResponse(
+            User user) {
 
         return UserResponseDto.builder()
                 .id(user.getId())

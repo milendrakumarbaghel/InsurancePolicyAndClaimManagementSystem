@@ -1,6 +1,7 @@
 package org.springboot.insurancemanagementsystem.service.impl;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springboot.insurancemanagementsystem.dto.PaymentRequestDto;
 import org.springboot.insurancemanagementsystem.dto.PaymentResponseDto;
@@ -29,6 +30,7 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class PremiumPaymentServiceImpl
         implements PremiumPaymentService {
 
@@ -42,42 +44,80 @@ public class PremiumPaymentServiceImpl
     public PaymentResponseDto recordPayment(
             PaymentRequestDto request) {
 
+        log.info("Payment request received for policyNumber={}",
+                request.getPolicyNumber());
+
         Policy policy =
                 policyRepository.findByPolicyNumber(
                                 request.getPolicyNumber())
-                        .orElseThrow(() ->
-                                new ResourceNotFoundException(
-                                        "Policy not found"));
-        Optional<PolicyPlan> byId = policyPlanRepository.findById(request.getPolicyPlanId());
-        if (byId.isEmpty()) {
-            throw new ResourceNotFoundException("Policy plan not found with Id: " + request.getPolicyPlanId());
+                        .orElseThrow(() -> {
+                            log.warn("Policy not found with number={}",
+                                    request.getPolicyNumber());
+                            return new ResourceNotFoundException(
+                                    "Policy not found");
+                        });
+
+        Optional<PolicyPlan> planOptional =
+                policyPlanRepository.findById(
+                        request.getPolicyPlanId());
+
+        if (planOptional.isEmpty()) {
+
+            log.warn("Policy plan not found with id={}",
+                    request.getPolicyPlanId());
+
+            throw new ResourceNotFoundException(
+                    "Policy plan not found with Id: "
+                            + request.getPolicyPlanId());
         }
 
-        Double premiumAmount = byId.get().getPremiumAmount();
-        if (premiumAmount > request.getAmount()
-                || premiumAmount < request.getAmount()) {
-            throw new BusinessException("Payment amount must be equal to Premium Amount: " + premiumAmount);
+        PolicyPlan plan = planOptional.get();
+
+        Double premiumAmount =
+                plan.getPremiumAmount();
+
+        if (!premiumAmount.equals(request.getAmount())) {
+
+            log.warn(
+                    "Invalid payment amount. Expected={}, Received={}",
+                    premiumAmount,
+                    request.getAmount());
+
+            throw new BusinessException(
+                    "Payment amount must be equal to Premium Amount: "
+                            + premiumAmount);
         }
 
         String transactionRef =
                 "TXN-" + System.currentTimeMillis();
 
+        log.debug("Generated transaction reference={}",
+                transactionRef);
+
         if (paymentRepository.existsByTransactionReference(
                 transactionRef)) {
+
+            log.warn("Duplicate transaction reference detected={}",
+                    transactionRef);
 
             throw new BusinessException(
                     "Duplicate transaction reference");
         }
 
-        Double totalPremiumPaid = policy.getTotalPremiumPaid();
+        Double totalPremiumPaid =
+                policy.getTotalPremiumPaid();
+
         PremiumPayment payment =
                 new PremiumPayment();
 
         payment.setPolicy(policy);
-        payment.setAmount(request.getAmount());
-        payment.setPaymentMode(
-                PaymentMode.valueOf(request.getPaymentMode()));
 
+        payment.setAmount(
+                request.getAmount());
+
+        payment.setPaymentMode(
+                PaymentMode.valueOf(
+                        request.getPaymentMode()));
 
         payment.setTransactionReference(
                 transactionRef);
@@ -85,29 +125,54 @@ public class PremiumPaymentServiceImpl
         PremiumPayment savedPayment =
                 paymentRepository.save(payment);
 
-        if (totalPremiumPaid < (savedPayment.getAmount() + totalPremiumPaid)) {
-            payment.setStatus(
-                    PaymentStatus.valueOf("SUCCESS"));
-        } else {
-            payment.setStatus(PaymentStatus.valueOf("FAILED"));
-        }
+        if (totalPremiumPaid <
+                (savedPayment.getAmount() + totalPremiumPaid)) {
 
+            payment.setStatus(
+                    PaymentStatus.SUCCESS);
+
+            log.info(
+                    "Payment successful. TransactionRef={}, Amount={}",
+                    transactionRef,
+                    savedPayment.getAmount());
+
+        } else {
+
+            payment.setStatus(
+                    PaymentStatus.FAILED);
+
+            log.warn(
+                    "Payment failed. TransactionRef={}",
+                    transactionRef);
+        }
 
         if (savedPayment.getStatus()
                 == PaymentStatus.SUCCESS) {
 
-            Double totalPaid = policy.getTotalPremiumPaid() + request.getAmount();
+            Double totalPaid =
+                    policy.getTotalPremiumPaid()
+                            + request.getAmount();
 
-            policy.setTotalPremiumPaid(totalPaid);
+            policy.setTotalPremiumPaid(
+                    totalPaid);
 
             if (policy.getStatus()
                     == PolicyStatus.PENDING_PAYMENT) {
 
                 policy.setStatus(
                         PolicyStatus.ACTIVE);
+
+                log.info(
+                        "Policy activated after successful payment. PolicyNumber={}",
+                        policy.getPolicyNumber());
             }
 
             policyRepository.save(policy);
+
+            log.info(
+                    "Policy payment updated. PolicyNumber={}, TotalPaid={}",
+                    policy.getPolicyNumber(),
+                    totalPaid);
         }
 
         return mapToResponseDto(savedPayment);
@@ -117,12 +182,20 @@ public class PremiumPaymentServiceImpl
     public PaymentResponseDto getPaymentById(
             Long paymentId) {
 
+        log.debug("Fetching payment by id={}",
+                paymentId);
+
         PremiumPayment payment =
                 paymentRepository.findById(
                                 paymentId)
-                        .orElseThrow(() ->
-                                new ResourceNotFoundException(
-                                        "Payment not found"));
+                        .orElseThrow(() -> {
+                            log.warn(
+                                    "Payment not found with id={}",
+                                    paymentId);
+
+                            return new ResourceNotFoundException(
+                                    "Payment not found");
+                        });
 
         return mapToResponseDto(payment);
     }
@@ -130,6 +203,10 @@ public class PremiumPaymentServiceImpl
     @Override
     public List<PaymentResponseDto> getPolicyPayments(
             Long policyId) {
+
+        log.debug(
+                "Fetching payment history for policyId={}",
+                policyId);
 
         return paymentRepository
                 .findByPolicy_Id(policyId)
@@ -144,6 +221,13 @@ public class PremiumPaymentServiceImpl
             int size,
             String sortBy,
             String sortDir) {
+
+        log.debug(
+                "Fetching all payments. page={}, size={}, sortBy={}, sortDir={}",
+                page,
+                size,
+                sortBy,
+                sortDir);
 
         Sort sort =
                 sortDir.equalsIgnoreCase("asc")
@@ -167,16 +251,21 @@ public class PremiumPaymentServiceImpl
                         PaymentResponseDto.class);
 
         dto.setPolicyNumber(
-                payment.getPolicy().getPolicyNumber());
+                payment.getPolicy()
+                        .getPolicyNumber());
 
         if (payment.getPaymentMode() != null) {
+
             dto.setPaymentMode(
-                    payment.getPaymentMode().name());
+                    payment.getPaymentMode()
+                            .name());
         }
 
         if (payment.getStatus() != null) {
+
             dto.setStatus(
-                    payment.getStatus().name());
+                    payment.getStatus()
+                            .name());
         }
 
         return dto;

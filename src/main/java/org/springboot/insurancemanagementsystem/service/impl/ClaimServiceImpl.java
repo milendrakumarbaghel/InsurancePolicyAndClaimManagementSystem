@@ -1,6 +1,7 @@
 package org.springboot.insurancemanagementsystem.service.impl;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springboot.insurancemanagementsystem.dto.ClaimRequestDto;
 import org.springboot.insurancemanagementsystem.dto.ClaimResponseDto;
@@ -32,6 +33,7 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class ClaimServiceImpl implements ClaimService {
 
     private final ClaimRepository claimRepository;
@@ -46,16 +48,18 @@ public class ClaimServiceImpl implements ClaimService {
             ClaimRequestDto request,
             String customerEmail) {
 
+        log.info("Customer {} attempting to raise claim for policyId={}",
+                customerEmail,
+                request.getPolicyId());
+
         Customer customer =
-                customerRepository.findByUserEmail(
-                                customerEmail)
+                customerRepository.findByUserEmail(customerEmail)
                         .orElseThrow(() ->
                                 new ResourceNotFoundException(
                                         "Customer not found"));
 
         Policy policy =
-                policyRepository.findById(
-                                request.getPolicyId())
+                policyRepository.findById(request.getPolicyId())
                         .orElseThrow(() ->
                                 new ResourceNotFoundException(
                                         "Policy not found"));
@@ -64,12 +68,18 @@ public class ClaimServiceImpl implements ClaimService {
                 .getId()
                 .equals(customer.getId())) {
 
+            log.warn("Claim rejected. Policy {} does not belong to customer {}",
+                    policy.getId(),
+                    customerEmail);
+
             throw new BusinessException(
                     "Policy does not belong to customer");
         }
 
-        if (policy.getStatus()
-                != PolicyStatus.ACTIVE) {
+        if (policy.getStatus() != PolicyStatus.ACTIVE) {
+
+            log.warn("Claim rejected. Policy {} is not ACTIVE",
+                    policy.getPolicyNumber());
 
             throw new BusinessException(
                     "Claim can be raised only on active policy");
@@ -79,33 +89,31 @@ public class ClaimServiceImpl implements ClaimService {
                 .compareTo(policy.getPlan()
                         .getCoverageAmount()) > 0) {
 
+            log.warn("Claim amount {} exceeds coverage amount {}",
+                    request.getClaimAmount(),
+                    policy.getPlan().getCoverageAmount());
+
             throw new BusinessException(
                     "Claim amount exceeds coverage");
         }
 
         Claim claim = new Claim();
 
-        claim.setClaimNumber(
-                generateClaimNumber());
-
+        claim.setClaimNumber(generateClaimNumber());
         claim.setPolicy(policy);
-
-        claim.setClaimAmount(
-                request.getClaimAmount());
-
-        claim.setClaimReason(
-                request.getClaimReason());
-
-        claim.setIncidentDate(
-                request.getIncidentDate());
-
-        claim.setClaimStatus(
-                ClaimStatus.SUBMITTED);
+        claim.setClaimAmount(request.getClaimAmount());
+        claim.setClaimReason(request.getClaimReason());
+        claim.setIncidentDate(request.getIncidentDate());
+        claim.setClaimStatus(ClaimStatus.SUBMITTED);
         claim.setCreatedAt(LocalDateTime.now());
         claim.setUpdatedAt(LocalDateTime.now());
 
         Claim savedClaim =
                 claimRepository.save(claim);
+
+        log.info("Claim {} raised successfully by customer {}",
+                savedClaim.getClaimNumber(),
+                customerEmail);
 
         return mapToResponseDto(savedClaim);
     }
@@ -116,14 +124,18 @@ public class ClaimServiceImpl implements ClaimService {
             ClaimReviewRequestDto request,
             String agentEmail) {
 
+        log.info("Agent {} reviewing claimId={}",
+                agentEmail,
+                claimId);
+
         Claim claim =
                 getClaimEntity(claimId);
+
         claim.setAgentRemarks(request.getRemarks());
         claim.setUpdatedAt(LocalDateTime.now());
 
         User agent =
-                userRepository.findByEmail(
-                                agentEmail)
+                userRepository.findByEmail(agentEmail)
                         .orElseThrow(() ->
                                 new ResourceNotFoundException(
                                         "Agent not found"));
@@ -154,6 +166,12 @@ public class ClaimServiceImpl implements ClaimService {
                 request.getRemarks(),
                 agent);
 
+        log.info("Claim {} reviewed by agent {}. Status changed from {} to {}",
+                updatedClaim.getClaimNumber(),
+                agentEmail,
+                oldStatus,
+                updatedClaim.getClaimStatus());
+
         return mapToResponseDto(updatedClaim);
     }
 
@@ -163,19 +181,27 @@ public class ClaimServiceImpl implements ClaimService {
             String remarks,
             String adminEmail) {
 
+        log.info("Admin {} approving claimId={}",
+                adminEmail,
+                claimId);
+
         Claim claim =
                 getClaimEntity(claimId);
+
         claim.setAgentRemarks(remarks);
 
         User admin =
-                userRepository.findByEmail(
-                                adminEmail)
+                userRepository.findByEmail(adminEmail)
                         .orElseThrow(() ->
                                 new ResourceNotFoundException(
                                         "Admin not found"));
 
         if (claim.getClaimStatus()
                 != ClaimStatus.RECOMMENDED_APPROVAL) {
+
+            log.warn("Claim {} cannot be approved. Current status={}",
+                    claim.getClaimNumber(),
+                    claim.getClaimStatus());
 
             throw new BusinessException(
                     "Claim not recommended for approval");
@@ -198,6 +224,10 @@ public class ClaimServiceImpl implements ClaimService {
                 remarks,
                 admin);
 
+        log.info("Claim {} approved by admin {}",
+                updatedClaim.getClaimNumber(),
+                adminEmail);
+
         return mapToResponseDto(updatedClaim);
     }
 
@@ -207,12 +237,15 @@ public class ClaimServiceImpl implements ClaimService {
             String remarks,
             String adminEmail) {
 
+        log.info("Admin {} rejecting claimId={}",
+                adminEmail,
+                claimId);
+
         Claim claim =
                 getClaimEntity(claimId);
 
         User admin =
-                userRepository.findByEmail(
-                                adminEmail)
+                userRepository.findByEmail(adminEmail)
                         .orElseThrow(() ->
                                 new ResourceNotFoundException(
                                         "Admin not found"));
@@ -236,22 +269,32 @@ public class ClaimServiceImpl implements ClaimService {
                 remarks,
                 admin);
 
+        log.info("Claim {} rejected by admin {}",
+                updatedClaim.getClaimNumber(),
+                adminEmail);
+
         return mapToResponseDto(updatedClaim);
     }
 
     @Override
     public ClaimResponseDto getClaimById(
             Long claimId) {
-        return mapToResponseDto(getClaimEntity(claimId));
+
+        log.debug("Fetching claim by id={}", claimId);
+
+        return mapToResponseDto(
+                getClaimEntity(claimId));
     }
 
     @Override
     public ClaimResponseDto getClaimByNumber(
             String claimNumber) {
 
+        log.debug("Fetching claim by number={}",
+                claimNumber);
+
         Claim claim =
-                claimRepository.findByClaimNumber(
-                                claimNumber)
+                claimRepository.findByClaimNumber(claimNumber)
                         .orElseThrow(() ->
                                 new ResourceNotFoundException(
                                         "Claim not found"));
@@ -263,9 +306,11 @@ public class ClaimServiceImpl implements ClaimService {
     public List<ClaimResponseDto> getMyClaims(
             String customerEmail) {
 
+        log.debug("Fetching claims for customer={}",
+                customerEmail);
+
         return claimRepository
-                .findByPolicyCustomerUserEmail(
-                        customerEmail)
+                .findByPolicyCustomerUserEmail(customerEmail)
                 .stream()
                 .map(this::mapToResponseDto)
                 .collect(Collectors.toList());
@@ -277,6 +322,10 @@ public class ClaimServiceImpl implements ClaimService {
             int size,
             String sortBy,
             String sortDir) {
+
+        log.debug("Fetching all claims page={}, size={}",
+                page,
+                size);
 
         Sort sort =
                 sortDir.equalsIgnoreCase("asc")
@@ -305,9 +354,11 @@ public class ClaimServiceImpl implements ClaimService {
 
         if (claim.getClaimStatus()
                 == ClaimStatus.APPROVED
-                ||
-                claim.getClaimStatus()
-                        == ClaimStatus.REJECTED) {
+                || claim.getClaimStatus()
+                == ClaimStatus.REJECTED) {
+
+            log.warn("Modification attempted on finalized claim {}",
+                    claim.getClaimNumber());
 
             throw new BusinessException(
                     "Approved or rejected claim cannot be modified");
@@ -324,24 +375,41 @@ public class ClaimServiceImpl implements ClaimService {
     }
 
     private ClaimResponseDto mapToResponseDto(Claim claim) {
-        ClaimResponseDto dto = modelMapper.map(claim, ClaimResponseDto.class);
 
+        ClaimResponseDto dto =
+                modelMapper.map(
+                        claim,
+                        ClaimResponseDto.class);
 
         if (claim.getPolicy() != null) {
-            dto.setPolicyId(claim.getPolicy().getId());
-            dto.setPolicyNumber(claim.getPolicy().getPolicyNumber());
 
-            if (claim.getPolicy().getCustomer() != null &&
-                    claim.getPolicy().getCustomer().getUser() != null) {
-                dto.setCustomerName(claim.getPolicy().getCustomer().getUser().getFullName());
+            dto.setPolicyId(
+                    claim.getPolicy().getId());
+
+            dto.setPolicyNumber(
+                    claim.getPolicy().getPolicyNumber());
+
+            if (claim.getPolicy().getCustomer() != null
+                    && claim.getPolicy().getCustomer().getUser() != null) {
+
+                dto.setCustomerName(
+                        claim.getPolicy()
+                                .getCustomer()
+                                .getUser()
+                                .getFullName());
             }
         }
 
         if (claim.getClaimStatus() != null) {
-            dto.setClaimStatus(claim.getClaimStatus().name());
+            dto.setClaimStatus(
+                    claim.getClaimStatus().name());
         }
-        dto.setAgentRemarks(claim.getAgentRemarks());
-        dto.setAdminRemarks(claim.getAdminRemarks());
+
+        dto.setAgentRemarks(
+                claim.getAgentRemarks());
+
+        dto.setAdminRemarks(
+                claim.getAdminRemarks());
 
         return dto;
     }

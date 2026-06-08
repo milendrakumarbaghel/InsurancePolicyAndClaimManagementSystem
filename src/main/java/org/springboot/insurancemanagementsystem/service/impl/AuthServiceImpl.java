@@ -1,6 +1,7 @@
 package org.springboot.insurancemanagementsystem.service.impl;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springboot.insurancemanagementsystem.dto.LoginRequestDto;
 import org.springboot.insurancemanagementsystem.dto.LoginResponseDto;
@@ -12,8 +13,8 @@ import org.springboot.insurancemanagementsystem.exception.DuplicateResourceExcep
 import org.springboot.insurancemanagementsystem.exception.InvalidCredentialsException;
 import org.springboot.insurancemanagementsystem.exception.UserInactiveException;
 import org.springboot.insurancemanagementsystem.repository.UserRepository;
-import org.springboot.insurancemanagementsystem.service.AuthService;
 import org.springboot.insurancemanagementsystem.security.util.JwtUtil;
+import org.springboot.insurancemanagementsystem.service.AuthService;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.AuthenticationException;
@@ -26,6 +27,7 @@ import java.time.LocalDateTime;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class AuthServiceImpl implements AuthService {
 
     private final UserRepository userRepository;
@@ -35,10 +37,15 @@ public class AuthServiceImpl implements AuthService {
     private final ModelMapper modelMapper;
     private final UserDetailsService userDetailsService;
 
-
     @Override
     public UserResponseDto register(RegisterRequestDto request) {
+
+        log.info("Registration request received for email: {}", request.getEmail());
+
         if (userRepository.existsByEmail(request.getEmail())) {
+
+            log.warn("Registration failed. Email already exists: {}", request.getEmail());
+
             throw new DuplicateResourceException(
                     "Email already registered");
         }
@@ -55,17 +62,33 @@ public class AuthServiceImpl implements AuthService {
 
         User savedUser = userRepository.save(user);
 
-        return modelMapper.map(savedUser,UserResponseDto.class);
+        log.info(
+                "Customer registered successfully. UserId={}, Email={}",
+                savedUser.getId(),
+                savedUser.getEmail()
+        );
+
+        return modelMapper.map(savedUser, UserResponseDto.class);
     }
 
     @Override
     public LoginResponseDto login(LoginRequestDto request) {
+
+        log.info("Login attempt for email: {}", request.getEmail());
+
         User user = userRepository.findByEmail(request.getEmail())
-                .orElseThrow(() ->
-                        new InvalidCredentialsException(
-                                "Invalid email or password"));
+                .orElseThrow(() -> {
+
+                    log.warn("Login failed. User not found: {}", request.getEmail());
+
+                    return new InvalidCredentialsException(
+                            "Invalid email or password");
+                });
 
         if (!user.isActive()) {
+
+            log.warn("Inactive user attempted login: {}", request.getEmail());
+
             throw new UserInactiveException(
                     "User account is inactive");
         }
@@ -79,12 +102,23 @@ public class AuthServiceImpl implements AuthService {
 
         } catch (AuthenticationException ex) {
 
+            log.warn("Invalid login credentials for email: {}", request.getEmail());
+
             throw new InvalidCredentialsException(
                     "Invalid email or password");
         }
 
-        UserDetails userDetails = userDetailsService.loadUserByUsername(user.getEmail());
-        String token = jwtUtil.generateToken(userDetails);
+        UserDetails userDetails =
+                userDetailsService.loadUserByUsername(user.getEmail());
+
+        String token =
+                jwtUtil.generateToken(userDetails);
+
+        log.info(
+                "User logged in successfully. Email={}, Role={}",
+                user.getEmail(),
+                user.getRole()
+        );
 
         return LoginResponseDto.builder()
                 .token(token)
@@ -98,7 +132,12 @@ public class AuthServiceImpl implements AuthService {
     @Override
     public UserResponseDto createAgent(RegisterRequestDto request) {
 
+        log.info("Agent creation request received for email: {}", request.getEmail());
+
         if (userRepository.existsByEmail(request.getEmail())) {
+
+            log.warn("Agent creation failed. Email already exists: {}", request.getEmail());
+
             throw new DuplicateResourceException(
                     "Email already registered");
         }
@@ -115,6 +154,12 @@ public class AuthServiceImpl implements AuthService {
 
         User savedUser = userRepository.save(user);
 
-        return modelMapper.map(savedUser,UserResponseDto.class);
+        log.info(
+                "Agent created successfully. UserId={}, Email={}",
+                savedUser.getId(),
+                savedUser.getEmail()
+        );
+
+        return modelMapper.map(savedUser, UserResponseDto.class);
     }
 }

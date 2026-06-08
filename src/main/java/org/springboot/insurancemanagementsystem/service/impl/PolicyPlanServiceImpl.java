@@ -1,6 +1,7 @@
 package org.springboot.insurancemanagementsystem.service.impl;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springboot.insurancemanagementsystem.dto.PolicyPlanRequestDto;
 import org.springboot.insurancemanagementsystem.dto.PolicyPlanResponseDto;
@@ -12,10 +13,7 @@ import org.springboot.insurancemanagementsystem.exception.ResourceNotFoundExcept
 import org.springboot.insurancemanagementsystem.repository.InsuranceProductRepository;
 import org.springboot.insurancemanagementsystem.repository.PolicyPlanRepository;
 import org.springboot.insurancemanagementsystem.service.PolicyPlanService;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -23,8 +21,8 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
-public class PolicyPlanServiceImpl
-        implements PolicyPlanService {
+@Slf4j
+public class PolicyPlanServiceImpl implements PolicyPlanService {
 
     private final PolicyPlanRepository planRepository;
     private final InsuranceProductRepository productRepository;
@@ -34,14 +32,30 @@ public class PolicyPlanServiceImpl
     public PolicyPlanResponseDto createPlan(
             PolicyPlanRequestDto request) {
 
+        log.info(
+                "Plan creation request received. PlanName={}, ProductId={}",
+                request.getPlanName(),
+                request.getProductId());
+
         InsuranceProduct product =
                 productRepository.findById(
                                 request.getProductId())
-                        .orElseThrow(() ->
-                                new ResourceNotFoundException(
-                                        "Product not found"));
+                        .orElseThrow(() -> {
+
+                            log.warn(
+                                    "Product not found while creating plan. ProductId={}",
+                                    request.getProductId());
+
+                            return new ResourceNotFoundException(
+                                    "Product not found");
+                        });
 
         if (!product.isActive()) {
+
+            log.warn(
+                    "Attempt to create plan for inactive product. ProductId={}",
+                    product.getId());
+
             throw new BusinessException(
                     "Cannot create plan for inactive product");
         }
@@ -54,7 +68,8 @@ public class PolicyPlanServiceImpl
         plan.setPlanName(request.getPlanName());
         plan.setCoverageAmount(request.getCoverageAmount());
         plan.setPremiumAmount(request.getPremiumAmount());
-        plan.setPremiumType(PremiumType.valueOf(request.getPremiumType()));
+        plan.setPremiumType(
+                PremiumType.valueOf(request.getPremiumType()));
         plan.setDuration(request.getDuration());
         plan.setTermsAndConditions(
                 request.getTermsAndConditions());
@@ -62,6 +77,11 @@ public class PolicyPlanServiceImpl
 
         PolicyPlan savedPlan =
                 planRepository.save(plan);
+
+        log.info(
+                "Policy plan created successfully. PlanId={}, PlanName={}",
+                savedPlan.getId(),
+                savedPlan.getPlanName());
 
         return mapToResponseDto(savedPlan);
     }
@@ -71,18 +91,34 @@ public class PolicyPlanServiceImpl
             Long planId,
             PolicyPlanRequestDto request) {
 
+        log.info(
+                "Plan update request received. PlanId={}",
+                planId);
+
         PolicyPlan plan =
                 planRepository.findById(planId)
-                        .orElseThrow(() ->
-                                new ResourceNotFoundException(
-                                        "Plan not found"));
+                        .orElseThrow(() -> {
+
+                            log.warn(
+                                    "Plan not found for update. PlanId={}",
+                                    planId);
+
+                            return new ResourceNotFoundException(
+                                    "Plan not found");
+                        });
 
         InsuranceProduct product =
                 productRepository.findById(
                                 request.getProductId())
-                        .orElseThrow(() ->
-                                new ResourceNotFoundException(
-                                        "Product not found"));
+                        .orElseThrow(() -> {
+
+                            log.warn(
+                                    "Product not found during plan update. ProductId={}",
+                                    request.getProductId());
+
+                            return new ResourceNotFoundException(
+                                    "Product not found");
+                        });
 
         validatePlan(request);
 
@@ -90,7 +126,8 @@ public class PolicyPlanServiceImpl
         plan.setPlanName(request.getPlanName());
         plan.setCoverageAmount(request.getCoverageAmount());
         plan.setPremiumAmount(request.getPremiumAmount());
-        plan.setPremiumType(PremiumType.valueOf(request.getPremiumType()));
+        plan.setPremiumType(
+                PremiumType.valueOf(request.getPremiumType()));
         plan.setDuration(request.getDuration());
         plan.setTermsAndConditions(
                 request.getTermsAndConditions());
@@ -99,15 +136,32 @@ public class PolicyPlanServiceImpl
         PolicyPlan updatedPlan =
                 planRepository.save(plan);
 
+        log.info(
+                "Policy plan updated successfully. PlanId={}, PlanName={}",
+                updatedPlan.getId(),
+                updatedPlan.getPlanName());
+
         return mapToResponseDto(updatedPlan);
     }
 
     @Override
     public PolicyPlanResponseDto getPlanById(Long planId) {
 
-        PolicyPlan plan = planRepository.findById(planId)
-                .orElseThrow(() ->
-                        new ResourceNotFoundException("Plan not found"));
+        log.info(
+                "Fetching policy plan. PlanId={}",
+                planId);
+
+        PolicyPlan plan =
+                planRepository.findById(planId)
+                        .orElseThrow(() -> {
+
+                            log.warn(
+                                    "Plan not found. PlanId={}",
+                                    planId);
+
+                            return new ResourceNotFoundException(
+                                    "Plan not found");
+                        });
 
         return mapToResponseDto(plan);
     }
@@ -116,12 +170,23 @@ public class PolicyPlanServiceImpl
     public List<PolicyPlanResponseDto> getPlansByProduct(
             Long productId) {
 
-        return planRepository
-                .findByProduct_IdAndActiveTrue(
-                        productId)
-                .stream()
-                .map(this::mapToResponseDto)
-                .collect(Collectors.toList());
+        log.info(
+                "Fetching plans by product. ProductId={}",
+                productId);
+
+        List<PolicyPlanResponseDto> plans =
+                planRepository
+                        .findByProduct_IdAndActiveTrue(productId)
+                        .stream()
+                        .map(this::mapToResponseDto)
+                        .collect(Collectors.toList());
+
+        log.info(
+                "Plans fetched successfully. ProductId={}, Count={}",
+                productId,
+                plans.size());
+
+        return plans;
     }
 
     @Override
@@ -131,6 +196,13 @@ public class PolicyPlanServiceImpl
             String sortBy,
             String sortDir) {
 
+        log.info(
+                "Fetching all plans. Page={}, Size={}, SortBy={}, SortDir={}",
+                page,
+                size,
+                sortBy,
+                sortDir);
+
         Sort sort =
                 sortDir.equalsIgnoreCase("asc")
                         ? Sort.by(sortBy).ascending()
@@ -139,8 +211,12 @@ public class PolicyPlanServiceImpl
         Pageable pageable =
                 PageRequest.of(page, size, sort);
 
-        Page<PolicyPlan> policyPlans = planRepository
-                .findAll(pageable);
+        Page<PolicyPlan> policyPlans =
+                planRepository.findAll(pageable);
+
+        log.info(
+                "Plans fetched successfully. TotalRecords={}",
+                policyPlans.getTotalElements());
 
         return policyPlans.map(this::mapToResponseDto);
     }
@@ -148,48 +224,88 @@ public class PolicyPlanServiceImpl
     @Override
     public void deactivatePlan(Long planId) {
 
+        log.info(
+                "Plan deactivation request received. PlanId={}",
+                planId);
+
         PolicyPlan plan =
                 planRepository.findById(planId)
-                        .orElseThrow(() ->
-                                new ResourceNotFoundException(
-                                        "Plan not found"));
+                        .orElseThrow(() -> {
+
+                            log.warn(
+                                    "Plan not found for deactivation. PlanId={}",
+                                    planId);
+
+                            return new ResourceNotFoundException(
+                                    "Plan not found");
+                        });
 
         plan.setActive(false);
 
         planRepository.save(plan);
+
+        log.info(
+                "Policy plan deactivated successfully. PlanId={}, PlanName={}",
+                plan.getId(),
+                plan.getPlanName());
     }
 
-    private void validatePlan(PolicyPlanRequestDto request) {
+    private void validatePlan(
+            PolicyPlanRequestDto request) {
 
         if (request.getCoverageAmount() == null
                 || request.getCoverageAmount() <= 0) {
+
+            log.warn(
+                    "Invalid coverage amount provided: {}",
+                    request.getCoverageAmount());
+
             throw new BusinessException(
                     "Coverage amount must be greater than zero");
         }
 
         if (request.getPremiumAmount() == null
                 || request.getPremiumAmount() <= 0) {
+
+            log.warn(
+                    "Invalid premium amount provided: {}",
+                    request.getPremiumAmount());
+
             throw new BusinessException(
                     "Premium amount must be greater than zero");
         }
 
         if (request.getCoverageAmount()
                 <= request.getPremiumAmount()) {
+
+            log.warn(
+                    "Coverage amount must be greater than premium amount. Coverage={}, Premium={}",
+                    request.getCoverageAmount(),
+                    request.getPremiumAmount());
+
             throw new BusinessException(
                     "Coverage amount must be greater than premium amount");
         }
 
         if (request.getDuration() == null
                 || request.getDuration() <= 0) {
+
+            log.warn(
+                    "Invalid duration provided: {}",
+                    request.getDuration());
+
             throw new BusinessException(
                     "Duration must be greater than zero");
         }
     }
 
-    private PolicyPlanResponseDto mapToResponseDto(PolicyPlan plan) {
+    private PolicyPlanResponseDto mapToResponseDto(
+            PolicyPlan plan) {
 
         PolicyPlanResponseDto dto =
-                modelMapper.map(plan, PolicyPlanResponseDto.class);
+                modelMapper.map(
+                        plan,
+                        PolicyPlanResponseDto.class);
 
         dto.setProductName(
                 plan.getProduct().getProductName());

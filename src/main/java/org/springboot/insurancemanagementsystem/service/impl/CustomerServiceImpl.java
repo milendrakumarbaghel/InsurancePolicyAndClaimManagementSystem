@@ -1,6 +1,7 @@
 package org.springboot.insurancemanagementsystem.service.impl;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springboot.insurancemanagementsystem.dto.CustomerRequestDto;
 import org.springboot.insurancemanagementsystem.dto.CustomerResponseDto;
@@ -21,6 +22,7 @@ import java.time.LocalDateTime;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class CustomerServiceImpl implements CustomerService {
 
     private final CustomerRepository customerRepository;
@@ -29,15 +31,25 @@ public class CustomerServiceImpl implements CustomerService {
 
     @Override
     public CustomerResponseDto createProfile(
-            CustomerRequestDto request, String email) {
+            CustomerRequestDto request,
+            String email) {
+
+        log.info("Customer profile creation requested by user: {}", email);
 
         User user = userRepository.findByEmail(email)
-                .orElseThrow(() ->
-                        new ResourceNotFoundException(
-                                "User not found"));
+                .orElseThrow(() -> {
+                    log.warn("User not found while creating customer profile: {}", email);
+                    return new ResourceNotFoundException(
+                            "User not found");
+                });
 
-        // Check if a customer profile already exists for this user
         if (customerRepository.existsByUserId(user.getId())) {
+
+            log.warn(
+                    "Customer profile already exists for userId={}, email={}",
+                    user.getId(),
+                    email);
+
             throw new BusinessException(
                     "Customer profile already exists");
         }
@@ -45,7 +57,6 @@ public class CustomerServiceImpl implements CustomerService {
         Customer customer = new Customer();
 
         customer.setUser(user);
-
         customer.setDateOfBirth(request.getDateOfBirth());
         customer.setAddress(request.getAddress());
         customer.setCity(request.getCity());
@@ -58,6 +69,11 @@ public class CustomerServiceImpl implements CustomerService {
         Customer savedCustomer =
                 customerRepository.save(customer);
 
+        log.info(
+                "Customer profile created successfully. CustomerId={}, UserId={}",
+                savedCustomer.getId(),
+                user.getId());
+
         return mapToResponseDto(savedCustomer);
     }
 
@@ -67,12 +83,28 @@ public class CustomerServiceImpl implements CustomerService {
             CustomerRequestDto request,
             String email) {
 
+        log.info(
+                "Customer profile update requested. CustomerId={}, Email={}",
+                customerId,
+                email);
+
         Customer customer = customerRepository.findById(customerId)
-                .orElseThrow(() ->
-                        new ResourceNotFoundException(
-                                "Customer not found"));
+                .orElseThrow(() -> {
+                    log.warn(
+                            "Customer not found while updating profile. CustomerId={}",
+                            customerId);
+
+                    return new ResourceNotFoundException(
+                            "Customer not found");
+                });
 
         if (!customer.getUser().getEmail().equals(email)) {
+
+            log.warn(
+                    "Unauthorized profile update attempt. CustomerId={}, RequestedBy={}",
+                    customerId,
+                    email);
+
             throw new BusinessException(
                     "You are not allowed to update another customer's profile");
         }
@@ -89,17 +121,28 @@ public class CustomerServiceImpl implements CustomerService {
         Customer updatedCustomer =
                 customerRepository.save(customer);
 
+        log.info(
+                "Customer profile updated successfully. CustomerId={}",
+                customerId);
+
         return mapToResponseDto(updatedCustomer);
     }
 
     @Override
     public CustomerResponseDto getMyProfile(String email) {
 
+        log.info("Fetching customer profile for user: {}", email);
+
         Customer customer = customerRepository
                 .findByUserEmail(email)
-                .orElseThrow(() ->
-                        new ResourceNotFoundException(
-                                "Customer profile not found"));
+                .orElseThrow(() -> {
+                    log.warn(
+                            "Customer profile not found for email: {}",
+                            email);
+
+                    return new ResourceNotFoundException(
+                            "Customer profile not found");
+                });
 
         return mapToResponseDto(customer);
     }
@@ -107,10 +150,17 @@ public class CustomerServiceImpl implements CustomerService {
     @Override
     public CustomerResponseDto getCustomerById(Long customerId) {
 
+        log.info("Fetching customer details. CustomerId={}", customerId);
+
         Customer customer = customerRepository.findById(customerId)
-                .orElseThrow(() ->
-                        new ResourceNotFoundException(
-                                "Customer not found"));
+                .orElseThrow(() -> {
+                    log.warn(
+                            "Customer not found. CustomerId={}",
+                            customerId);
+
+                    return new ResourceNotFoundException(
+                            "Customer not found");
+                });
 
         return mapToResponseDto(customer);
     }
@@ -122,6 +172,13 @@ public class CustomerServiceImpl implements CustomerService {
             String sortBy,
             String sortDir) {
 
+        log.info(
+                "Fetching all customers. Page={}, Size={}, SortBy={}, SortDir={}",
+                page,
+                size,
+                sortBy,
+                sortDir);
+
         Sort sort = sortDir.equalsIgnoreCase("asc")
                 ? Sort.by(sortBy).ascending()
                 : Sort.by(sortBy).descending();
@@ -129,7 +186,12 @@ public class CustomerServiceImpl implements CustomerService {
         Pageable pageable =
                 PageRequest.of(page, size, sort);
 
-        Page<Customer> customers = customerRepository.findAll(pageable);
+        Page<Customer> customers =
+                customerRepository.findAll(pageable);
+
+        log.info(
+                "Customer list fetched successfully. TotalRecords={}",
+                customers.getTotalElements());
 
         return customers.map(this::mapToResponseDto);
     }
@@ -137,10 +199,15 @@ public class CustomerServiceImpl implements CustomerService {
     private CustomerResponseDto mapToResponseDto(Customer customer) {
 
         CustomerResponseDto dto =
-                modelMapper.map(customer, CustomerResponseDto.class);
+                modelMapper.map(
+                        customer,
+                        CustomerResponseDto.class);
 
-        dto.setUserId(customer.getUser().getId());
-        dto.setFullName(customer.getUser().getFullName());
+        dto.setUserId(
+                customer.getUser().getId());
+
+        dto.setFullName(
+                customer.getUser().getFullName());
 
         return dto;
     }
