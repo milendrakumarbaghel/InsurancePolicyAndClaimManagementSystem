@@ -4,6 +4,7 @@ import org.springboot.insurancemanagementsystem.dto.ClaimRequestDto;
 import org.springboot.insurancemanagementsystem.dto.ClaimResponseDto;
 import org.springboot.insurancemanagementsystem.dto.ClaimReviewRequestDto;
 import org.springframework.data.domain.Page;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -11,6 +12,7 @@ public interface ClaimService {
 
     ClaimResponseDto raiseClaim(
             ClaimRequestDto request,
+            MultipartFile document,
             String customerEmail);
 
     ClaimResponseDto reviewClaim(

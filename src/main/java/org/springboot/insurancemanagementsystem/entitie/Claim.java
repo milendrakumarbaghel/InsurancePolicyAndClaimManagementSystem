@@ -30,6 +30,9 @@ public class Claim {
 
     private String claimReason;
 
+    @Column(length = 1000)
+    private String documentUrl;
+
     private LocalDate incidentDate;
 
     @Enumerated(EnumType.STRING)
