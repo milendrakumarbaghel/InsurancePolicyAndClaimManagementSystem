@@ -2,6 +2,7 @@ package org.springboot.insurancemanagementsystem.controller;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springboot.insurancemanagementsystem.dto.LoginRequestDto;
 import org.springboot.insurancemanagementsystem.dto.LoginResponseDto;
 import org.springboot.insurancemanagementsystem.dto.RegisterRequestDto;
@@ -16,6 +17,7 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/auth")
 @RequiredArgsConstructor
 @CrossOrigin(origins = "*")
+@Slf4j
 public class AuthController {
 
     private final AuthService authService;
@@ -24,8 +26,11 @@ public class AuthController {
     public ResponseEntity<UserResponseDto> register(
             @Valid @RequestBody RegisterRequestDto request) {
 
-        UserResponseDto response =
-                authService.register(request);
+        log.info("Registration request received for email: {}", request.getEmail());
+
+        UserResponseDto response = authService.register(request);
+
+        log.info("User registered successfully with email: {}", response.getEmail());
 
         return new ResponseEntity<>(
                 response,
@@ -37,8 +42,11 @@ public class AuthController {
     public ResponseEntity<LoginResponseDto> login(
             @Valid @RequestBody LoginRequestDto request) {
 
-        LoginResponseDto response =
-                authService.login(request);
+        log.info("Login request received for email: {}", request.getEmail());
+
+        LoginResponseDto response = authService.login(request);
+
+        log.info("User logged in successfully: {}", request.getEmail());
 
         return ResponseEntity.ok(response);
     }
@@ -48,8 +56,11 @@ public class AuthController {
     public ResponseEntity<UserResponseDto> createAgent(
             @Valid @RequestBody RegisterRequestDto request) {
 
-        UserResponseDto response =
-                authService.createAgent(request);
+        log.info("Agent creation request received for email: {}", request.getEmail());
+
+        UserResponseDto response = authService.createAgent(request);
+
+        log.info("Agent created successfully with email: {}", response.getEmail());
 
         return new ResponseEntity<>(
                 response,

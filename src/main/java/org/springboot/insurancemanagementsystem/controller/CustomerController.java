@@ -2,6 +2,7 @@ package org.springboot.insurancemanagementsystem.controller;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springboot.insurancemanagementsystem.dto.CustomerRequestDto;
 import org.springboot.insurancemanagementsystem.dto.CustomerResponseDto;
 import org.springboot.insurancemanagementsystem.service.CustomerService;
@@ -15,6 +16,7 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/api/customers")
 @RequiredArgsConstructor
+@Slf4j
 public class CustomerController {
 
     private final CustomerService customerService;
@@ -25,10 +27,16 @@ public class CustomerController {
             @Valid @RequestBody CustomerRequestDto request,
             Authentication authentication) {
 
+        log.info("Customer profile creation request received for user: {}",
+                authentication.getName());
+
         CustomerResponseDto response =
                 customerService.createProfile(
                         request,
                         authentication.getName());
+
+        log.info("Customer profile created successfully. Customer ID: {}",
+                response.getId());
 
         return new ResponseEntity<>(
                 response,
@@ -42,11 +50,19 @@ public class CustomerController {
             @Valid @RequestBody CustomerRequestDto request,
             Authentication authentication) {
 
+        log.info(
+                "Customer profile update request received. Customer ID: {}, User: {}",
+                customerId,
+                authentication.getName());
+
         CustomerResponseDto response =
                 customerService.updateProfile(
                         customerId,
                         request,
                         authentication.getName());
+
+        log.info("Customer profile updated successfully. Customer ID: {}",
+                customerId);
 
         return ResponseEntity.ok(response);
     }
@@ -56,9 +72,17 @@ public class CustomerController {
     public ResponseEntity<CustomerResponseDto> getMyProfile(
             Authentication authentication) {
 
-        return ResponseEntity.ok(
+        log.info("Fetching profile for customer: {}",
+                authentication.getName());
+
+        CustomerResponseDto response =
                 customerService.getMyProfile(
-                        authentication.getName()));
+                        authentication.getName());
+
+        log.info("Customer profile retrieved successfully for user: {}",
+                authentication.getName());
+
+        return ResponseEntity.ok(response);
     }
 
     @GetMapping("/{customerId}")
@@ -66,9 +90,17 @@ public class CustomerController {
     public ResponseEntity<CustomerResponseDto> getCustomerById(
             @PathVariable Long customerId) {
 
-        return ResponseEntity.ok(
+        log.info("Fetching customer profile. Customer ID: {}",
+                customerId);
+
+        CustomerResponseDto response =
                 customerService.getCustomerById(
-                        customerId));
+                        customerId);
+
+        log.info("Customer profile retrieved successfully. Customer ID: {}",
+                customerId);
+
+        return ResponseEntity.ok(response);
     }
 
     @GetMapping
@@ -87,11 +119,24 @@ public class CustomerController {
             @RequestParam(defaultValue = "desc")
             String sortDir) {
 
-        return ResponseEntity.ok(
+        log.info(
+                "Fetching customers | page: {}, size: {}, sortBy: {}, sortDir: {}",
+                page,
+                size,
+                sortBy,
+                sortDir);
+
+        Page<CustomerResponseDto> customers =
                 customerService.getAllCustomers(
                         page,
                         size,
                         sortBy,
-                        sortDir));
+                        sortDir);
+
+        log.info(
+                "Retrieved {} customer records",
+                customers.getNumberOfElements());
+
+        return ResponseEntity.ok(customers);
     }
 }

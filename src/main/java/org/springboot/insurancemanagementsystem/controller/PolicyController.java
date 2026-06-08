@@ -2,6 +2,7 @@ package org.springboot.insurancemanagementsystem.controller;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springboot.insurancemanagementsystem.dto.PolicyRequestDto;
 import org.springboot.insurancemanagementsystem.dto.PolicyResponseDto;
 import org.springboot.insurancemanagementsystem.service.PolicyService;
@@ -17,6 +18,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/policies")
 @RequiredArgsConstructor
+@Slf4j
 public class PolicyController {
 
     private final PolicyService policyService;
@@ -27,10 +29,21 @@ public class PolicyController {
             @PathVariable Long planId,
             Authentication authentication) {
 
+        log.info(
+                "Policy purchase request received from customer: {} for planId: {}",
+                authentication.getName(),
+                planId
+        );
+
         PolicyResponseDto response =
                 policyService.purchasePolicy(
                         planId,
                         authentication.getName());
+
+        log.info(
+                "Policy purchased successfully. Policy Number: {}",
+                response.getPolicyNumber()
+        );
 
         return new ResponseEntity<>(
                 response,
@@ -42,8 +55,19 @@ public class PolicyController {
     public ResponseEntity<PolicyResponseDto> issuePolicy(
             @Valid @RequestBody PolicyRequestDto request) {
 
+        log.info(
+                "Policy issuance request received for customerId: {} and planId: {}",
+                request.getCustomerId(),
+                request.getPlanId()
+        );
+
         PolicyResponseDto response =
                 policyService.issuePolicy(request);
+
+        log.info(
+                "Policy issued successfully. Policy Number: {}",
+                response.getPolicyNumber()
+        );
 
         return new ResponseEntity<>(
                 response,
@@ -55,8 +79,20 @@ public class PolicyController {
     public ResponseEntity<PolicyResponseDto> getPolicyById(
             @PathVariable Long policyId) {
 
-        return ResponseEntity.ok(
-                policyService.getPolicyById(policyId));
+        log.info(
+                "Fetching policy details for policyId: {}",
+                policyId
+        );
+
+        PolicyResponseDto response =
+                policyService.getPolicyById(policyId);
+
+        log.info(
+                "Policy details retrieved successfully for policyId: {}",
+                policyId
+        );
+
+        return ResponseEntity.ok(response);
     }
 
     @GetMapping("/number/{policyNumber}")
@@ -64,8 +100,20 @@ public class PolicyController {
     public ResponseEntity<PolicyResponseDto> getPolicyByNumber(
             @PathVariable String policyNumber) {
 
-        return ResponseEntity.ok(
-                policyService.getPolicyByNumber(policyNumber));
+        log.info(
+                "Fetching policy details for policyNumber: {}",
+                policyNumber
+        );
+
+        PolicyResponseDto response =
+                policyService.getPolicyByNumber(policyNumber);
+
+        log.info(
+                "Policy retrieved successfully for policyNumber: {}",
+                policyNumber
+        );
+
+        return ResponseEntity.ok(response);
     }
 
     @GetMapping("/my")
@@ -73,9 +121,22 @@ public class PolicyController {
     public ResponseEntity<List<PolicyResponseDto>> getMyPolicies(
             Authentication authentication) {
 
-        return ResponseEntity.ok(
+        log.info(
+                "Fetching policies for customer: {}",
+                authentication.getName()
+        );
+
+        List<PolicyResponseDto> policies =
                 policyService.getMyPolicies(
-                        authentication.getName()));
+                        authentication.getName());
+
+        log.info(
+                "Retrieved {} policies for customer: {}",
+                policies.size(),
+                authentication.getName()
+        );
+
+        return ResponseEntity.ok(policies);
     }
 
     @GetMapping
@@ -94,12 +155,27 @@ public class PolicyController {
             @RequestParam(defaultValue = "desc")
             String sortDir) {
 
-        return ResponseEntity.ok(
+        log.info(
+                "Fetching all policies | page: {}, size: {}, sortBy: {}, sortDir: {}",
+                page,
+                size,
+                sortBy,
+                sortDir
+        );
+
+        Page<PolicyResponseDto> policies =
                 policyService.getAllPolicies(
                         page,
                         size,
                         sortBy,
-                        sortDir));
+                        sortDir);
+
+        log.info(
+                "Retrieved {} policy records",
+                policies.getNumberOfElements()
+        );
+
+        return ResponseEntity.ok(policies);
     }
 
     @PatchMapping("/{policyId}/cancel")
@@ -107,7 +183,19 @@ public class PolicyController {
     public ResponseEntity<PolicyResponseDto> cancelPolicy(
             @PathVariable Long policyId) {
 
-        return ResponseEntity.ok(
-                policyService.cancelPolicy(policyId));
+        log.info(
+                "Policy cancellation request received for policyId: {}",
+                policyId
+        );
+
+        PolicyResponseDto response =
+                policyService.cancelPolicy(policyId);
+
+        log.info(
+                "Policy cancelled successfully. Policy Number: {}",
+                response.getPolicyNumber()
+        );
+
+        return ResponseEntity.ok(response);
     }
 }

@@ -2,6 +2,7 @@ package org.springboot.insurancemanagementsystem.controller;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springboot.insurancemanagementsystem.dto.PaymentRequestDto;
 import org.springboot.insurancemanagementsystem.dto.PaymentResponseDto;
 import org.springboot.insurancemanagementsystem.service.PremiumPaymentService;
@@ -16,6 +17,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/payments")
 @RequiredArgsConstructor
+@Slf4j
 public class PremiumPaymentController {
 
     private final PremiumPaymentService premiumPaymentService;
@@ -25,8 +27,19 @@ public class PremiumPaymentController {
     public ResponseEntity<PaymentResponseDto> recordPayment(
             @Valid @RequestBody PaymentRequestDto request) {
 
+        log.info(
+                "Payment request received for policy number: {}",
+                request.getPolicyNumber()
+        );
+
         PaymentResponseDto response =
                 premiumPaymentService.recordPayment(request);
+
+        log.info(
+                "Payment recorded successfully. Payment ID: {}, Transaction Ref: {}",
+                response.getId(),
+                response.getTransactionReference()
+        );
 
         return new ResponseEntity<>(
                 response,
@@ -38,8 +51,20 @@ public class PremiumPaymentController {
     public ResponseEntity<PaymentResponseDto> getPaymentById(
             @PathVariable Long paymentId) {
 
-        return ResponseEntity.ok(
-                premiumPaymentService.getPaymentById(paymentId));
+        log.info(
+                "Fetching payment details for paymentId: {}",
+                paymentId
+        );
+
+        PaymentResponseDto response =
+                premiumPaymentService.getPaymentById(paymentId);
+
+        log.info(
+                "Payment details retrieved successfully for paymentId: {}",
+                paymentId
+        );
+
+        return ResponseEntity.ok(response);
     }
 
     @GetMapping("/policy/{policyId}")
@@ -47,8 +72,21 @@ public class PremiumPaymentController {
     public ResponseEntity<List<PaymentResponseDto>> getPolicyPayments(
             @PathVariable Long policyId) {
 
-        return ResponseEntity.ok(
-                premiumPaymentService.getPolicyPayments(policyId));
+        log.info(
+                "Fetching payment history for policyId: {}",
+                policyId
+        );
+
+        List<PaymentResponseDto> payments =
+                premiumPaymentService.getPolicyPayments(policyId);
+
+        log.info(
+                "Retrieved {} payment records for policyId: {}",
+                payments.size(),
+                policyId
+        );
+
+        return ResponseEntity.ok(payments);
     }
 
     @GetMapping
@@ -67,11 +105,26 @@ public class PremiumPaymentController {
             @RequestParam(defaultValue = "desc")
             String sortDir) {
 
-        return ResponseEntity.ok(
+        log.info(
+                "Fetching all payments | page: {}, size: {}, sortBy: {}, sortDir: {}",
+                page,
+                size,
+                sortBy,
+                sortDir
+        );
+
+        Page<PaymentResponseDto> payments =
                 premiumPaymentService.getAllPayments(
                         page,
                         size,
                         sortBy,
-                        sortDir));
+                        sortDir);
+
+        log.info(
+                "Retrieved {} payment records",
+                payments.getNumberOfElements()
+        );
+
+        return ResponseEntity.ok(payments);
     }
 }

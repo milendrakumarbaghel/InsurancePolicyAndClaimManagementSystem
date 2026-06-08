@@ -2,6 +2,7 @@ package org.springboot.insurancemanagementsystem.controller;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springboot.insurancemanagementsystem.dto.PolicyPlanRequestDto;
 import org.springboot.insurancemanagementsystem.dto.PolicyPlanResponseDto;
 import org.springboot.insurancemanagementsystem.service.PolicyPlanService;
@@ -16,6 +17,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/plans")
 @RequiredArgsConstructor
+@Slf4j
 public class PolicyPlanController {
 
     private final PolicyPlanService policyPlanService;
@@ -25,8 +27,20 @@ public class PolicyPlanController {
     public ResponseEntity<PolicyPlanResponseDto> createPlan(
             @Valid @RequestBody PolicyPlanRequestDto request) {
 
+        log.info(
+                "Policy plan creation request received for plan: {} and productId: {}",
+                request.getPlanName(),
+                request.getProductId()
+        );
+
         PolicyPlanResponseDto response =
                 policyPlanService.createPlan(request);
+
+        log.info(
+                "Policy plan created successfully. Plan ID: {}, Plan Name: {}",
+                response.getId(),
+                response.getPlanName()
+        );
 
         return new ResponseEntity<>(
                 response,
@@ -39,10 +53,22 @@ public class PolicyPlanController {
             @PathVariable Long planId,
             @Valid @RequestBody PolicyPlanRequestDto request) {
 
-        return ResponseEntity.ok(
+        log.info(
+                "Policy plan update request received for planId: {}",
+                planId
+        );
+
+        PolicyPlanResponseDto response =
                 policyPlanService.updatePlan(
                         planId,
-                        request));
+                        request);
+
+        log.info(
+                "Policy plan updated successfully. Plan ID: {}",
+                planId
+        );
+
+        return ResponseEntity.ok(response);
     }
 
     @GetMapping("/{planId}")
@@ -50,8 +76,20 @@ public class PolicyPlanController {
     public ResponseEntity<PolicyPlanResponseDto> getPlanById(
             @PathVariable Long planId) {
 
-        return ResponseEntity.ok(
-                policyPlanService.getPlanById(planId));
+        log.info(
+                "Fetching policy plan details for planId: {}",
+                planId
+        );
+
+        PolicyPlanResponseDto response =
+                policyPlanService.getPlanById(planId);
+
+        log.info(
+                "Policy plan details retrieved successfully for planId: {}",
+                planId
+        );
+
+        return ResponseEntity.ok(response);
     }
 
     @GetMapping("/product/{productId}")
@@ -59,8 +97,21 @@ public class PolicyPlanController {
     public ResponseEntity<List<PolicyPlanResponseDto>> getPlansByProduct(
             @PathVariable Long productId) {
 
-        return ResponseEntity.ok(
-                policyPlanService.getPlansByProduct(productId));
+        log.info(
+                "Fetching policy plans for productId: {}",
+                productId
+        );
+
+        List<PolicyPlanResponseDto> plans =
+                policyPlanService.getPlansByProduct(productId);
+
+        log.info(
+                "Retrieved {} policy plans for productId: {}",
+                plans.size(),
+                productId
+        );
+
+        return ResponseEntity.ok(plans);
     }
 
     @GetMapping
@@ -79,12 +130,27 @@ public class PolicyPlanController {
             @RequestParam(defaultValue = "desc")
             String sortDir) {
 
-        return ResponseEntity.ok(
+        log.info(
+                "Fetching all policy plans | page: {}, size: {}, sortBy: {}, sortDir: {}",
+                page,
+                size,
+                sortBy,
+                sortDir
+        );
+
+        Page<PolicyPlanResponseDto> plans =
                 policyPlanService.getAllPlans(
                         page,
                         size,
                         sortBy,
-                        sortDir));
+                        sortDir);
+
+        log.info(
+                "Retrieved {} policy plan records",
+                plans.getNumberOfElements()
+        );
+
+        return ResponseEntity.ok(plans);
     }
 
     @PatchMapping("/{planId}/deactivate")
@@ -92,7 +158,17 @@ public class PolicyPlanController {
     public ResponseEntity<String> deactivatePlan(
             @PathVariable Long planId) {
 
+        log.info(
+                "Policy plan deactivation request received for planId: {}",
+                planId
+        );
+
         policyPlanService.deactivatePlan(planId);
+
+        log.info(
+                "Policy plan deactivated successfully. Plan ID: {}",
+                planId
+        );
 
         return ResponseEntity.ok(
                 "Policy plan deactivated successfully");

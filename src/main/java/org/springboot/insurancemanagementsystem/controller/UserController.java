@@ -1,6 +1,7 @@
 package org.springboot.insurancemanagementsystem.controller;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springboot.insurancemanagementsystem.dto.UserResponseDto;
 import org.springboot.insurancemanagementsystem.service.UserService;
 import org.springframework.data.domain.Page;
@@ -11,6 +12,7 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/api/users")
 @RequiredArgsConstructor
+@Slf4j
 public class UserController {
 
     private final UserService userService;
@@ -25,9 +27,14 @@ public class UserController {
             @RequestParam(defaultValue = "10")
             int size) {
 
-        return ResponseEntity.ok(
-                userService.getAllUsers(page, size)
-        );
+        log.info("Admin requested user list. Page: {}, Size: {}", page, size);
+
+        Page<UserResponseDto> users =
+                userService.getAllUsers(page, size);
+
+        log.info("Retrieved {} users", users.getNumberOfElements());
+
+        return ResponseEntity.ok(users);
     }
 
     @GetMapping("/{id}")
@@ -35,9 +42,14 @@ public class UserController {
     public ResponseEntity<UserResponseDto> getUserById(
             @PathVariable Long id) {
 
-        return ResponseEntity.ok(
-                userService.getUserById(id)
-        );
+        log.info("Admin requested user details for ID: {}", id);
+
+        UserResponseDto user =
+                userService.getUserById(id);
+
+        log.info("User details retrieved successfully for ID: {}", id);
+
+        return ResponseEntity.ok(user);
     }
 
     @PatchMapping("/{id}/activate")
@@ -45,7 +57,11 @@ public class UserController {
     public ResponseEntity<String> activateUser(
             @PathVariable Long id) {
 
+        log.info("Admin attempting to activate user ID: {}", id);
+
         userService.activateUser(id);
+
+        log.info("User activated successfully. ID: {}", id);
 
         return ResponseEntity.ok(
                 "User activated successfully"
@@ -57,7 +73,11 @@ public class UserController {
     public ResponseEntity<String> deactivateUser(
             @PathVariable Long id) {
 
+        log.info("Admin attempting to deactivate user ID: {}", id);
+
         userService.deactivateUser(id);
+
+        log.info("User deactivated successfully. ID: {}", id);
 
         return ResponseEntity.ok(
                 "User deactivated successfully"

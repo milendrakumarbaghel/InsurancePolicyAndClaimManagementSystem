@@ -2,6 +2,7 @@ package org.springboot.insurancemanagementsystem.controller;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springboot.insurancemanagementsystem.dto.ProductRequestDto;
 import org.springboot.insurancemanagementsystem.dto.ProductResponseDto;
 import org.springboot.insurancemanagementsystem.service.InsuranceProductService;
@@ -14,6 +15,7 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/api/products")
 @RequiredArgsConstructor
+@Slf4j
 public class InsuranceProductController {
 
     private final InsuranceProductService insuranceProductService;
@@ -23,8 +25,15 @@ public class InsuranceProductController {
     public ResponseEntity<ProductResponseDto> createProduct(
             @Valid @RequestBody ProductRequestDto requestDto) {
 
+        log.info("Product creation request received for product: {}",
+                requestDto.getProductName());
+
         ProductResponseDto response =
                 insuranceProductService.createProduct(requestDto);
+
+        log.info("Product created successfully. Product ID: {}, Product Name: {}",
+                response.getId(),
+                response.getProductName());
 
         return new ResponseEntity<>(
                 response,
@@ -37,10 +46,18 @@ public class InsuranceProductController {
             @PathVariable Long productId,
             @Valid @RequestBody ProductRequestDto requestDto) {
 
-        return ResponseEntity.ok(
+        log.info("Product update request received. Product ID: {}",
+                productId);
+
+        ProductResponseDto response =
                 insuranceProductService.updateProduct(
                         productId,
-                        requestDto));
+                        requestDto);
+
+        log.info("Product updated successfully. Product ID: {}",
+                productId);
+
+        return ResponseEntity.ok(response);
     }
 
     @GetMapping("/{productId}")
@@ -48,9 +65,17 @@ public class InsuranceProductController {
     public ResponseEntity<ProductResponseDto> getProductById(
             @PathVariable Long productId) {
 
-        return ResponseEntity.ok(
+        log.info("Fetching product details. Product ID: {}",
+                productId);
+
+        ProductResponseDto response =
                 insuranceProductService.getProductById(
-                        productId));
+                        productId);
+
+        log.info("Product details retrieved successfully. Product ID: {}",
+                productId);
+
+        return ResponseEntity.ok(response);
     }
 
     @GetMapping
@@ -69,12 +94,24 @@ public class InsuranceProductController {
             @RequestParam(defaultValue = "desc")
             String sortDir) {
 
-        return ResponseEntity.ok(
+        log.info(
+                "Fetching all products | page: {}, size: {}, sortBy: {}, sortDir: {}",
+                page,
+                size,
+                sortBy,
+                sortDir);
+
+        Page<ProductResponseDto> products =
                 insuranceProductService.getAllProducts(
                         page,
                         size,
                         sortBy,
-                        sortDir));
+                        sortDir);
+
+        log.info("Retrieved {} product records",
+                products.getNumberOfElements());
+
+        return ResponseEntity.ok(products);
     }
 
     @GetMapping("/active")
@@ -93,12 +130,23 @@ public class InsuranceProductController {
             @RequestParam(defaultValue = "desc")
             String sortDir) {
 
-        return ResponseEntity.ok(
+        log.info(
+                "Fetching active products | page: {}, size: {}, sortBy: {}, sortDir: {}",
+                page,
+                size,
+                sortBy,
+                sortDir);
+
+        Page<ProductResponseDto> products =
                 insuranceProductService.getActiveProducts(
                         page,
                         size,
                         sortBy,
-                        sortDir));
+                        sortDir);
+
+        log.info("Retrieved {} active product records ", products.getNumberOfElements());
+
+        return ResponseEntity.ok(products);
     }
 
     @PatchMapping("/{productId}/deactivate")
@@ -106,7 +154,13 @@ public class InsuranceProductController {
     public ResponseEntity<String> deactivateProduct(
             @PathVariable Long productId) {
 
+        log.info("Product deactivation request received. Product ID: {}",
+                productId);
+
         insuranceProductService.deactivateProduct(productId);
+
+        log.info("Product deactivated successfully. Product ID: {}",
+                productId);
 
         return ResponseEntity.ok(
                 "Product deactivated successfully");
@@ -117,7 +171,13 @@ public class InsuranceProductController {
     public ResponseEntity<String> activateProduct(
             @PathVariable Long productId) {
 
+        log.info("Product activation request received. Product ID: {}",
+                productId);
+
         insuranceProductService.activateProduct(productId);
+
+        log.info("Product activated successfully. Product ID: {}",
+                productId);
 
         return ResponseEntity.ok(
                 "Product activated successfully");
