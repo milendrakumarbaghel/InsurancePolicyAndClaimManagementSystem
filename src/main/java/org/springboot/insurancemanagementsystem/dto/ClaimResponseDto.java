@@ -2,6 +2,8 @@ package org.springboot.insurancemanagementsystem.dto;
 
 import lombok.*;
 
+import java.util.List;
+
 @Getter
 @Setter
 @ToString
@@ -18,4 +20,5 @@ public class ClaimResponseDto {
     private String claimStatus;
     private String agentRemarks;
     private String adminRemarks;
+    private List<ClaimDocumentResponse> documents;
 }

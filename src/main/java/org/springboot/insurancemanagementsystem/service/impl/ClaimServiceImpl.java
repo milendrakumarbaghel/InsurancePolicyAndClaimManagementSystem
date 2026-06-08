@@ -3,21 +3,13 @@ package org.springboot.insurancemanagementsystem.service.impl;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
-import org.springboot.insurancemanagementsystem.dto.ClaimRequestDto;
-import org.springboot.insurancemanagementsystem.dto.ClaimResponseDto;
-import org.springboot.insurancemanagementsystem.dto.ClaimReviewRequestDto;
-import org.springboot.insurancemanagementsystem.entitie.Claim;
-import org.springboot.insurancemanagementsystem.entitie.Customer;
-import org.springboot.insurancemanagementsystem.entitie.Policy;
-import org.springboot.insurancemanagementsystem.entitie.User;
+import org.springboot.insurancemanagementsystem.dto.*;
+import org.springboot.insurancemanagementsystem.entitie.*;
 import org.springboot.insurancemanagementsystem.enums.ClaimStatus;
 import org.springboot.insurancemanagementsystem.enums.PolicyStatus;
 import org.springboot.insurancemanagementsystem.exception.BusinessException;
 import org.springboot.insurancemanagementsystem.exception.ResourceNotFoundException;
-import org.springboot.insurancemanagementsystem.repository.ClaimRepository;
-import org.springboot.insurancemanagementsystem.repository.CustomerRepository;
-import org.springboot.insurancemanagementsystem.repository.PolicyRepository;
-import org.springboot.insurancemanagementsystem.repository.UserRepository;
+import org.springboot.insurancemanagementsystem.repository.*;
 import org.springboot.insurancemanagementsystem.service.ClaimService;
 import org.springboot.insurancemanagementsystem.service.ClaimStatusHistoryService;
 import org.springframework.data.domain.Page;
@@ -27,6 +19,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -38,6 +31,7 @@ public class ClaimServiceImpl implements ClaimService {
 
     private final ClaimRepository claimRepository;
     private final PolicyRepository policyRepository;
+    private final ClaimDocumentRepository claimDocumentRepository;
     private final CustomerRepository customerRepository;
     private final UserRepository userRepository;
     private final ModelMapper modelMapper;
@@ -111,11 +105,26 @@ public class ClaimServiceImpl implements ClaimService {
         Claim savedClaim =
                 claimRepository.save(claim);
 
+<<<<<<< Updated upstream
         log.info("Claim {} raised successfully by customer {}",
                 savedClaim.getClaimNumber(),
                 customerEmail);
 
         return mapToResponseDto(savedClaim);
+=======
+        List<ClaimDocument> savedDocs = new ArrayList<>();
+        for (ClaimDocumentRequest d : request.getDocuments()) {
+            savedDocs.add(claimDocumentRepository.save(ClaimDocument.builder()
+                    .claim(savedClaim)
+                    .documentName(d.getDocumentName())
+                    .documentType(d.getDocumentType())
+                    .documentReference(d.getDocumentReference())
+                    .uploadedDate(LocalDateTime.now())
+                    .build()));
+        }
+        recordHistory(savedClaim, null, ClaimStatus.SUBMITTED, "Claim submitted by customer", customer.getUser());
+        return toClaimResponse(savedClaim, savedDocs);
+>>>>>>> Stashed changes
     }
 
     @Override
@@ -159,12 +168,15 @@ public class ClaimServiceImpl implements ClaimService {
         Claim updatedClaim =
                 claimRepository.save(claim);
 
+        List<ClaimDocument> byClaimId = claimDocumentRepository.findByClaimId(updatedClaim.getId());
+
         historyService.recordStatusChange(
                 claim,
                 oldStatus,
                 updatedClaim.getClaimStatus(),
                 request.getRemarks(),
                 agent);
+<<<<<<< Updated upstream
 
         log.info("Claim {} reviewed by agent {}. Status changed from {} to {}",
                 updatedClaim.getClaimNumber(),
@@ -173,6 +185,9 @@ public class ClaimServiceImpl implements ClaimService {
                 updatedClaim.getClaimStatus());
 
         return mapToResponseDto(updatedClaim);
+=======
+        return toClaimResponse(updatedClaim, byClaimId);
+>>>>>>> Stashed changes
     }
 
     @Override
@@ -187,8 +202,12 @@ public class ClaimServiceImpl implements ClaimService {
 
         Claim claim =
                 getClaimEntity(claimId);
+<<<<<<< Updated upstream
 
         claim.setAgentRemarks(remarks);
+=======
+        claim.setAdminRemarks(remarks);
+>>>>>>> Stashed changes
 
         User admin =
                 userRepository.findByEmail(adminEmail)
@@ -217,6 +236,8 @@ public class ClaimServiceImpl implements ClaimService {
         Claim updatedClaim =
                 claimRepository.save(claim);
 
+        List<ClaimDocument> byClaimId = claimDocumentRepository.findByClaimId(updatedClaim.getId());
+
         historyService.recordStatusChange(
                 claim,
                 oldStatus,
@@ -224,11 +245,15 @@ public class ClaimServiceImpl implements ClaimService {
                 remarks,
                 admin);
 
+<<<<<<< Updated upstream
         log.info("Claim {} approved by admin {}",
                 updatedClaim.getClaimNumber(),
                 adminEmail);
 
         return mapToResponseDto(updatedClaim);
+=======
+        return toClaimResponse(updatedClaim, byClaimId);
+>>>>>>> Stashed changes
     }
 
     @Override
@@ -254,6 +279,7 @@ public class ClaimServiceImpl implements ClaimService {
 
         ClaimStatus oldStatus =
                 claim.getClaimStatus();
+        claim.setAdminRemarks(remarks);
 
         claim.setClaimStatus(
                 ClaimStatus.REJECTED);
@@ -269,21 +295,32 @@ public class ClaimServiceImpl implements ClaimService {
                 remarks,
                 admin);
 
+<<<<<<< Updated upstream
         log.info("Claim {} rejected by admin {}",
                 updatedClaim.getClaimNumber(),
                 adminEmail);
 
         return mapToResponseDto(updatedClaim);
+=======
+        List<ClaimDocument> byClaimId = claimDocumentRepository.findByClaimId(updatedClaim.getId());
+        return toClaimResponse(updatedClaim, byClaimId);
+>>>>>>> Stashed changes
     }
 
     @Override
     public ClaimResponseDto getClaimById(
             Long claimId) {
+<<<<<<< Updated upstream
 
         log.debug("Fetching claim by id={}", claimId);
 
         return mapToResponseDto(
                 getClaimEntity(claimId));
+=======
+        Claim claimEntity = getClaimEntity(claimId);
+        List<ClaimDocument> byClaimId = claimDocumentRepository.findByClaimId(claimEntity.getId());
+        return toClaimResponse(claimEntity, byClaimId);
+>>>>>>> Stashed changes
     }
 
     @Override
@@ -299,13 +336,14 @@ public class ClaimServiceImpl implements ClaimService {
                                 new ResourceNotFoundException(
                                         "Claim not found"));
 
-        return mapToResponseDto(claim);
+        List<ClaimDocument> byClaimId = claimDocumentRepository.findByClaimId(claim.getId());
+        return toClaimResponse(claim, byClaimId);
     }
 
     @Override
-    public List<ClaimResponseDto> getMyClaims(
-            String customerEmail) {
+    public List<ClaimResponseDto> getMyClaims(String customerEmail) {
 
+<<<<<<< Updated upstream
         log.debug("Fetching claims for customer={}",
                 customerEmail);
 
@@ -313,6 +351,18 @@ public class ClaimServiceImpl implements ClaimService {
                 .findByPolicyCustomerUserEmail(customerEmail)
                 .stream()
                 .map(this::mapToResponseDto)
+=======
+        List<Claim> claims =
+                claimRepository.findByPolicyCustomerUserEmail(customerEmail);
+
+        return claims.stream()
+                .map(claim -> {
+                    List<ClaimDocument> docs =
+                            claimDocumentRepository.findByClaimId(claim.getId());
+
+                    return toClaimResponse(claim, docs);
+                })
+>>>>>>> Stashed changes
                 .collect(Collectors.toList());
     }
 
@@ -337,7 +387,9 @@ public class ClaimServiceImpl implements ClaimService {
 
         return claimRepository
                 .findAll(pageable)
-                .map(this::mapToResponseDto);
+                .map(claim -> toClaimResponse(
+                        claim,
+                        claimDocumentRepository.findByClaimId(claim.getId())));
     }
 
     private Claim getClaimEntity(
@@ -412,5 +464,28 @@ public class ClaimServiceImpl implements ClaimService {
                 claim.getAdminRemarks());
 
         return dto;
+    }
+
+    private void recordHistory(Claim claim, ClaimStatus previous, ClaimStatus next,
+                               String remarks, User by) {
+        historyService.recordStatusChange(claim, previous, next, remarks, by);
+    }
+
+    private ClaimResponseDto toClaimResponse(Claim cl, List<ClaimDocument> docs) {
+        Policy po = cl.getPolicy();
+        Customer c = po != null ? po.getCustomer() : null;
+        return ClaimResponseDto.builder()
+                .id(cl.getId())
+                .claimNumber(cl.getClaimNumber())
+                .policyId(po != null ? po.getId() : null)
+                .policyNumber(po != null ? po.getPolicyNumber() : null)
+                .customerName(c != null && c.getUser() != null ? c.getUser().getFullName() : null)
+                .claimAmount(cl.getClaimAmount() == null ? null : cl.getClaimAmount())
+                .claimStatus(cl.getClaimStatus() == null ? null : cl.getClaimStatus().name())
+                .agentRemarks(cl.getAgentRemarks())
+                .adminRemarks(cl.getAdminRemarks())
+                .documents(docs == null ? List.of() : docs.stream().map(claimDocument -> modelMapper.map(claimDocument, ClaimDocumentResponse.class))
+                        .collect(Collectors.toList()))
+                .build();
     }
 }

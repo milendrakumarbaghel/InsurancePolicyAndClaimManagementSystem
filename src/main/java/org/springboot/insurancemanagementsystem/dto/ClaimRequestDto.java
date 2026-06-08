@@ -1,9 +1,11 @@
 package org.springboot.insurancemanagementsystem.dto;
 
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.*;
 import lombok.*;
 
 import java.time.LocalDate;
+import java.util.List;
 
 @Getter
 @Setter
@@ -27,4 +29,9 @@ public class ClaimRequestDto {
     @PastOrPresent(
             message = "Incident date cannot be a future date")
     private LocalDate incidentDate;
+
+    @NotNull(message = "Documents list must not be null")
+    @Size(min = 1, message = "At least one document reference required")
+    @Valid
+    private List<ClaimDocumentRequest> documents;
 }

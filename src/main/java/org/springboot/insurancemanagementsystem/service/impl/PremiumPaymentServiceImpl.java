@@ -24,6 +24,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -121,6 +122,7 @@ public class PremiumPaymentServiceImpl
 
         payment.setTransactionReference(
                 transactionRef);
+        payment.setCreatedAt(LocalDateTime.now());
 
         PremiumPayment savedPayment =
                 paymentRepository.save(payment);

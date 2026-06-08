@@ -125,7 +125,7 @@ public class AuthServiceImpl implements AuthService {
                 .tokenType("Bearer")
                 .email(user.getEmail())
                 .role(user.getRole().name())
-                .expiresIn(jwtUtil.getJwtExpiration())
+                .expiresIn(jwtUtil.getJwtExpiration() / 1000 / 60)
                 .build();
     }
 
