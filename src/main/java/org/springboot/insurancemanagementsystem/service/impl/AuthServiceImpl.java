@@ -68,7 +68,9 @@ public class AuthServiceImpl implements AuthService {
                 savedUser.getEmail()
         );
 
-        return modelMapper.map(savedUser, UserResponseDto.class);
+        UserResponseDto map = modelMapper.map(savedUser, UserResponseDto.class);
+        map.setUserId(savedUser.getId());
+        return map;
     }
 
     @Override
@@ -125,7 +127,7 @@ public class AuthServiceImpl implements AuthService {
                 .tokenType("Bearer")
                 .email(user.getEmail())
                 .role(user.getRole().name())
-                .expiresIn(jwtUtil.getJwtExpiration() / 1000 / 60)
+                .expiresInMin(jwtUtil.getJwtExpiration() / 1000 / 60)
                 .build();
     }
 
@@ -152,14 +154,16 @@ public class AuthServiceImpl implements AuthService {
                 .active(true)
                 .build();
 
-        User savedUser = userRepository.save(user);
+        user = userRepository.save(user);
 
         log.info(
                 "Agent created successfully. UserId={}, Email={}",
-                savedUser.getId(),
-                savedUser.getEmail()
+                user.getId(),
+                user.getEmail()
         );
 
-        return modelMapper.map(savedUser, UserResponseDto.class);
+        UserResponseDto map = modelMapper.map(user, UserResponseDto.class);
+        map.setUserId(user.getId());
+        return map;
     }
 }

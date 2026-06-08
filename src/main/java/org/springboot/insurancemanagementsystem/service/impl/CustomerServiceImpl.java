@@ -202,6 +202,7 @@ public class CustomerServiceImpl implements CustomerService {
                 modelMapper.map(
                         customer,
                         CustomerResponseDto.class);
+        dto.setCustomerId(customer.getId());
 
         dto.setUserId(
                 customer.getUser().getId());
