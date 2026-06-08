@@ -11,7 +11,7 @@ import java.time.LocalDate;
 @AllArgsConstructor
 @Builder
 public class CustomerResponseDto {
-    private Long id;
+    private Long customerId;
     private Long userId;
     private String fullName;
     private LocalDate dateOfBirth;

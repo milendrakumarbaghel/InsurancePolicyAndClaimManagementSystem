@@ -9,7 +9,7 @@ import lombok.*;
 @AllArgsConstructor
 @Builder
 public class PaymentResponseDto {
-    private Long id;
+    private Long paymentId;
     private String policyNumber;
     private Double amount;
     private String paymentMode;

@@ -18,8 +18,8 @@ public class RegisterRequestDto {
     @NotBlank(message = "Full name is required")
     @Size(min = 3, max = 100, message = "Full name must be between 3 and 100 characters")
     @Pattern(
-            regexp = "^[a-zA-Z\\s'-]+$",
-            message = "Full name must contain only alphabetic letters, spaces, hyphens, or apostrophes"
+            regexp = "^[a-zA-Z\\s]+$",
+            message = "Full name must contain only alphabetic letters and spaces only"
     )
     private String fullName;
 

@@ -11,7 +11,7 @@ import java.time.LocalDate;
 @AllArgsConstructor
 @Builder
 public class PolicyResponseDto {
-    private Long id;
+    private Long policyId;
     private String policyNumber;
     private String customerName;
     private String planName;
