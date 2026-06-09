@@ -12,5 +12,5 @@ public class LoginResponseDto {
     private String tokenType;
     private String role;
     private String email;
-    private Long expiresIn;
+    private Long expiresInMin;
 }

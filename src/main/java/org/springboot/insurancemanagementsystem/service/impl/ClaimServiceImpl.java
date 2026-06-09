@@ -398,45 +398,45 @@ public class ClaimServiceImpl implements ClaimService {
                 .toUpperCase();
     }
 
-    private ClaimResponseDto mapToResponseDto(Claim claim) {
-
-        ClaimResponseDto dto =
-                modelMapper.map(
-                        claim,
-                        ClaimResponseDto.class);
-
-        if (claim.getPolicy() != null) {
-
-            dto.setPolicyId(
-                    claim.getPolicy().getId());
-
-            dto.setPolicyNumber(
-                    claim.getPolicy().getPolicyNumber());
-
-            if (claim.getPolicy().getCustomer() != null
-                    && claim.getPolicy().getCustomer().getUser() != null) {
-
-                dto.setCustomerName(
-                        claim.getPolicy()
-                                .getCustomer()
-                                .getUser()
-                                .getFullName());
-            }
-        }
-
-        if (claim.getClaimStatus() != null) {
-            dto.setClaimStatus(
-                    claim.getClaimStatus().name());
-        }
-
-        dto.setAgentRemarks(
-                claim.getAgentRemarks());
-
-        dto.setAdminRemarks(
-                claim.getAdminRemarks());
-
-        return dto;
-    }
+//    private ClaimResponseDto mapToResponseDto(Claim claim) {
+//
+//        ClaimResponseDto dto =
+//                modelMapper.map(
+//                        claim,
+//                        ClaimResponseDto.class);
+//
+//        if (claim.getPolicy() != null) {
+//
+//            dto.setPolicyId(
+//                    claim.getPolicy().getId());
+//
+//            dto.setPolicyNumber(
+//                    claim.getPolicy().getPolicyNumber());
+//
+//            if (claim.getPolicy().getCustomer() != null
+//                    && claim.getPolicy().getCustomer().getUser() != null) {
+//
+//                dto.setCustomerName(
+//                        claim.getPolicy()
+//                                .getCustomer()
+//                                .getUser()
+//                                .getFullName());
+//            }
+//        }
+//
+//        if (claim.getClaimStatus() != null) {
+//            dto.setClaimStatus(
+//                    claim.getClaimStatus().name());
+//        }
+//
+//        dto.setAgentRemarks(
+//                claim.getAgentRemarks());
+//
+//        dto.setAdminRemarks(
+//                claim.getAdminRemarks());
+//
+//        return dto;
+//    }
 
     private void recordHistory(Claim claim, ClaimStatus previous, ClaimStatus next,
                                String remarks, User by) {
@@ -447,7 +447,7 @@ public class ClaimServiceImpl implements ClaimService {
         Policy po = cl.getPolicy();
         Customer c = po != null ? po.getCustomer() : null;
         return ClaimResponseDto.builder()
-                .id(cl.getId())
+                .claimId(cl.getId())
                 .claimNumber(cl.getClaimNumber())
                 .policyId(po != null ? po.getId() : null)
                 .policyNumber(po != null ? po.getPolicyNumber() : null)
@@ -456,8 +456,18 @@ public class ClaimServiceImpl implements ClaimService {
                 .claimStatus(cl.getClaimStatus() == null ? null : cl.getClaimStatus().name())
                 .agentRemarks(cl.getAgentRemarks())
                 .adminRemarks(cl.getAdminRemarks())
-                .documents(docs == null ? List.of() : docs.stream().map(claimDocument -> modelMapper.map(claimDocument, ClaimDocumentResponse.class))
-                        .collect(Collectors.toList()))
+                .documents(docs == null
+                        ? List.of()
+                        : docs.stream()
+                        .map(doc -> ClaimDocumentResponse.builder()
+                                .claimDocumentId(doc.getId())
+                                .documentName(doc.getDocumentName())
+                                .documentType(doc.getDocumentType())
+//                                .documentUrl()
+                                .documentReference(doc.getDocumentReference())
+                                .uploadedDate(doc.getUploadedDate())
+                                .build())
+                        .toList())
                 .build();
     }
 }

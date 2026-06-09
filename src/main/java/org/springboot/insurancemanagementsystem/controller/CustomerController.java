@@ -36,7 +36,7 @@ public class CustomerController {
                         authentication.getName());
 
         log.info("Customer profile created successfully. Customer ID: {}",
-                response.getId());
+                response.getCustomerId());
 
         return new ResponseEntity<>(
                 response,

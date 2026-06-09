@@ -10,7 +10,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @Builder
 public class ClaimDocumentResponse {
-    private Long id;
+    private Long claimDocumentId;
     private String documentName;
     private String documentType;
     private String documentReference;

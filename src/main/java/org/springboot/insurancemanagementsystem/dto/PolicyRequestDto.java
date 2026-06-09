@@ -1,6 +1,7 @@
 package org.springboot.insurancemanagementsystem.dto;
 
 import jakarta.validation.constraints.FutureOrPresent;
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
 
@@ -14,9 +15,11 @@ import java.time.LocalDate;
 public class PolicyRequestDto {
 
     @NotNull(message = "Customer id is required")
+    @Min(value = 1, message = "Customer id must be a positive number greater than 0")
     private Long customerId;
 
     @NotNull(message = "Plan id is required")
+    @Min(value = 1, message = "Plan id must be a positive number greater than 0")
     private Long planId;
 
     @NotNull(message = "Start date is required")

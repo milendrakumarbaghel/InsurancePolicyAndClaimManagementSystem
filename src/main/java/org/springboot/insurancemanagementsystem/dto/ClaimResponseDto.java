@@ -11,7 +11,7 @@ import java.util.List;
 @AllArgsConstructor
 @Builder
 public class ClaimResponseDto {
-    private Long id;
+    private Long claimId;
     private String claimNumber;
     private Long policyId;
     private String policyNumber;

@@ -32,7 +32,7 @@ public class InsuranceProductController {
                 insuranceProductService.createProduct(requestDto);
 
         log.info("Product created successfully. Product ID: {}, Product Name: {}",
-                response.getId(),
+                response.getProductId(),
                 response.getProductName());
 
         return new ResponseEntity<>(

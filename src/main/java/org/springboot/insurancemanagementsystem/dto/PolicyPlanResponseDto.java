@@ -9,7 +9,7 @@ import lombok.*;
 @AllArgsConstructor
 @Builder
 public class PolicyPlanResponseDto {
-    private Long id;
+    private Long PolicyPlanId;
     private String productName;
     private String planName;
     private Double coverageAmount;

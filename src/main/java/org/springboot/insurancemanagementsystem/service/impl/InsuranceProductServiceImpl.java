@@ -59,7 +59,9 @@ public class InsuranceProductServiceImpl implements InsuranceProductService {
                 savedProduct.getId(),
                 savedProduct.getProductName());
 
-        return modelMapper.map(savedProduct, ProductResponseDto.class);
+        ProductResponseDto map = modelMapper.map(savedProduct, ProductResponseDto.class);
+        map.setProductId(savedProduct.getId());
+        return map;
     }
 
     @Override
@@ -95,7 +97,9 @@ public class InsuranceProductServiceImpl implements InsuranceProductService {
                 updatedProduct.getId(),
                 updatedProduct.getProductName());
 
-        return modelMapper.map(updatedProduct, ProductResponseDto.class);
+        ProductResponseDto map = modelMapper.map(updatedProduct, ProductResponseDto.class);
+        map.setProductId(updatedProduct.getId());
+        return map;
     }
 
     @Override
@@ -115,7 +119,9 @@ public class InsuranceProductServiceImpl implements InsuranceProductService {
                             "Product not found with id : " + productId);
                 });
 
-        return modelMapper.map(product, ProductResponseDto.class);
+        ProductResponseDto map = modelMapper.map(product, ProductResponseDto.class);
+        map.setProductId(product.getId());
+        return map;
     }
 
     @Override
@@ -141,10 +147,7 @@ public class InsuranceProductServiceImpl implements InsuranceProductService {
 
         Page<ProductResponseDto> products =
                 productRepository.findAll(pageable)
-                        .map(product ->
-                                modelMapper.map(
-                                        product,
-                                        ProductResponseDto.class));
+                        .map(this::mapToResponseDto);
 
         log.info(
                 "Products fetched successfully. TotalRecords={}",
@@ -174,19 +177,26 @@ public class InsuranceProductServiceImpl implements InsuranceProductService {
         Pageable pageable =
                 PageRequest.of(page, size, sort);
 
-        Page<ProductResponseDto> activeProducts =
-                productRepository
-                        .findByActiveTrue(pageable)
-                        .map(product ->
-                                modelMapper.map(
-                                        product,
-                                        ProductResponseDto.class));
+        Page<ProductResponseDto> products =
+                productRepository.findAll(pageable)
+                        .map(this::mapToResponseDto);
 
         log.info(
                 "Active products fetched successfully. TotalRecords={}",
-                activeProducts.getTotalElements());
+                products.getTotalElements());
 
-        return activeProducts;
+        return products;
+    }
+
+    private ProductResponseDto mapToResponseDto(
+            InsuranceProduct product) {
+
+        ProductResponseDto dto =
+                modelMapper.map(product, ProductResponseDto.class);
+
+        dto.setProductId(product.getId());
+
+        return dto;
     }
 
     @Override
@@ -208,7 +218,7 @@ public class InsuranceProductServiceImpl implements InsuranceProductService {
                 });
 
         product.setActive(false);
-
+        product.setUpdatedAt(LocalDateTime.now());
         productRepository.save(product);
 
         log.info(
@@ -236,7 +246,7 @@ public class InsuranceProductServiceImpl implements InsuranceProductService {
                 });
 
         product.setActive(true);
-
+        product.setUpdatedAt(LocalDateTime.now());
         productRepository.save(product);
 
         log.info(

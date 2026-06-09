@@ -122,7 +122,7 @@ public class UserServiceImpl implements UserService {
             User user) {
 
         return UserResponseDto.builder()
-                .id(user.getId())
+                .userId(user.getId())
                 .fullName(user.getFullName())
                 .email(user.getEmail())
                 .mobileNumber(user.getMobileNumber())

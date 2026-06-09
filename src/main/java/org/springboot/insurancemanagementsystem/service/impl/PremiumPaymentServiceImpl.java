@@ -251,6 +251,7 @@ public class PremiumPaymentServiceImpl
                 modelMapper.map(
                         payment,
                         PaymentResponseDto.class);
+        dto.setPaymentId(payment.getId());
 
         dto.setPolicyNumber(
                 payment.getPolicy()

@@ -13,9 +13,13 @@ import org.springboot.insurancemanagementsystem.exception.ResourceNotFoundExcept
 import org.springboot.insurancemanagementsystem.repository.InsuranceProductRepository;
 import org.springboot.insurancemanagementsystem.repository.PolicyPlanRepository;
 import org.springboot.insurancemanagementsystem.service.PolicyPlanService;
-import org.springframework.data.domain.*;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -73,6 +77,7 @@ public class PolicyPlanServiceImpl implements PolicyPlanService {
         plan.setDuration(request.getDuration());
         plan.setTermsAndConditions(
                 request.getTermsAndConditions());
+        plan.setCreatedAt(LocalDateTime.now());
         plan.setActive(request.getActive());
 
         PolicyPlan savedPlan =
@@ -132,6 +137,7 @@ public class PolicyPlanServiceImpl implements PolicyPlanService {
         plan.setTermsAndConditions(
                 request.getTermsAndConditions());
         plan.setActive(request.getActive());
+        plan.setUpdatedAt(LocalDateTime.now());
 
         PolicyPlan updatedPlan =
                 planRepository.save(plan);
@@ -241,7 +247,7 @@ public class PolicyPlanServiceImpl implements PolicyPlanService {
                         });
 
         plan.setActive(false);
-
+        plan.setUpdatedAt(LocalDateTime.now());
         planRepository.save(plan);
 
         log.info(
@@ -306,6 +312,7 @@ public class PolicyPlanServiceImpl implements PolicyPlanService {
                 modelMapper.map(
                         plan,
                         PolicyPlanResponseDto.class);
+        dto.setPolicyPlanId(plan.getId());
 
         dto.setProductName(
                 plan.getProduct().getProductName());

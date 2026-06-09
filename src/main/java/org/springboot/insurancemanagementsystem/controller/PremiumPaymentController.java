@@ -37,7 +37,7 @@ public class PremiumPaymentController {
 
         log.info(
                 "Payment recorded successfully. Payment ID: {}, Transaction Ref: {}",
-                response.getId(),
+                response.getPaymentId(),
                 response.getTransactionReference()
         );
 

@@ -9,7 +9,7 @@ import lombok.*;
 @AllArgsConstructor
 @Builder
 public class UserResponseDto {
-    private Long id;
+    private Long userId;
     private String fullName;
     private String email;
     private String mobileNumber;

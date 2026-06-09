@@ -38,7 +38,7 @@ public class PolicyPlanController {
 
         log.info(
                 "Policy plan created successfully. Plan ID: {}, Plan Name: {}",
-                response.getId(),
+                response.getPolicyPlanId(),
                 response.getPlanName()
         );
 
