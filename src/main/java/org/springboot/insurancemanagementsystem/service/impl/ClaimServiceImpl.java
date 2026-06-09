@@ -1,6 +1,5 @@
 package org.springboot.insurancemanagementsystem.service.impl;
 
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
@@ -13,13 +12,12 @@ import org.springboot.insurancemanagementsystem.exception.ResourceNotFoundExcept
 import org.springboot.insurancemanagementsystem.repository.*;
 import org.springboot.insurancemanagementsystem.service.ClaimService;
 import org.springboot.insurancemanagementsystem.service.ClaimStatusHistoryService;
-import org.springboot.insurancemanagementsystem.service.CloudinaryService;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -32,7 +30,7 @@ import java.util.stream.Collectors;
 @Slf4j
 public class ClaimServiceImpl implements ClaimService {
 
-    private final CloudinaryService cloudinaryService;
+
     private final ClaimRepository claimRepository;
     private final PolicyRepository policyRepository;
     private final ClaimDocumentRepository claimDocumentRepository;
@@ -42,10 +40,8 @@ public class ClaimServiceImpl implements ClaimService {
     private final ClaimStatusHistoryService historyService;
 
     @Override
-    @Transactional
     public ClaimResponseDto raiseClaim(
             ClaimRequestDto request,
-            MultipartFile document,
             String customerEmail) {
 
         log.info("Customer {} attempting to raise claim for policyId={}",
@@ -54,81 +50,52 @@ public class ClaimServiceImpl implements ClaimService {
 
         Customer customer =
                 customerRepository.findByUserEmail(customerEmail)
-                        .orElseThrow(() -> {
-                            log.warn("Customer not found for email={}",
-                                    customerEmail);
-                            return new ResourceNotFoundException(
-                                    "Customer not found");
-                        });
+                        .orElseThrow(() ->
+                                new ResourceNotFoundException("Customer not found"));
 
         Policy policy =
                 policyRepository.findById(request.getPolicyId())
-                        .orElseThrow(() -> {
-                            log.warn("Policy not found. policyId={}",
-                                    request.getPolicyId());
-                            return new ResourceNotFoundException(
-                                    "Policy not found");
-                        });
+                        .orElseThrow(() ->
+                                new ResourceNotFoundException("Policy not found"));
 
-        if (!policy.getCustomer()
-                .getId()
-                .equals(customer.getId())) {
+        if (!policy.getCustomer().getId().equals(customer.getId())) {
 
-            log.warn(
-                    "Claim rejected. Policy {} does not belong to customer {}",
+            log.warn("Claim rejected. Policy {} does not belong to customer {}",
                     policy.getId(),
                     customerEmail);
 
-            throw new BusinessException(
-                    "Policy does not belong to customer");
+            throw new BusinessException("Policy does not belong to customer");
         }
 
         if (policy.getStatus() != PolicyStatus.ACTIVE) {
 
-            log.warn(
-                    "Claim rejected. Policy {} is not ACTIVE",
+            log.warn("Claim rejected. Policy {} is not ACTIVE",
                     policy.getPolicyNumber());
 
-            throw new BusinessException(
-                    "Claim can be raised only on active policy");
+            throw new BusinessException("Claim can be raised only on active policy");
         }
 
         if (request.getClaimAmount()
-                .compareTo(
-                        policy.getPlan()
-                                .getCoverageAmount()) > 0) {
+                .compareTo(policy.getPlan().getCoverageAmount()) > 0) {
 
-            log.warn(
-                    "Claim amount {} exceeds coverage amount {}",
+            log.warn("Claim amount {} exceeds coverage amount {}",
                     request.getClaimAmount(),
                     policy.getPlan().getCoverageAmount());
 
-            throw new BusinessException(
-                    "Claim amount exceeds coverage");
+            throw new BusinessException("Claim amount exceeds coverage");
         }
 
-        validateClaimDocument(document);
-
-        String documentUrl =
-                cloudinaryService.uploadFile(document);
-
-        log.info("Claim document uploaded successfully. URL={}",
-                documentUrl);
-
         Claim claim = new Claim();
-
         claim.setClaimNumber(generateClaimNumber());
         claim.setPolicy(policy);
         claim.setClaimAmount(request.getClaimAmount());
         claim.setClaimReason(request.getClaimReason());
         claim.setIncidentDate(request.getIncidentDate());
-        claim.setDocumentUrl(documentUrl);
         claim.setClaimStatus(ClaimStatus.SUBMITTED);
         claim.setCreatedAt(LocalDateTime.now());
         claim.setUpdatedAt(LocalDateTime.now());
 
-        Claim savedClaim =
-                claimRepository.save(claim);
+        Claim savedClaim = claimRepository.save(claim);
 
         log.info("Claim {} raised successfully by customer {}",
                 savedClaim.getClaimNumber(),
@@ -137,21 +104,15 @@ public class ClaimServiceImpl implements ClaimService {
         List<ClaimDocument> savedDocs = new ArrayList<>();
 
         if (request.getDocuments() != null) {
-
             for (ClaimDocumentRequest d : request.getDocuments()) {
-
                 savedDocs.add(
                         claimDocumentRepository.save(
                                 ClaimDocument.builder()
                                         .claim(savedClaim)
-                                        .documentName(
-                                                d.getDocumentName())
-                                        .documentType(
-                                                d.getDocumentType())
-                                        .documentReference(
-                                                d.getDocumentReference())
-                                        .uploadedDate(
-                                                LocalDateTime.now())
+                                        .documentName(d.getDocumentName())
+                                        .documentType(d.getDocumentType())
+                                        .documentReference(d.getDocumentReference())
+                                        .uploadedDate(LocalDateTime.now())
                                         .build()
                         )
                 );
@@ -163,62 +124,10 @@ public class ClaimServiceImpl implements ClaimService {
                 null,
                 ClaimStatus.SUBMITTED,
                 "Claim submitted by customer",
-                customer.getUser());
+                customer.getUser()
+        );
 
         return toClaimResponse(savedClaim, savedDocs);
-    }
-
-    private void validateClaimDocument(
-            MultipartFile file) {
-
-        if (file == null || file.isEmpty()) {
-
-            log.warn("Claim document is missing");
-
-            throw new BusinessException(
-                    "Claim document is required");
-        }
-
-        long maxSize = 5 * 1024 * 1024; // 5 MB
-
-        if (file.getSize() > maxSize) {
-
-            log.warn("Document size exceeded. Size={} bytes",
-                    file.getSize());
-
-            throw new BusinessException(
-                    "Maximum file size allowed is 5 MB");
-        }
-
-        String contentType =
-                file.getContentType();
-
-        if (contentType == null) {
-
-            throw new BusinessException(
-                    "Invalid file type");
-        }
-
-        List<String> allowedTypes =
-                List.of(
-                        "application/pdf",
-                        "image/jpeg",
-                        "image/jpg",
-                        "image/png"
-                );
-
-        if (!allowedTypes.contains(contentType)) {
-
-            log.warn("Unsupported document type={}",
-                    contentType);
-
-            throw new BusinessException(
-                    "Only PDF, JPG, JPEG and PNG files are allowed");
-        }
-
-        log.info("Document validation successful. Type={}, Size={} bytes",
-                contentType,
-                file.getSize());
     }
 
     @Override

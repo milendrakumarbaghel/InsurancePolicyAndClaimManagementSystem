@@ -1,6 +1,5 @@
 package org.springboot.insurancemanagementsystem.repository;
 
-
 import org.springboot.insurancemanagementsystem.entitie.ClaimDocument;
 import org.springframework.data.jpa.repository.JpaRepository;
 

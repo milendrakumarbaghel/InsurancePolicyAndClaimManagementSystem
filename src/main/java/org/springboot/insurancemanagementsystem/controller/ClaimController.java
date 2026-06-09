@@ -13,8 +13,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
-import org.springframework.http.MediaType;
+
 
 import java.util.List;
 
@@ -26,40 +25,31 @@ public class ClaimController {
 
     private final ClaimService claimService;
 
-    @PostMapping(
-            consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PostMapping
     @PreAuthorize("hasRole('CUSTOMER')")
     public ResponseEntity<ClaimResponseDto> raiseClaim(
-
-            @Valid
-            @RequestPart("claim")
-            ClaimRequestDto request,
-
-            @RequestPart("document")
-            MultipartFile document,
-
+            @Valid @RequestBody ClaimRequestDto request,
             Authentication authentication) {
 
-        log.info(
-                "Claim submission request received from customer: {} for policyId: {}",
+        log.info("Claim submission request received from customer: {} for policyId: {}",
                 authentication.getName(),
                 request.getPolicyId());
-
 
         ClaimResponseDto response =
                 claimService.raiseClaim(
                         request,
-                        document,
-                        authentication.getName());
+                        authentication.getName()
+                );
 
-        log.info(
-                "Claim submitted successfully. Claim Number: {}",
+        log.info("Claim submitted successfully. Claim Number: {}",
                 response.getClaimNumber());
 
         return new ResponseEntity<>(
                 response,
-                HttpStatus.CREATED);
+                HttpStatus.CREATED
+        );
     }
+
 
     @PutMapping("/{claimId}/review")
     @PreAuthorize("hasRole('AGENT')")

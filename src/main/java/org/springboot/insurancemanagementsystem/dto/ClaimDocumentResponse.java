@@ -13,7 +13,6 @@ public class ClaimDocumentResponse {
     private Long id;
     private String documentName;
     private String documentType;
-    private String documentUrl;
     private String documentReference;
     private LocalDateTime uploadedDate;
 }
