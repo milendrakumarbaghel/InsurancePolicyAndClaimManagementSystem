@@ -1,10 +1,6 @@
 package org.springboot.insurancemanagementsystem.dto;
 
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Past;
-import jakarta.validation.constraints.Pattern;
-import jakarta.validation.constraints.Size;
+import jakarta.validation.constraints.*;
 import lombok.*;
 
 import java.time.LocalDate;
@@ -34,6 +30,13 @@ public class CustomerRequestDto {
     @NotNull(message = "Date of birth is required")
     @Past(message = "Date of birth must be a past date")
     private LocalDate dateOfBirth;
+    @AssertTrue(message = "User must be at least 18 years old")
+    public boolean isAdult() {
+        if (dateOfBirth == null) {
+            return true;
+        }
+        return !dateOfBirth.plusYears(18).isAfter(LocalDate.now());
+    }
 
     @NotBlank(message = "Address is required")
     @Size(max = 150, message = "Address cannot exceed 150 characters")
