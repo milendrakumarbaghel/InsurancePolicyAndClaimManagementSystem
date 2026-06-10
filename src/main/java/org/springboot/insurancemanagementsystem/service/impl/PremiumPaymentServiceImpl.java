@@ -11,6 +11,7 @@ import org.springboot.insurancemanagementsystem.entitie.PremiumPayment;
 import org.springboot.insurancemanagementsystem.enums.PaymentMode;
 import org.springboot.insurancemanagementsystem.enums.PaymentStatus;
 import org.springboot.insurancemanagementsystem.enums.PolicyStatus;
+import org.springboot.insurancemanagementsystem.enums.Role;
 import org.springboot.insurancemanagementsystem.exception.BusinessException;
 import org.springboot.insurancemanagementsystem.exception.ResourceNotFoundException;
 import org.springboot.insurancemanagementsystem.repository.PolicyPlanRepository;
@@ -182,7 +183,7 @@ public class PremiumPaymentServiceImpl
 
     @Override
     public PaymentResponseDto getPaymentById(
-            Long paymentId) {
+            Long paymentId, String email) {
 
         log.debug("Fetching payment by id={}",
                 paymentId);
@@ -199,20 +200,48 @@ public class PremiumPaymentServiceImpl
                                     "Payment not found");
                         });
 
+        if (payment.getPolicy().getCustomer().getUser().getRole().equals(Role.CUSTOMER)) {
+            if (payment.getPolicy().getCustomer().getUser().getEmail().equals(email)) {
+                throw new BusinessException("Access denied. You can only view your own payment details.");
+            }
+        }
+
         return mapToResponseDto(payment);
     }
 
     @Override
     public List<PaymentResponseDto> getPolicyPayments(
-            Long policyId) {
+            Long policyId, String email) {
 
         log.debug(
                 "Fetching payment history for policyId={}",
                 policyId);
+        List<PremiumPayment> payments =
+                paymentRepository.findByPolicy_Id(policyId);
 
-        return paymentRepository
-                .findByPolicy_Id(policyId)
-                .stream()
+        if (payments.isEmpty()) {
+            throw new ResourceNotFoundException(
+                    "No payments found for policy id: " + policyId);
+        }
+
+        PremiumPayment payment = payments.getFirst();
+
+        if (payment.getPolicy()
+                .getCustomer()
+                .getUser()
+                .getRole()
+                .equals(Role.CUSTOMER)
+                && !payment.getPolicy()
+                .getCustomer()
+                .getUser()
+                .getEmail()
+                .equals(email)) {
+
+            throw new BusinessException(
+                    "You are not authorized to access payments for this policy.");
+        }
+
+        return payments.stream()
                 .map(this::mapToResponseDto)
                 .collect(Collectors.toList());
     }

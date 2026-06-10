@@ -10,9 +10,9 @@ public interface PremiumPaymentService {
 
     PaymentResponseDto recordPayment(PaymentRequestDto request);
 
-    PaymentResponseDto getPaymentById(Long paymentId);
+    PaymentResponseDto getPaymentById(Long paymentId, String email);
 
-    List<PaymentResponseDto> getPolicyPayments(Long policyId);
+    List<PaymentResponseDto> getPolicyPayments(Long policyId, String email);
 
     Page<PaymentResponseDto> getAllPayments(int page, int size, String sortBy, String sortDir);
 }

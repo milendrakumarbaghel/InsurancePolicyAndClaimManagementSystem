@@ -10,6 +10,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -49,7 +50,7 @@ public class PremiumPaymentController {
     @GetMapping("/{paymentId}")
     @PreAuthorize("hasAnyRole('ADMIN','AGENT','CUSTOMER')")
     public ResponseEntity<PaymentResponseDto> getPaymentById(
-            @PathVariable Long paymentId) {
+            @PathVariable Long paymentId,  Authentication authentication) {
 
         log.info(
                 "Fetching payment details for paymentId: {}",
@@ -57,7 +58,7 @@ public class PremiumPaymentController {
         );
 
         PaymentResponseDto response =
-                premiumPaymentService.getPaymentById(paymentId);
+                premiumPaymentService.getPaymentById(paymentId, authentication.getName());
 
         log.info(
                 "Payment details retrieved successfully for paymentId: {}",
@@ -70,7 +71,7 @@ public class PremiumPaymentController {
     @GetMapping("/policy/{policyId}")
     @PreAuthorize("hasAnyRole('ADMIN','AGENT','CUSTOMER')")
     public ResponseEntity<List<PaymentResponseDto>> getPolicyPayments(
-            @PathVariable Long policyId) {
+            @PathVariable Long policyId,Authentication authentication) {
 
         log.info(
                 "Fetching payment history for policyId: {}",
@@ -78,7 +79,7 @@ public class PremiumPaymentController {
         );
 
         List<PaymentResponseDto> payments =
-                premiumPaymentService.getPolicyPayments(policyId);
+                premiumPaymentService.getPolicyPayments(policyId,authentication.getName());
 
         log.info(
                 "Retrieved {} payment records for policyId: {}",
