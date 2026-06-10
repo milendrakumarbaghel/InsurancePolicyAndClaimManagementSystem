@@ -35,4 +35,7 @@ public class User {
 
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+
+    private boolean emailVerified;
+    private boolean mobileVerified;
 }

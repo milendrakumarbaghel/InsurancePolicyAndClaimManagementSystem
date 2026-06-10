@@ -95,7 +95,7 @@ public class ClaimDocumentServiceImpl
             ClaimDocument document) {
 
         return ClaimDocumentResponse.builder()
-                .id(document.getId())
+                .claimDocumentId(document.getId())
                 .documentName(document.getDocumentName())
                 .documentType(document.getDocumentType())
                 .documentReference(document.getDocumentReference())

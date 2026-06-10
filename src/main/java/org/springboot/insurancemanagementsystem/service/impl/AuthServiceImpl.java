@@ -15,6 +15,7 @@ import org.springboot.insurancemanagementsystem.exception.UserInactiveException;
 import org.springboot.insurancemanagementsystem.repository.UserRepository;
 import org.springboot.insurancemanagementsystem.security.util.JwtUtil;
 import org.springboot.insurancemanagementsystem.service.AuthService;
+import org.springboot.insurancemanagementsystem.service.OtpService;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.AuthenticationException;
@@ -36,18 +37,49 @@ public class AuthServiceImpl implements AuthService {
     private final JwtUtil jwtUtil;
     private final ModelMapper modelMapper;
     private final UserDetailsService userDetailsService;
+    private final OtpService otpService;
+
+//    @Override
+//    public UserResponseDto register(RegisterRequestDto request) {
+//
+//        log.info("Registration request received for email: {}", request.getEmail());
+//
+//        if (userRepository.existsByEmail(request.getEmail())) {
+//
+//            log.warn("Registration failed. Email already exists: {}", request.getEmail());
+//
+//            throw new DuplicateResourceException(
+//                    "Email already registered");
+//        }
+//
+//        User user = User.builder()
+//                .fullName(request.getFullName())
+//                .email(request.getEmail())
+//                .mobileNumber(request.getMobileNumber())
+//                .password(passwordEncoder.encode(request.getPassword()))
+//                .role(Role.CUSTOMER)
+//                .active(true)
+//                .createdAt(LocalDateTime.now())
+//                .build();
+//
+//        User savedUser = userRepository.save(user);
+//
+//        log.info(
+//                "Customer registered successfully. UserId={}, Email={}",
+//                savedUser.getId(),
+//                savedUser.getEmail()
+//        );
+//
+//        UserResponseDto map = modelMapper.map(savedUser, UserResponseDto.class);
+//        map.setUserId(savedUser.getId());
+//        return map;
+//    }
 
     @Override
     public UserResponseDto register(RegisterRequestDto request) {
 
-        log.info("Registration request received for email: {}", request.getEmail());
-
         if (userRepository.existsByEmail(request.getEmail())) {
-
-            log.warn("Registration failed. Email already exists: {}", request.getEmail());
-
-            throw new DuplicateResourceException(
-                    "Email already registered");
+            throw new DuplicateResourceException("Email already registered");
         }
 
         User user = User.builder()
@@ -56,17 +88,15 @@ public class AuthServiceImpl implements AuthService {
                 .mobileNumber(request.getMobileNumber())
                 .password(passwordEncoder.encode(request.getPassword()))
                 .role(Role.CUSTOMER)
-                .active(true)
+                .active(false)          // ← inactive until OTP verified
                 .createdAt(LocalDateTime.now())
                 .build();
 
         User savedUser = userRepository.save(user);
 
-        log.info(
-                "Customer registered successfully. UserId={}, Email={}",
-                savedUser.getId(),
-                savedUser.getEmail()
-        );
+        otpService.createAndSendOtp(savedUser);  // ← send OTP after save
+
+        log.info("Customer registered. OTP sent. UserId={}", savedUser.getId());
 
         UserResponseDto map = modelMapper.map(savedUser, UserResponseDto.class);
         map.setUserId(savedUser.getId());

@@ -23,8 +23,7 @@ public class AuthController {
     private final AuthService authService;
 
     @PostMapping("/register")
-    public ResponseEntity<UserResponseDto> register(
-            @Valid @RequestBody RegisterRequestDto request) {
+    public ResponseEntity<UserResponseDto> register(@Valid @RequestBody RegisterRequestDto request) {
 
         log.info("Registration request received for email: {}", request.getEmail());
 
