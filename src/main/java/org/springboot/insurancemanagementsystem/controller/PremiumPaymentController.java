@@ -19,6 +19,7 @@ import java.util.List;
 @RequestMapping("/api/payments")
 @RequiredArgsConstructor
 @Slf4j
+@CrossOrigin(origins = "http://localhost:5173")
 public class PremiumPaymentController {
 
     private final PremiumPaymentService premiumPaymentService;

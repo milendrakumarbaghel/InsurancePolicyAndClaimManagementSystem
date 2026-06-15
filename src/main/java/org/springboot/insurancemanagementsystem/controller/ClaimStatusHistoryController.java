@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/claim-history")
 @RequiredArgsConstructor
 @Slf4j
+@CrossOrigin(origins = "http://localhost:5173")
 public class ClaimStatusHistoryController {
 
     private final ClaimStatusHistoryService claimStatusHistoryService;

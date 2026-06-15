@@ -20,6 +20,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/claims")
 @RequiredArgsConstructor
+@CrossOrigin(origins = "http://localhost:5173")
 @Slf4j
 public class ClaimController {
 

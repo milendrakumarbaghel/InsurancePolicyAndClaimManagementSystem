@@ -19,6 +19,7 @@ import java.util.List;
 @RequestMapping("/api/policies")
 @RequiredArgsConstructor
 @Slf4j
+@CrossOrigin(origins = "http://localhost:5173")
 public class PolicyController {
 
     private final PolicyService policyService;

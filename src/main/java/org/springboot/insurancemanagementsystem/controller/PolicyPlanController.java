@@ -18,6 +18,7 @@ import java.util.List;
 @RequestMapping("/api/plans")
 @RequiredArgsConstructor
 @Slf4j
+@CrossOrigin(origins = "http://localhost:5173")
 public class PolicyPlanController {
 
     private final PolicyPlanService policyPlanService;

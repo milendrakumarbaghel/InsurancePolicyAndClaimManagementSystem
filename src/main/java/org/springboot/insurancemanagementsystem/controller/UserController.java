@@ -3,19 +3,29 @@ package org.springboot.insurancemanagementsystem.controller;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springboot.insurancemanagementsystem.dto.UserResponseDto;
+import org.springboot.insurancemanagementsystem.entitie.User;
 import org.springboot.insurancemanagementsystem.service.UserService;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/api/users")
 @RequiredArgsConstructor
 @Slf4j
+@CrossOrigin(origins = "http://localhost:5173")
 public class UserController {
 
     private final UserService userService;
+
+    @GetMapping("/customers")
+    @PreAuthorize("hasRole('ADMIN')")
+    public List<User> getCustomers() {
+        return userService.getCustomers();
+    }
 
     @GetMapping
     @PreAuthorize("hasRole('ADMIN')")

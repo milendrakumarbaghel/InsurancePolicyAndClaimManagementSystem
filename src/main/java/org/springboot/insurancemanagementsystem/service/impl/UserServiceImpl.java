@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springboot.insurancemanagementsystem.dto.UserResponseDto;
 import org.springboot.insurancemanagementsystem.entitie.User;
+import org.springboot.insurancemanagementsystem.enums.Role;
 import org.springboot.insurancemanagementsystem.exception.ResourceNotFoundException;
 import org.springboot.insurancemanagementsystem.repository.UserRepository;
 import org.springboot.insurancemanagementsystem.service.UserService;
@@ -13,6 +14,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -116,6 +119,11 @@ public class UserServiceImpl implements UserService {
         log.info(
                 "User deactivated successfully. email={}",
                 user.getEmail());
+    }
+
+    @Override
+    public List<User> getCustomers() {
+        return userRepository.findByRole(Role.CUSTOMER);
     }
 
     private UserResponseDto mapToResponse(
