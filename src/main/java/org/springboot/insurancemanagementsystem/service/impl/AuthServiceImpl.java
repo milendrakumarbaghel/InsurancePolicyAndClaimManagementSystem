@@ -15,7 +15,6 @@ import org.springboot.insurancemanagementsystem.exception.UserInactiveException;
 import org.springboot.insurancemanagementsystem.repository.UserRepository;
 import org.springboot.insurancemanagementsystem.security.util.JwtUtil;
 import org.springboot.insurancemanagementsystem.service.AuthService;
-import org.springboot.insurancemanagementsystem.service.OtpService;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.AuthenticationException;
@@ -37,7 +36,7 @@ public class AuthServiceImpl implements AuthService {
     private final JwtUtil jwtUtil;
     private final ModelMapper modelMapper;
     private final UserDetailsService userDetailsService;
-    private final OtpService otpService;
+    private final OtpServiceImp otpServiceImp;
 
 //    @Override
 //    public UserResponseDto register(RegisterRequestDto request) {
@@ -94,7 +93,7 @@ public class AuthServiceImpl implements AuthService {
 
         User savedUser = userRepository.save(user);
 
-        otpService.createAndSendOtp(savedUser);  // ← send OTP after save
+        otpServiceImp.createAndSendOtp(savedUser);  // ← send OTP after save
 
         log.info("Customer registered. OTP sent. UserId={}", savedUser.getId());
 

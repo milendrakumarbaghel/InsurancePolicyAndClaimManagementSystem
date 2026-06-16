@@ -1,6 +1,6 @@
 package org.springboot.insurancemanagementsystem.repository;
 
-import org.springboot.insurancemanagementsystem.entity.OtpVerification;
+import org.springboot.insurancemanagementsystem.entitie.OtpVerification;
 import org.springboot.insurancemanagementsystem.entitie.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 

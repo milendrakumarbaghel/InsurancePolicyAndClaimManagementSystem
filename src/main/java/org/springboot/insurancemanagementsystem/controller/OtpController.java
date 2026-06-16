@@ -9,7 +9,7 @@ import org.springboot.insurancemanagementsystem.dto.OtpVerifyRequestDto;
 import org.springboot.insurancemanagementsystem.entitie.User;
 import org.springboot.insurancemanagementsystem.exception.ResourceNotFoundException;
 import org.springboot.insurancemanagementsystem.repository.UserRepository;
-import org.springboot.insurancemanagementsystem.service.OtpService;
+import org.springboot.insurancemanagementsystem.service.impl.OtpServiceImp;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -20,7 +20,7 @@ import org.springframework.web.bind.annotation.*;
 @Slf4j
 public class OtpController {
 
-    private final OtpService otpService;
+    private final OtpServiceImp otpServiceImp;
     private final UserRepository userRepository;
 
     @PostMapping("/verify")
@@ -33,7 +33,7 @@ public class OtpController {
                 .orElseThrow(() -> new ResourceNotFoundException(
                         "User not found with email: " + request.getEmail()));
 
-        otpService.verifyOtp(user, request.getEmailOtp(), request.getPhoneOtp());
+        otpServiceImp.verifyOtp(user, request.getEmailOtp(), request.getPhoneOtp());
 
         // Mark user as verified
         user.setActive(true);
@@ -55,7 +55,7 @@ public class OtpController {
                 .orElseThrow(() -> new ResourceNotFoundException(
                         "User not found with email: " + request.getEmail()));
 
-        otpService.createAndSendOtp(user);
+        otpServiceImp.createAndSendOtp(user);
 
         return ResponseEntity.ok(OtpResponseDto.builder()
                 .success(true)

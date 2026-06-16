@@ -1,4 +1,4 @@
-package org.springboot.insurancemanagementsystem.entity;
+package org.springboot.insurancemanagementsystem.entitie;
 
 import jakarta.persistence.*;
 import lombok.*;

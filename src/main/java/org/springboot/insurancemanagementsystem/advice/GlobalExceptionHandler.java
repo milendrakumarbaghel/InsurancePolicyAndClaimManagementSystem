@@ -103,24 +103,18 @@ public class GlobalExceptionHandler {
     public ResponseEntity<Map<String, Object>> handleValidation(
             MethodArgumentNotValidException ex) {
 
-        log.warn(
-                "Validation failed with {} errors",
-                ex.getBindingResult().getErrorCount()
-        );
+        log.warn("Validation failed with {} errors", ex.getBindingResult().getErrorCount());
 
-        Map<String, String> validationErrors =
-                new LinkedHashMap<>();
+        Map<String, String> validationErrors = new LinkedHashMap<>();
 
-        for (FieldError fieldError :
-                ex.getBindingResult().getFieldErrors()) {
+        for (FieldError fieldError : ex.getBindingResult().getFieldErrors()) {
 
             validationErrors.put(
                     fieldError.getField(),
                     fieldError.getDefaultMessage());
         }
 
-        Map<String, Object> error =
-                new LinkedHashMap<>();
+        Map<String, Object> error = new LinkedHashMap<>();
 
         error.put("timestamp", LocalDateTime.now());
         error.put("status", HttpStatus.BAD_REQUEST.value());
@@ -136,10 +130,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<Map<String, Object>> handleTypeMismatch(
             MethodArgumentTypeMismatchException ex) {
 
-        log.warn(
-                "Type mismatch for parameter '{}': {}",
-                ex.getName(),
-                ex.getMessage());
+        log.warn("Type mismatch for parameter '{}': {}", ex.getName(), ex.getMessage());
 
         return buildResponse(
                 HttpStatus.BAD_REQUEST,
@@ -151,9 +142,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<Map<String, Object>> handleInvalidJson(
             HttpMessageNotReadableException ex) {
 
-        log.warn(
-                "Malformed JSON request body: {}",
-                ex.getMessage());
+        log.warn("Malformed JSON request body: {}", ex.getMessage());
 
         return buildResponse(
                 HttpStatus.BAD_REQUEST,
@@ -164,9 +153,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<Map<String, Object>> handleDataIntegrity(
             DataIntegrityViolationException ex) {
 
-        log.error(
-                "Database constraint violation",
-                ex);
+        log.error("Database constraint violation", ex);
 
         return buildResponse(
                 HttpStatus.CONFLICT,
@@ -177,9 +164,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<Map<String, Object>> handleAccessDenied(
             AccessDeniedException ex) {
 
-        log.warn(
-                "Access denied: {}",
-                ex.getMessage());
+        log.warn("Access denied: {}", ex.getMessage());
 
         return buildResponse(
                 HttpStatus.FORBIDDEN,
@@ -190,21 +175,16 @@ public class GlobalExceptionHandler {
     public ResponseEntity<Map<String, Object>> handleGeneric(
             Exception ex) {
 
-        log.error(
-                "Unexpected error occurred",
-                ex);
+        log.error("Unexpected error occurred", ex);
 
         return buildResponse(
                 HttpStatus.INTERNAL_SERVER_ERROR,
                 "Something went wrong. Please try again later.");
     }
 
-    private ResponseEntity<Map<String, Object>> buildResponse(
-            HttpStatus status,
-            String message) {
+    private ResponseEntity<Map<String, Object>> buildResponse(HttpStatus status, String message) {
 
-        Map<String, Object> error =
-                new LinkedHashMap<>();
+        Map<String, Object> error = new LinkedHashMap<>();
 
         error.put("timestamp", LocalDateTime.now());
         error.put("status", status.value());
