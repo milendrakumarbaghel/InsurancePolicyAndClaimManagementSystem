@@ -5,15 +5,13 @@ import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springboot.insurancemanagementsystem.dto.PaymentRequestDto;
 import org.springboot.insurancemanagementsystem.dto.PaymentResponseDto;
-import org.springboot.insurancemanagementsystem.entitie.Policy;
-import org.springboot.insurancemanagementsystem.entitie.PolicyPlan;
-import org.springboot.insurancemanagementsystem.entitie.PremiumPayment;
+import org.springboot.insurancemanagementsystem.entitie.*;
 import org.springboot.insurancemanagementsystem.enums.PaymentMode;
 import org.springboot.insurancemanagementsystem.enums.PaymentStatus;
 import org.springboot.insurancemanagementsystem.enums.PolicyStatus;
-import org.springboot.insurancemanagementsystem.enums.Role;
 import org.springboot.insurancemanagementsystem.exception.BusinessException;
 import org.springboot.insurancemanagementsystem.exception.ResourceNotFoundException;
+import org.springboot.insurancemanagementsystem.repository.CustomerRepository;
 import org.springboot.insurancemanagementsystem.repository.PolicyPlanRepository;
 import org.springboot.insurancemanagementsystem.repository.PolicyRepository;
 import org.springboot.insurancemanagementsystem.repository.PremiumPaymentRepository;
@@ -28,7 +26,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -39,6 +36,7 @@ public class PremiumPaymentServiceImpl
     private final PremiumPaymentRepository paymentRepository;
     private final PolicyRepository policyRepository;
     private final PolicyPlanRepository policyPlanRepository;
+    private final CustomerRepository customerRepository;
     private final ModelMapper modelMapper;
 
     @Override
@@ -200,10 +198,9 @@ public class PremiumPaymentServiceImpl
                                     "Payment not found");
                         });
 
-        if (payment.getPolicy().getCustomer().getUser().getRole().equals(Role.CUSTOMER)) {
-            if (payment.getPolicy().getCustomer().getUser().getEmail().equals(email)) {
-                throw new BusinessException("Access denied. You can only view your own payment details.");
-            }
+        User user = payment.getPolicy().getCustomer().getUser();
+        if ("CUSTOMER".equals(user.getRole().name()) && !user.getEmail().equals(email)) {
+            throw new BusinessException("Access denied. You can only view your own payment details.");
         }
 
         return mapToResponseDto(payment);
@@ -213,64 +210,37 @@ public class PremiumPaymentServiceImpl
     public List<PaymentResponseDto> getPolicyPayments(
             Long policyId, String email) {
 
-        log.debug(
-                "Fetching payment history for policyId={}",
-                policyId);
-        List<PremiumPayment> payments =
-                paymentRepository.findByPolicy_Id(policyId);
+        log.info("Fetching payment history for policyId={}", policyId);
+        Policy policy = policyRepository.findById(policyId)
+                .orElseThrow(() -> new ResourceNotFoundException("Policy not found"));
 
-        if (payments.isEmpty()) {
-            throw new ResourceNotFoundException(
-                    "No payments found for policy id: " + policyId);
+        if ("CUSTOMER".equals(policy.getCustomer().getUser().getRole().name())
+                && !policy.getCustomer().getUser().getEmail().equals(email)) {
+            throw new BusinessException("You are not authorized to access payments for this policy.");
         }
 
-        PremiumPayment payment = payments.getFirst();
-
-        if (payment.getPolicy()
-                .getCustomer()
-                .getUser()
-                .getRole()
-                .equals(Role.CUSTOMER)
-                && !payment.getPolicy()
-                .getCustomer()
-                .getUser()
-                .getEmail()
-                .equals(email)) {
-
-            throw new BusinessException(
-                    "You are not authorized to access payments for this policy.");
-        }
-
-        return payments.stream()
+        return paymentRepository.findByPolicy_Id(policyId)
+                .stream()
                 .map(this::mapToResponseDto)
-                .collect(Collectors.toList());
+                .toList();
     }
 
     @Override
-    public Page<PaymentResponseDto> getAllPayments(
-            int page,
-            int size,
-            String sortBy,
-            String sortDir) {
+    public Page<PaymentResponseDto> getAllPayments(int page, int size, String sortBy, String sortDir, String email, String role) {
+        log.info("Fetching payments history block request by user context: {}", email);
 
-        log.debug(
-                "Fetching all payments. page={}, size={}, sortBy={}, sortDir={}",
-                page,
-                size,
-                sortBy,
-                sortDir);
+        Sort sort = sortDir.equalsIgnoreCase("desc") ? Sort.by(sortBy).descending() : Sort.by(sortBy).ascending();
+        Pageable pageable = PageRequest.of(page, size, sort);
 
-        Sort sort =
-                sortDir.equalsIgnoreCase("asc")
-                        ? Sort.by(sortBy).ascending()
-                        : Sort.by(sortBy).descending();
+        if ("CUSTOMER".equals(role)) {
+            Customer customer = customerRepository.findByUserEmail(email)
+                    .orElseThrow(() -> new ResourceNotFoundException("Customer profile not found"));
 
-        Pageable pageable =
-                PageRequest.of(page, size, sort);
+            return paymentRepository.findByPolicy_Customer_Id(customer.getId(), pageable)
+                    .map(this::mapToResponseDto);
+        }
 
-        return paymentRepository
-                .findAll(pageable)
-                .map(this::mapToResponseDto);
+        return paymentRepository.findAll(pageable).map(this::mapToResponseDto);
     }
 
     private PaymentResponseDto mapToResponseDto(

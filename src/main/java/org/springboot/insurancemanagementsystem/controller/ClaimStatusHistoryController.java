@@ -7,6 +7,7 @@ import org.springboot.insurancemanagementsystem.service.ClaimStatusHistoryServic
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -34,7 +35,8 @@ public class ClaimStatusHistoryController {
             String sortBy,
 
             @RequestParam(defaultValue = "desc")
-            String sortDir) {
+            String sortDir,
+            Authentication authentication) {
 
         log.info(
                 "Fetching claim history for claimId: {} | page: {}, size: {}, sortBy: {}, sortDir: {}",
@@ -44,15 +46,14 @@ public class ClaimStatusHistoryController {
                 sortBy,
                 sortDir
         );
+        String email = authentication.getName();
+        String role = authentication.getAuthorities().stream()
+                .map(grantedAuthority -> grantedAuthority.getAuthority().replace("ROLE_", ""))
+                .findFirst()
+                .orElse("");
 
-        Page<ClaimStatusHistoryResponse> history =
-                claimStatusHistoryService.getClaimHistory(
-                        claimId,
-                        page,
-                        size,
-                        sortBy,
-                        sortDir
-                );
+        Page<ClaimStatusHistoryResponse> history = claimStatusHistoryService.getClaimHistory(
+                claimId, page, size, sortBy, sortDir, email, role);
 
         log.info(
                 "Retrieved {} claim history records for claimId: {}",

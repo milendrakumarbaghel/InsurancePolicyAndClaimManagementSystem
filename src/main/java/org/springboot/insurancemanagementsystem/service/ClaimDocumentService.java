@@ -13,9 +13,7 @@ public interface ClaimDocumentService {
             MultipartFile file
     );
 
-    List<ClaimDocumentResponse> getDocumentsByClaimId(
-            Long claimId
-    );
+    List<ClaimDocumentResponse> getDocumentsByClaimId(Long claimId, String email, String role);
 
     ClaimDocumentResponse getDocumentById(
             Long documentId

@@ -28,10 +28,9 @@ public interface ClaimService {
             String remarks,
             String adminEmail);
 
-    ClaimResponseDto getClaimById(Long claimId);
+    ClaimResponseDto getClaimById(Long claimId, String email, String role);
 
-    ClaimResponseDto getClaimByNumber(
-            String claimNumber);
+    ClaimResponseDto getClaimByNumber(String claimNumber, String email, String role);
 
     List<ClaimResponseDto> getMyClaims(
             String customerEmail);

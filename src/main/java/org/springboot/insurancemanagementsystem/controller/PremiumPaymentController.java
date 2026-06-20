@@ -105,7 +105,8 @@ public class PremiumPaymentController {
             String sortBy,
 
             @RequestParam(defaultValue = "desc")
-            String sortDir) {
+            String sortDir,
+            Authentication authentication) {
 
         log.info(
                 "Fetching all payments | page: {}, size: {}, sortBy: {}, sortDir: {}",
@@ -115,18 +116,20 @@ public class PremiumPaymentController {
                 sortDir
         );
 
-        Page<PaymentResponseDto> payments =
-                premiumPaymentService.getAllPayments(
-                        page,
-                        size,
-                        sortBy,
-                        sortDir);
+        String email = authentication.getName();
+        String role = authentication.getAuthorities().stream()
+                .map(grantedAuthority -> grantedAuthority.getAuthority().replace("ROLE_", ""))
+                .findFirst()
+                .orElse("");
+
+        Page<PaymentResponseDto> paymentsPage = premiumPaymentService.getAllPayments(
+                page, size, sortBy, sortDir, email, role);
 
         log.info(
                 "Retrieved {} payment records",
-                payments.getNumberOfElements()
+                paymentsPage.getNumberOfElements()
         );
 
-        return ResponseEntity.ok(payments);
+        return ResponseEntity.ok(paymentsPage);
     }
 }

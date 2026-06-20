@@ -154,19 +154,19 @@ public class PolicyServiceImpl implements PolicyService {
     }
 
     @Override
-    public PolicyResponseDto getPolicyById(
-            Long policyId) {
-
+    public PolicyResponseDto getPolicyById(Long policyId, String email, String role) {
         log.debug("Fetching policy by id={}", policyId);
+        Policy policy = policyRepository.findById(policyId)
+                .orElseThrow(() -> {
+                    log.warn("Policy not found. id={}",
+                            policyId);
+                    return new ResourceNotFoundException(
+                            "Policy not found");
+                });
 
-        Policy policy =
-                policyRepository.findById(policyId)
-                        .orElseThrow(() -> {
-                            log.warn("Policy not found. id={}",
-                                    policyId);
-                            return new ResourceNotFoundException(
-                                    "Policy not found");
-                        });
+        if ("CUSTOMER".equals(role) && !policy.getCustomer().getUser().getEmail().equals(email)) {
+            throw new BusinessException("Access denied. You can only view your own policy details.");
+        }
 
         return mapToResponseDto(policy);
     }

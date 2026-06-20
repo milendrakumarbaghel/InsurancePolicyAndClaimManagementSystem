@@ -14,5 +14,4 @@ public interface PremiumPaymentService {
 
     List<PaymentResponseDto> getPolicyPayments(Long policyId, String email);
 
-    Page<PaymentResponseDto> getAllPayments(int page, int size, String sortBy, String sortDir);
-}
+    Page<PaymentResponseDto> getAllPayments(int page, int size, String sortBy, String sortDir, String email, String role);}

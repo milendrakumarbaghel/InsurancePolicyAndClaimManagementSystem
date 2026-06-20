@@ -54,12 +54,26 @@ public class ClaimDocumentServiceImpl
         return mapToResponse(saved);
     }
 
+//    @Override
+//    public List<ClaimDocumentResponse> getDocumentsByClaimId(
+//            Long claimId) {
+//
+//        return claimDocumentRepository
+//                .findByClaimId(claimId)
+//                .stream()
+//                .map(this::mapToResponse)
+//                .toList();
+//    }
     @Override
-    public List<ClaimDocumentResponse> getDocumentsByClaimId(
-            Long claimId) {
+    public List<ClaimDocumentResponse> getDocumentsByClaimId(Long claimId, String email, String role) {
+        Claim claim = claimRepository.findById(claimId)
+                .orElseThrow(() -> new BusinessException("Claim not found"));
 
-        return claimDocumentRepository
-                .findByClaimId(claimId)
+        if ("CUSTOMER".equals(role) && !claim.getPolicy().getCustomer().getUser().getEmail().equals(email)) {
+            throw new BusinessException("Access denied. You can only view documents for your own claims.");
+        }
+
+        return claimDocumentRepository.findByClaimId(claimId)
                 .stream()
                 .map(this::mapToResponse)
                 .toList();

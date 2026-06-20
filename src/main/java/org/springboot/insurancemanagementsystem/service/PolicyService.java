@@ -15,7 +15,7 @@ public interface PolicyService {
     PolicyResponseDto issuePolicy(
             PolicyRequestDto request);
 
-    PolicyResponseDto getPolicyById(Long policyId);
+    PolicyResponseDto getPolicyById(Long policyId, String email, String role);
 
     PolicyResponseDto getPolicyByNumber(
             String policyNumber);

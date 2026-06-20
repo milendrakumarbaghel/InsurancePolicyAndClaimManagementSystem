@@ -20,5 +20,7 @@ public interface ClaimStatusHistoryService {
             int page,
             int size,
             String sortBy,
-            String sortDir);
+            String sortDir,
+            String email,
+            String role);
 }

@@ -78,15 +78,21 @@ public class PolicyController {
     @GetMapping("/{policyId}")
     @PreAuthorize("hasAnyRole('ADMIN','AGENT','CUSTOMER')")
     public ResponseEntity<PolicyResponseDto> getPolicyById(
-            @PathVariable Long policyId) {
+            @PathVariable Long policyId, Authentication authentication) {
 
         log.info(
                 "Fetching policy details for policyId: {}",
                 policyId
         );
 
-        PolicyResponseDto response =
-                policyService.getPolicyById(policyId);
+        String email = authentication.getName();
+
+        String role = authentication.getAuthorities().stream()
+                .map(grantedAuthority -> grantedAuthority.getAuthority().replace("ROLE_", ""))
+                .findFirst()
+                .orElse("");
+
+        PolicyResponseDto response = policyService.getPolicyById(policyId, email, role);
 
         log.info(
                 "Policy details retrieved successfully for policyId: {}",

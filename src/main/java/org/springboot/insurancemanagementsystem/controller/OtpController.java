@@ -37,6 +37,8 @@ public class OtpController {
 
         // Mark user as verified
         user.setActive(true);
+        user.setMobileVerified(true);
+        user.setEmailVerified(true);
         userRepository.save(user);
 
         return ResponseEntity.ok(OtpResponseDto.builder()

@@ -1,17 +1,17 @@
 {
   "info": {
-    "_postman_id": "06774aaa-b75d-46e5-a5b5-398b03228fd8",
-    "name": "Insurance Policy & Claim Management System",
-    "description": "REST API collection for the Insurance Policy and Claim Management System built with Spring Boot. Supports three roles: Admin, Agent, and Customer. Covers authentication, user management, insurance products, policy plans, policies, premium payments, and claims lifecycle management.",
+    "_postman_id": "184ce1b3-5aa9-4191-a2fa-b79ea9abc94d",
+    "name": "Insurance Management System API  With Role",
+    "description": "API collection for Insurance Policy and Claim Management System based on Controller definitions with Role-based tags.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-    "_exporter_id": "37013446"
+    "_exporter_id": "36309621"
   },
   "item": [
     {
       "name": "Auth",
       "item": [
         {
-          "name": "Register Customer",
+          "name": "Register User (PUBLIC)",
           "request": {
             "method": "POST",
             "header": [
@@ -22,12 +22,12 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"fullName\": \"Abhishek Rajput\",\n  \"email\": \"abhi.rajput@gmail.com\",\n  \"password\": \"Password@123\",\n  \"mobileNumber\": \"9876543211\"\n}"
+              "raw": "{\n  \"fullName\": \"Amitesh Kumar Mehta\",\n  \"email\": \"amitesh11130@gmail.com\",\n  \"password\": \"Password@123\",\n  \"mobileNumber\": \"9123197480\"\n}"
             },
             "url": {
-              "raw": "{{baseUrl}}/api/auth/register",
+              "raw": "{{base_url}}/api/auth/register",
               "host": [
-                "{{baseUrl}}"
+                "{{base_url}}"
               ],
               "path": [
                 "api",
@@ -39,15 +39,18 @@
           "response": []
         },
         {
-          "name": "Admin Login",
+          "name": "Login User (ADMIN)",
           "event": [
             {
               "listen": "test",
               "script": {
                 "exec": [
-                  "if (pm.response.code === 200) {",
-                  "    const res = pm.response.json();",
-                  "    pm.environment.set(\"token\", res.token || res.data?.token);",
+                  "// Assuming your API returns JSON like: { \"token\": \"ey...\" }\r",
+                  "const responseData = pm.response.json();\r",
+                  "\r",
+                  "if (pm.response.code === 200 && responseData.token) {\r",
+                  "    pm.collectionVariables.set(\"admin_token\", responseData.token);\r",
+                  "    console.log(\"Admin token saved successfully!\");\r",
                   "}"
                 ],
                 "type": "text/javascript",
@@ -66,12 +69,12 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"email\": \"john.doe@example.com\",\n  \"password\": \"Password@123\"\n}"
+              "raw": "{\n  \"email\": \"test@example.com\",\n  \"password\": \"password123\"\n}"
             },
             "url": {
-              "raw": "{{baseUrl}}/api/auth/login",
+              "raw": "{{base_url}}/api/auth/login",
               "host": [
-                "{{baseUrl}}"
+                "{{base_url}}"
               ],
               "path": [
                 "api",
@@ -83,15 +86,17 @@
           "response": []
         },
         {
-          "name": "Customer Login",
+          "name": "Login User (AGENT)",
           "event": [
             {
               "listen": "test",
               "script": {
                 "exec": [
-                  "if (pm.response.code === 200) {",
-                  "    const res = pm.response.json();",
-                  "    pm.environment.set(\"token\", res.token || res.data?.token);",
+                  "const responseData = pm.response.json();\r",
+                  "\r",
+                  "if (pm.response.code === 200 && responseData.token) {\r",
+                  "    pm.collectionVariables.set(\"agent_token\", responseData.token);\r",
+                  "    console.log(\"Agent token saved successfully!\");\r",
                   "}"
                 ],
                 "type": "text/javascript",
@@ -110,12 +115,12 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"email\": \"abhi.rajput@gmail.com\",\n  \"password\": \"Password@123\"\n}"
+              "raw": "{\n  \"email\": \"test@example.com\",\n  \"password\": \"password123\"\n}"
             },
             "url": {
-              "raw": "{{baseUrl}}/api/auth/login",
+              "raw": "{{base_url}}/api/auth/login",
               "host": [
-                "{{baseUrl}}"
+                "{{base_url}}"
               ],
               "path": [
                 "api",
@@ -127,15 +132,17 @@
           "response": []
         },
         {
-          "name": "Agent Login",
+          "name": "Login User (CUSTOMER)",
           "event": [
             {
               "listen": "test",
               "script": {
                 "exec": [
-                  "if (pm.response.code === 200) {",
-                  "    const res = pm.response.json();",
-                  "    pm.environment.set(\"token\", res.token || res.data?.token);",
+                  "const responseData = pm.response.json();\r",
+                  "\r",
+                  "if (pm.response.code === 200 && responseData.token) {\r",
+                  "    pm.collectionVariables.set(\"customer_token\", responseData.token);\r",
+                  "    console.log(\"Customer token saved successfully!\");\r",
                   "}"
                 ],
                 "type": "text/javascript",
@@ -154,12 +161,12 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"email\": \"amitesh@gmail.com\",\n  \"password\": \"Password@123\"\n}"
+              "raw": "{\n  \"email\": \"test@example.com\",\n  \"password\": \"password123\"\n}"
             },
             "url": {
-              "raw": "{{baseUrl}}/api/auth/login",
+              "raw": "{{base_url}}/api/auth/login",
               "host": [
-                "{{baseUrl}}"
+                "{{base_url}}"
               ],
               "path": [
                 "api",
@@ -169,81 +176,30 @@
             }
           },
           "response": []
-        }
-      ]
-    },
-    {
-      "name": "Users",
-      "item": [
-        {
-          "name": "Get All Users",
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{adminToken}}"
-              }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/api/users",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "users"
-              ]
-            }
-          },
-          "response": []
         },
         {
-          "name": "Get User By ID",
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{adminToken}}"
-              }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/api/users/{{userId}}",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "users",
-                "{{userId}}"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Create Agent",
+          "name": "Create Agent (ADMIN)",
           "request": {
             "method": "POST",
             "header": [
               {
-                "key": "Authorization",
-                "value": "Bearer {{adminToken}}"
+                "key": "Content-Type",
+                "value": "application/json"
               },
               {
-                "key": "Content-Type",
-                "value": "application/json"
+                "key": "Authorization",
+                "value": "Bearer {{admin-token}}",
+                "type": "text"
               }
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"fullName\": \"Amitesh\",\n  \"email\": \"amitesh@gmail.com\",\n  \"password\": \"Password@123\",\n  \"mobileNumber\": \"9914286668\"\n}"
+              "raw": "{\n  \"fullName\": \"Amitesh Kumar Mehta\",\n  \"email\": \"amitesh11130@gmail.com\",\n  \"password\": \"Password@123\",\n  \"mobileNumber\": \"9123197480\"\n}"
             },
             "url": {
-              "raw": "{{baseUrl}}/api/auth/agents",
+              "raw": "{{base_url}}/api/auth/agents",
               "host": [
-                "{{baseUrl}}"
+                "{{base_url}}"
               ],
               "path": [
                 "api",
@@ -253,52 +209,489 @@
             }
           },
           "response": []
-        },
+        }
+      ]
+    },
+    {
+      "name": "Claims",
+      "item": [
         {
-          "name": "Activate User",
+          "name": "Raise Claim (CUSTOMER)",
           "request": {
-            "method": "PATCH",
+            "method": "POST",
             "header": [
               {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
                 "key": "Authorization",
-                "value": "Bearer {{adminToken}}"
+                "value": "Bearer {{customer-token}}",
+                "type": "text"
               }
             ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"policyId\": 1,\n  \"claimAmount\": 50000.0,\n  \"claimReason\": \"Car accident on the highway resulting in front bumper damage.\",\n  \"incidentDate\": \"2026-06-15\",\n  \"documents\": [\n    {\n      \"documentName\": \"FIR_Copy.pdf\",\n      \"documentType\": \"FIR\",\n      \"fileUrl\": \"http://example.com/docs/fir.pdf\"\n    }\n  ]\n}"
+            },
             "url": {
-              "raw": "{{baseUrl}}/api/users/{{userId}}/activate",
+              "raw": "{{base_url}}/api/claims",
               "host": [
-                "{{baseUrl}}"
+                "{{base_url}}"
               ],
               "path": [
                 "api",
-                "users",
-                "{{userId}}",
-                "activate"
+                "claims"
               ]
             }
           },
           "response": []
         },
         {
-          "name": "Deactivate User",
+          "name": "Review Claim (AGENT)",
           "request": {
-            "method": "PATCH",
+            "method": "PUT",
             "header": [
               {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
                 "key": "Authorization",
-                "value": "Bearer {{adminToken}}"
+                "value": "Bearer {{agent_token}}",
+                "type": "text"
               }
             ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"recommended\": true,\n    \"remarks\": \"Documents verified.\"\n}"
+            },
             "url": {
-              "raw": "{{baseUrl}}/api/users/{{userId}}/deactivate",
+              "raw": "{{base_url}}/api/claims/:claimId/review",
               "host": [
-                "{{baseUrl}}"
+                "{{base_url}}"
               ],
               "path": [
                 "api",
-                "users",
-                "{{userId}}",
-                "deactivate"
+                "claims",
+                ":claimId",
+                "review"
+              ],
+              "variable": [
+                {
+                  "key": "claimId",
+                  "value": "1"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Approve Claim (ADMIN)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin-token}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/claims/:claimId/approve?remarks=Approved",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "claims",
+                ":claimId",
+                "approve"
+              ],
+              "query": [
+                {
+                  "key": "remarks",
+                  "value": "Approved"
+                }
+              ],
+              "variable": [
+                {
+                  "key": "claimId",
+                  "value": "1"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Reject Claim (ADMIN)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin-token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/claims/:claimId/reject?remarks=Insufficient documents",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "claims",
+                ":claimId",
+                "reject"
+              ],
+              "query": [
+                {
+                  "key": "remarks",
+                  "value": "Insufficient documents"
+                }
+              ],
+              "variable": [
+                {
+                  "key": "claimId",
+                  "value": "1"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Claim By ID (ADMIN, AGENT, CUSTOMER)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin-token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/claims/:claimId",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "claims",
+                ":claimId"
+              ],
+              "variable": [
+                {
+                  "key": "claimId",
+                  "value": "1"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Claim By Number (ADMIN, AGENT)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin-token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/claims/number/:claimNumber",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "claims",
+                "number",
+                ":claimNumber"
+              ],
+              "variable": [
+                {
+                  "key": "claimNumber",
+                  "value": "CLM123"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get My Claims (CUSTOMER)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{customer-token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/claims/my",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "claims",
+                "my"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get All Claims (ADMIN, AGENT)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/claims?page=0&size=10&sortBy=id&sortDir=desc",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "claims"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "0"
+                },
+                {
+                  "key": "size",
+                  "value": "10"
+                },
+                {
+                  "key": "sortBy",
+                  "value": "id"
+                },
+                {
+                  "key": "sortDir",
+                  "value": "desc"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Claim Documents",
+      "item": [
+        {
+          "name": "Upload Document (ANY)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{customer-token}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "file",
+                  "type": "file",
+                  "value": null
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/api/claim-documents/upload/:claimId",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "claim-documents",
+                "upload",
+                ":claimId"
+              ],
+              "variable": [
+                {
+                  "key": "claimId",
+                  "value": "1"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Documents By Claim ID (ANY)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{customer-token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/claim-documents/claim/:claimId",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "claim-documents",
+                "claim",
+                ":claimId"
+              ],
+              "variable": [
+                {
+                  "key": "claimId",
+                  "value": "1"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Document By ID (ANY)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{customer-token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/claim-documents/:documentId",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "claim-documents",
+                ":documentId"
+              ],
+              "variable": [
+                {
+                  "key": "documentId",
+                  "value": "1"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Document (ANY)",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{customer-token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/claim-documents/:documentId",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "claim-documents",
+                ":documentId"
+              ],
+              "variable": [
+                {
+                  "key": "documentId",
+                  "value": "1"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Claim History",
+      "item": [
+        {
+          "name": "Get Claim History (ADMIN, AGENT, CUSTOMER)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{customer-token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/claim-history/:claimId?page=0&size=10&sortBy=id&sortDir=desc",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "claim-history",
+                ":claimId"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "0"
+                },
+                {
+                  "key": "size",
+                  "value": "10"
+                },
+                {
+                  "key": "sortBy",
+                  "value": "id"
+                },
+                {
+                  "key": "sortDir",
+                  "value": "desc"
+                }
+              ],
+              "variable": [
+                {
+                  "key": "claimId",
+                  "value": "1"
+                }
               ]
             }
           },
@@ -310,100 +703,91 @@
       "name": "Customers",
       "item": [
         {
-          "name": "Get All Customers",
-          "protocolProfileBehavior": {
-            "disableBodyPruning": true
-          },
+          "name": "Create Profile (CUSTOMER)",
           "request": {
-            "method": "GET",
+            "method": "POST",
             "header": [
               {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
                 "key": "Authorization",
-                "value": "Bearer {{adminToken}}"
+                "value": "Bearer {{customer-token}}",
+                "type": "text"
               }
             ],
             "body": {
               "mode": "raw",
-              "raw": "",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
+              "raw": "{\r\n  \"nomineeName\": \"Jane Doe\",\r\n  \"nomineeRelation\": \"Spouse\",\r\n  \"dateOfBirth\": \"1990-05-15\",\r\n  \"address\": \"123 Main Street, Apartment 4B\",\r\n  \"city\": \"Mumbai\",\r\n  \"state\": \"Maharashtra\",\r\n  \"pinCode\": \"400001\"\r\n}"
             },
             "url": {
-              "raw": "{{baseUrl}}/api/customers?page=0&size=10",
+              "raw": "{{base_url}}/api/customers",
               "host": [
-                "{{baseUrl}}"
+                "{{base_url}}"
               ],
               "path": [
                 "api",
                 "customers"
-              ],
-              "query": [
-                {
-                  "key": "page",
-                  "value": "0"
-                },
-                {
-                  "key": "size",
-                  "value": "10"
-                }
               ]
             }
           },
           "response": []
         },
         {
-          "name": "Get Customer By ID",
+          "name": "Update Profile (CUSTOMER)",
           "request": {
-            "method": "GET",
+            "method": "PUT",
             "header": [
               {
-                "key": "Authorization",
-                "value": "Bearer {{token}}"
-              }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/api/customers/{{customerId}}",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "customers",
-                "{{customerId}}"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Get My Profile",
-          "protocolProfileBehavior": {
-            "disableBodyPruning": true
-          },
-          "request": {
-            "method": "GET",
-            "header": [
+                "key": "Content-Type",
+                "value": "application/json"
+              },
               {
                 "key": "Authorization",
-                "value": "Bearer {{customerToken}}"
+                "value": "Bearer {{customerToken}}",
+                "type": "text"
               }
             ],
             "body": {
               "mode": "raw",
-              "raw": "",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
+              "raw": "{\r\n  \"nomineeName\": \"Jane Doe\",\r\n  \"nomineeRelation\": \"Spouse\",\r\n  \"dateOfBirth\": \"1990-05-15\",\r\n  \"address\": \"123 Main Street, Apartment 4B\",\r\n  \"city\": \"Mumbai\",\r\n  \"state\": \"Maharashtra\",\r\n  \"pinCode\": \"400001\"\r\n}"
             },
             "url": {
-              "raw": "{{baseUrl}}/api/customers/me",
+              "raw": "{{base_url}}/api/customers/:customerId",
               "host": [
-                "{{baseUrl}}"
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "customers",
+                ":customerId"
+              ],
+              "variable": [
+                {
+                  "key": "customerId",
+                  "value": "1"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get My Profile (CUSTOMER)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{customer-token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/customers/me",
+              "host": [
+                "{{base_url}}"
               ],
               "path": [
                 "api",
@@ -415,65 +799,73 @@
           "response": []
         },
         {
-          "name": "Update Customer Profile",
+          "name": "Get Customer By ID (ADMIN, AGENT)",
           "request": {
-            "method": "PUT",
+            "method": "GET",
             "header": [
               {
                 "key": "Authorization",
-                "value": "Bearer {{customerToken}}"
-              },
-              {
-                "key": "Content-Type",
-                "value": "application/json"
+                "value": "Bearer {{admin-token}}",
+                "type": "text"
               }
             ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"userId\": 2,\n  \"dateOfBirth\": \"2020-06-07\",\n  \"address\": \"Indore\",\n  \"city\": \"Indore\",\n  \"state\": \"Madhya Pradesh\",\n  \"pinCode\": \"625184\",\n  \"nomineeName\": \"Lucky\",\n  \"nomineeRelation\": \"Brother\"\n}"
-            },
             "url": {
-              "raw": "{{baseUrl}}/api/customers/2",
+              "raw": "{{base_url}}/api/customers/:customerId",
               "host": [
-                "{{baseUrl}}"
+                "{{base_url}}"
               ],
               "path": [
                 "api",
                 "customers",
-                "2"
+                ":customerId"
+              ],
+              "variable": [
+                {
+                  "key": "customerId",
+                  "value": "1"
+                }
               ]
             }
           },
           "response": []
         },
         {
-          "name": "Create Customer Profile",
+          "name": "Get All Customers (ADMIN, AGENT)",
           "request": {
-            "method": "POST",
+            "method": "GET",
             "header": [
               {
                 "key": "Authorization",
-                "value": "Bearer {{token}}",
+                "value": "Bearer {{adminToken}}",
                 "type": "text"
               }
             ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"userId\": 2,\n  \"dateOfBirth\": \"2020-06-07\",\n  \"address\": \"Indore\",\n  \"city\": \"Indore\",\n  \"state\": \"Madhya Pradesh\",\n  \"pinCode\": \"625184\",\n  \"nomineeName\": \"Junior Abhishek\",\n  \"nomineeRelation\": \"son\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
             "url": {
-              "raw": "{{baseUrl}}/api/customers",
+              "raw": "{{base_url}}/api/customers?page=0&size=10&sortBy=id&sortDir=desc",
               "host": [
-                "{{baseUrl}}"
+                "{{base_url}}"
               ],
               "path": [
                 "api",
                 "customers"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "0"
+                },
+                {
+                  "key": "size",
+                  "value": "10"
+                },
+                {
+                  "key": "sortBy",
+                  "value": "id"
+                },
+                {
+                  "key": "sortDir",
+                  "value": "desc"
+                }
               ]
             }
           },
@@ -485,19 +877,116 @@
       "name": "Insurance Products",
       "item": [
         {
-          "name": "Get All Products",
+          "name": "Create Product (ADMIN)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"productName\": \"Health Insurance Premium Plan\",\r\n  \"productType\": \"HEALTH\",\r\n  \"description\": \"Comprehensive health insurance coverage with cashless hospitalization and annual health checkups.\",\r\n  \"active\": true\r\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/products",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "products"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Product (ADMIN)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin-token}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"productName\": \"Health Insurance Gold Plan\",\r\n  \"productType\": \"HEALTH\",\r\n  \"description\": \"Updated health insurance plan offering enhanced coverage, cashless treatment and wellness benefits.\",\r\n  \"active\": false\r\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/products/:productId",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "products",
+                ":productId"
+              ],
+              "variable": [
+                {
+                  "key": "productId",
+                  "value": "1"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Product By ID (ADMIN, AGENT, CUSTOMER)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/products/:productId",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "products",
+                ":productId"
+              ],
+              "variable": [
+                {
+                  "key": "productId",
+                  "value": "1"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get All Products (ADMIN, AGENT, CUSTOMER)",
           "request": {
             "method": "GET",
             "header": [
               {
                 "key": "Authorization",
-                "value": "Bearer {{token}}"
+                "value": "Bearer {{customer-token}}",
+                "type": "text"
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/api/products?page=0&size=10&active=true",
+              "raw": "{{base_url}}/api/products?page=0&size=10&sortBy=id&sortDir=desc",
               "host": [
-                "{{baseUrl}}"
+                "{{base_url}}"
               ],
               "path": [
                 "api",
@@ -513,8 +1002,12 @@
                   "value": "10"
                 },
                 {
-                  "key": "active",
-                  "value": "true"
+                  "key": "sortBy",
+                  "value": "id"
+                },
+                {
+                  "key": "sortDir",
+                  "value": "desc"
                 }
               ]
             }
@@ -522,137 +1015,107 @@
           "response": []
         },
         {
-          "name": "Get Product By ID",
+          "name": "Get Active Products (ADMIN, AGENT, CUSTOMER)",
           "request": {
             "method": "GET",
             "header": [
               {
                 "key": "Authorization",
-                "value": "Bearer {{token}}"
+                "value": "Bearer {{customer-token}}",
+                "type": "text"
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/api/products/{{productId}}",
+              "raw": "{{base_url}}/api/products/active?page=0&size=10&sortBy=id&sortDir=desc",
               "host": [
-                "{{baseUrl}}"
+                "{{base_url}}"
               ],
               "path": [
                 "api",
                 "products",
-                "{{productId}}"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Create Product",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{adminToken}}"
-              },
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"productName\": \"Accidental Shield\",\n  \"productType\": \"HEALTH\",\n  \"description\": \"Comprehensive health insurance coverage for individuals and families in case of any physical accidents.\",\n  \"active\": true\n}"
-            },
-            "url": {
-              "raw": "{{baseUrl}}/api/products",
-              "host": [
-                "{{baseUrl}}"
+                "active"
               ],
-              "path": [
-                "api",
-                "products"
+              "query": [
+                {
+                  "key": "page",
+                  "value": "0"
+                },
+                {
+                  "key": "size",
+                  "value": "10"
+                },
+                {
+                  "key": "sortBy",
+                  "value": "id"
+                },
+                {
+                  "key": "sortDir",
+                  "value": "desc"
+                }
               ]
             }
           },
           "response": []
         },
         {
-          "name": "Update Product",
-          "request": {
-            "method": "PUT",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{adminToken}}"
-              },
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"productName\": \"Health Shield Plus\",\n  \"productType\": \"HEALTH\",\n  \"description\": \"Updated comprehensive health insurance coverage.\",\n  \"active\": true\n}"
-            },
-            "url": {
-              "raw": "{{baseUrl}}/api/products/{{productId}}",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "products",
-                "{{productId}}"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Deactivate Product",
+          "name": "Deactivate Product (ADMIN)",
           "request": {
             "method": "PATCH",
             "header": [
               {
                 "key": "Authorization",
-                "value": "Bearer {{adminToken}}"
+                "value": "Bearer {{admin-token}}",
+                "type": "text"
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/api/products/{{productId}}/deactivate",
+              "raw": "{{base_url}}/api/products/:productId/deactivate",
               "host": [
-                "{{baseUrl}}"
+                "{{base_url}}"
               ],
               "path": [
                 "api",
                 "products",
-                "{{productId}}",
+                ":productId",
                 "deactivate"
+              ],
+              "variable": [
+                {
+                  "key": "productId",
+                  "value": "1"
+                }
               ]
             }
           },
           "response": []
         },
         {
-          "name": "Activate Product",
+          "name": "Activate Product (ADMIN)",
           "request": {
             "method": "PATCH",
             "header": [
               {
                 "key": "Authorization",
-                "value": "Bearer {{adminToken}}"
+                "value": "Bearer {{admin-token}}",
+                "type": "text"
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/api/products/{{productId}}/activate",
+              "raw": "{{base_url}}/api/products/:productId/activate",
               "host": [
-                "{{baseUrl}}"
+                "{{base_url}}"
               ],
               "path": [
                 "api",
                 "products",
-                "{{productId}}",
+                ":productId",
                 "activate"
+              ],
+              "variable": [
+                {
+                  "key": "productId",
+                  "value": "1"
+                }
               ]
             }
           },
@@ -661,78 +1124,41 @@
       ]
     },
     {
-      "name": "Policy Plans",
+      "name": "OTP",
       "item": [
         {
-          "name": "Get All Plans",
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{token}}"
-              }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/api/plans?page=0&size=10&productId={{productId}}",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "plans"
-              ],
-              "query": [
-                {
-                  "key": "page",
-                  "value": "0"
-                },
-                {
-                  "key": "size",
-                  "value": "10"
-                },
-                {
-                  "key": "productId",
-                  "value": "{{productId}}"
-                }
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Get Plan By ID",
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{token}}"
-              }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/api/plans/{{planId}}",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "plans",
-                "{{planId}}"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Create Plan",
+          "name": "Verify OTP (PUBLIC)",
           "request": {
             "method": "POST",
             "header": [
               {
-                "key": "Authorization",
-                "value": "Bearer {{adminToken}}"
-              },
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"test@example.com\",\n  \"emailOtp\": \"123456\",\n  \"phoneOtp\": \"654321\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/otp/verify",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "otp",
+                "verify"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Resend OTP (PUBLIC)",
+          "request": {
+            "method": "POST",
+            "header": [
               {
                 "key": "Content-Type",
                 "value": "application/json"
@@ -740,73 +1166,17 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"productId\": 1,\n  \"planName\": \"Basic Health Plan\",\n  \"coverageAmount\": 500000,\n  \"premiumAmount\": 12000,\n  \"premiumType\": \"ANNUAL\",\n  \"duration\": 12,\n  \"termsAndConditions\": \"Coverage includes hospitalization, surgery, and emergency care. Pre-existing conditions covered after 2 years.\",\n  \"active\": true\n}"
+              "raw": "{\n  \"email\": \"test@example.com\"\n}"
             },
             "url": {
-              "raw": "{{baseUrl}}/api/plans",
+              "raw": "{{base_url}}/api/otp/resend",
               "host": [
-                "{{baseUrl}}"
+                "{{base_url}}"
               ],
               "path": [
                 "api",
-                "plans"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Update Plan",
-          "request": {
-            "method": "PUT",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{adminToken}}"
-              },
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"productId\": 1,\n  \"planName\": \"Basic Health Plan Updated\",\n  \"coverageAmount\": 600000,\n  \"premiumAmount\": 14000,\n  \"premiumType\": \"ONE_TIME\",\n  \"duration\": 12,\n  \"termsAndConditions\": \"Updated terms and conditions.\",\n  \"active\": true\n}"
-            },
-            "url": {
-              "raw": "{{baseUrl}}/api/plans/{{planId}}",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "plans",
-                "{{planId}}"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Deactivate Plan",
-          "request": {
-            "method": "PATCH",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{adminToken}}"
-              }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/api/plans/{{planId}}/deactivate",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "plans",
-                "{{planId}}",
-                "deactivate"
+                "otp",
+                "resend"
               ]
             }
           },
@@ -818,19 +1188,182 @@
       "name": "Policies",
       "item": [
         {
-          "name": "Get All Policies (Admin)",
+          "name": "Purchase Policy (CUSTOMER)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{customer-token}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/policies/purchase/:planId",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "policies",
+                "purchase",
+                ":planId"
+              ],
+              "variable": [
+                {
+                  "key": "planId",
+                  "value": "1"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Issue Policy (ADMIN, AGENT)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin-token}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"customerId\": 1,\n  \"planId\": 1,\n  \"startDate\": \"2026-06-20\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/policies/issue",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "policies",
+                "issue"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Policy By ID (ADMIN, AGENT, CUSTOMER)",
           "request": {
             "method": "GET",
             "header": [
               {
                 "key": "Authorization",
-                "value": "Bearer {{adminToken}}"
+                "value": "Bearer {{customer-token}}",
+                "type": "text"
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/api/policies?page=0&size=10&status=ACTIVE",
+              "raw": "{{base_url}}/api/policies/:policyId",
               "host": [
-                "{{baseUrl}}"
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "policies",
+                ":policyId"
+              ],
+              "variable": [
+                {
+                  "key": "policyId",
+                  "value": "1"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Policy By Number (ADMIN, AGENT, CUSTOMER)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{customer-token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/policies/number/:policyNumber",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "policies",
+                "number",
+                ":policyNumber"
+              ],
+              "variable": [
+                {
+                  "key": "policyNumber",
+                  "value": "POL123"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get My Policies (CUSTOMER)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{customer-token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/policies/my",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "policies",
+                "my"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get All Policies (ADMIN, AGENT)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin-token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/policies?page=0&size=10&sortBy=id&sortDir=desc",
+              "host": [
+                "{{base_url}}"
               ],
               "path": [
                 "api",
@@ -846,8 +1379,12 @@
                   "value": "10"
                 },
                 {
-                  "key": "status",
-                  "value": "ACTIVE"
+                  "key": "sortBy",
+                  "value": "id"
+                },
+                {
+                  "key": "sortDir",
+                  "value": "desc"
                 }
               ]
             }
@@ -855,24 +1392,195 @@
           "response": []
         },
         {
-          "name": "Get My Policies (Customer)",
+          "name": "Cancel Policy (ADMIN, AGENT)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin-token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/policies/:policyId/cancel",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "policies",
+                ":policyId",
+                "cancel"
+              ],
+              "variable": [
+                {
+                  "key": "policyId",
+                  "value": "1"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Policy Plans",
+      "item": [
+        {
+          "name": "Create Plan (ADMIN)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin-token}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"productId\": 1,\r\n  \"planName\": \"Health Secure Gold\",\r\n  \"coverageAmount\": 5000000.00,\r\n  \"premiumAmount\": 15000.00,\r\n  \"premiumType\": \"YEARLY\",\r\n  \"duration\": 20,\r\n  \"termsAndConditions\": \"Policy covers hospitalization expenses, subject to exclusions and waiting periods as defined in the policy document.\",\r\n  \"active\": true\r\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/plans",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "plans"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Plan (ADMIN)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin-token}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"productId\": 1,\r\n  \"planName\": \"Health Secure Platinum\",\r\n  \"coverageAmount\": 10000000.00,\r\n  \"premiumAmount\": 25000.00,\r\n  \"premiumType\": \"YEARLY\",\r\n  \"duration\": 30,\r\n  \"termsAndConditions\": \"Updated policy provides enhanced coverage, cashless treatment benefits and additional wellness services subject to policy terms.\",\r\n  \"active\": true\r\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/plans/:planId",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "plans",
+                ":planId"
+              ],
+              "variable": [
+                {
+                  "key": "planId",
+                  "value": "1"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Plan By ID (ADMIN, AGENT, CUSTOMER)",
           "request": {
             "method": "GET",
             "header": [
               {
                 "key": "Authorization",
-                "value": "Bearer {{customerToken}}"
+                "value": "Bearer {{customer-token}}",
+                "type": "text"
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/api/policies/my?page=0&size=10",
+              "raw": "{{base_url}}/api/plans/:planId",
               "host": [
-                "{{baseUrl}}"
+                "{{base_url}}"
               ],
               "path": [
                 "api",
-                "policies",
-                "my"
+                "plans",
+                ":planId"
+              ],
+              "variable": [
+                {
+                  "key": "planId",
+                  "value": "1"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Plans By Product (ADMIN, AGENT, CUSTOMER)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{customer-token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/plans/product/:productId",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "plans",
+                "product",
+                ":productId"
+              ],
+              "variable": [
+                {
+                  "key": "productId",
+                  "value": "1"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get All Plans (ADMIN, AGENT, CUSTOMER)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{customer-token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/plans?page=0&size=10&sortBy=id&sortDir=desc",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "plans"
               ],
               "query": [
                 {
@@ -882,6 +1590,14 @@
                 {
                   "key": "size",
                   "value": "10"
+                },
+                {
+                  "key": "sortBy",
+                  "value": "id"
+                },
+                {
+                  "key": "sortDir",
+                  "value": "desc"
                 }
               ]
             }
@@ -889,124 +1605,32 @@
           "response": []
         },
         {
-          "name": "Get Policy By ID",
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{token}}"
-              }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/api/policies/{{policyId}}",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "policies",
-                "{{policyId}}"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Purchase Policy (Customer)",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{customerToken}}"
-              },
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": ""
-            },
-            "url": {
-              "raw": "{{baseUrl}}/api/policies/purchase/1",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "policies",
-                "purchase",
-                "1"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Issue Policy (Agent)",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{agentToken}}"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"customerId\": 1,\n  \"planId\": 1,\n  \"startDate\": \"2026-06-07\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
-            "url": {
-              "raw": "{{baseUrl}}/api/policies/issue",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "policies",
-                "issue"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Cancel Policy",
+          "name": "Deactivate Plan (ADMIN)",
           "request": {
             "method": "PATCH",
             "header": [
               {
                 "key": "Authorization",
-                "value": "Bearer {{token}}"
+                "value": "Bearer {{admin-token}}",
+                "type": "text"
               }
             ],
-            "body": {
-              "mode": "raw",
-              "raw": "",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
             "url": {
-              "raw": "{{baseUrl}}/api/policies/{{policyId}}/cancel",
+              "raw": "{{base_url}}/api/plans/:planId/deactivate",
               "host": [
-                "{{baseUrl}}"
+                "{{base_url}}"
               ],
               "path": [
                 "api",
-                "policies",
-                "{{policyId}}",
-                "cancel"
+                "plans",
+                ":planId",
+                "deactivate"
+              ],
+              "variable": [
+                {
+                  "key": "planId",
+                  "value": "1"
+                }
               ]
             }
           },
@@ -1018,36 +1642,62 @@
       "name": "Premium Payments",
       "item": [
         {
-          "name": "Get Payment History (Customer)",
+          "name": "Record Payment (CUSTOMER)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{customer-token}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"policyPlanId\": 1,\r\n  \"amount\": 15000.0,\r\n  \"policyNumber\": \"POL-12345-XYZ\",\r\n  \"paymentMode\": \"UPI\"\r\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/payments",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "payments"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Payment By ID (ADMIN, AGENT, CUSTOMER)",
           "request": {
             "method": "GET",
             "header": [
               {
                 "key": "Authorization",
-                "value": "Bearer {{adminToken}}"
+                "value": "Bearer {{customer-token}}",
+                "type": "text"
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/api/payments?policyId={{policyId}}&page=0&size=10",
+              "raw": "{{base_url}}/api/payments/:paymentId",
               "host": [
-                "{{baseUrl}}"
+                "{{base_url}}"
               ],
               "path": [
                 "api",
-                "payments"
+                "payments",
+                ":paymentId"
               ],
-              "query": [
+              "variable": [
                 {
-                  "key": "policyId",
-                  "value": "{{policyId}}"
-                },
-                {
-                  "key": "page",
-                  "value": "0"
-                },
-                {
-                  "key": "size",
-                  "value": "10"
+                  "key": "paymentId",
+                  "value": "1"
                 }
               ]
             }
@@ -1055,80 +1705,74 @@
           "response": []
         },
         {
-          "name": "Get Policy Payments",
+          "name": "Get Policy Payments (ADMIN, AGENT, CUSTOMER)",
           "request": {
             "method": "GET",
             "header": [
               {
                 "key": "Authorization",
-                "value": "Bearer {{customerToken}}"
+                "value": "Bearer {{customer-token}}",
+                "type": "text"
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/api/payments/policy/1",
+              "raw": "{{base_url}}/api/payments/policy/:policyId",
               "host": [
-                "{{baseUrl}}"
+                "{{base_url}}"
               ],
               "path": [
                 "api",
                 "payments",
                 "policy",
-                "1"
+                ":policyId"
+              ],
+              "variable": [
+                {
+                  "key": "policyId",
+                  "value": "1"
+                }
               ]
             }
           },
           "response": []
         },
         {
-          "name": "Get Payment By ID",
+          "name": "Get All Payments (ADMIN, AGENT)",
           "request": {
             "method": "GET",
             "header": [
               {
                 "key": "Authorization",
-                "value": "Bearer {{token}}"
+                "value": "Bearer {{admin-token}}",
+                "type": "text"
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/api/payments/{{paymentId}}",
+              "raw": "{{base_url}}/api/payments?page=0&size=10&sortBy=id&sortDir=desc",
               "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "payments",
-                "{{paymentId}}"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Record Payment",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{customerToken}}"
-              },
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"policyId\": 1,\n  \"amount\": 12500,\n  \"paymentMode\": \"UPI\"\n}"
-            },
-            "url": {
-              "raw": "{{baseUrl}}/api/payments",
-              "host": [
-                "{{baseUrl}}"
+                "{{base_url}}"
               ],
               "path": [
                 "api",
                 "payments"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "0"
+                },
+                {
+                  "key": "size",
+                  "value": "10"
+                },
+                {
+                  "key": "sortBy",
+                  "value": "id"
+                },
+                {
+                  "key": "sortDir",
+                  "value": "desc"
+                }
               ]
             }
           },
@@ -1137,64 +1781,52 @@
       ]
     },
     {
-      "name": "Claims",
+      "name": "Users",
       "item": [
         {
-          "name": "Get All Claims (Admin/Agent)",
+          "name": "Get Customers (ADMIN)",
           "request": {
             "method": "GET",
             "header": [
               {
                 "key": "Authorization",
-                "value": "Bearer {{adminToken}}"
+                "value": "Bearer {{admin-token}}",
+                "type": "text"
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/api/claims?page=0&size=10&status=SUBMITTED",
+              "raw": "{{base_url}}/api/users/customers",
               "host": [
-                "{{baseUrl}}"
+                "{{base_url}}"
               ],
               "path": [
                 "api",
-                "claims"
-              ],
-              "query": [
-                {
-                  "key": "page",
-                  "value": "0"
-                },
-                {
-                  "key": "size",
-                  "value": "10"
-                },
-                {
-                  "key": "status",
-                  "value": "SUBMITTED"
-                }
+                "users",
+                "customers"
               ]
             }
           },
           "response": []
         },
         {
-          "name": "Get My Claims (Customer)",
+          "name": "Get All Users (ADMIN)",
           "request": {
             "method": "GET",
             "header": [
               {
                 "key": "Authorization",
-                "value": "Bearer {{customerToken}}"
+                "value": "Bearer {{admin-token}}",
+                "type": "text"
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/api/claims/my?page=0&size=10",
+              "raw": "{{base_url}}/api/users?page=0&size=10",
               "host": [
-                "{{baseUrl}}"
+                "{{base_url}}"
               ],
               "path": [
                 "api",
-                "claims",
-                "my"
+                "users"
               ],
               "query": [
                 {
@@ -1211,169 +1843,7 @@
           "response": []
         },
         {
-          "name": "Get Claim By ID",
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{token}}"
-              }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/api/claims/{{claimId}}",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "claims",
-                "{{claimId}}"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Raise Claim (Customer)",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{customerToken}}"
-              },
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"policyId\": 1,\n  \"claimAmount\": 50000,\n  \"claimReason\": \"Hospitalization due to surgery\",\n  \"incidentDate\": \"2025-01-15\"\n}"
-            },
-            "url": {
-              "raw": "{{baseUrl}}/api/claims",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "claims"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Review Claim (Agent - mark Under Review)",
-          "request": {
-            "method": "PUT",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{agentToken}}"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"recommended\": true,\n  \"remarks\": \"Claim Reviewed\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
-            "url": {
-              "raw": "{{baseUrl}}/api/claims/{{claimId}}/review",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "claims",
-                "{{claimId}}",
-                "review"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Approve Claim (Admin)",
-          "request": {
-            "method": "PUT",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{adminToken}}"
-              },
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"remarks\": \"Claim approved after review. Amount will be disbursed within 7 working days.\"\n}"
-            },
-            "url": {
-              "raw": "{{baseUrl}}/api/claims/{{claimId}}/approve?remarks=Claim approved after review. Amount will be disbursed within 7 working days.",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "claims",
-                "{{claimId}}",
-                "approve"
-              ],
-              "query": [
-                {
-                  "key": "remarks",
-                  "value": "Claim approved after review. Amount will be disbursed within 7 working days.",
-                  "type": "text"
-                }
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Reject Claim (Admin)",
-          "request": {
-            "method": "PUT",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{adminToken}}"
-              },
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"remarks\": \"Claim rejected due to insufficient documentation.\"\n}"
-            },
-            "url": {
-              "raw": "{{baseUrl}}/api/claims/{{claimId}}/reject",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "claims",
-                "{{claimId}}",
-                "reject"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Get by Claim Number",
+          "name": "Get User By ID (ADMIN)",
           "request": {
             "method": "GET",
             "header": [
@@ -1384,133 +1854,84 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/api/claims/number/{{claimNumber}}",
+              "raw": "{{base_url}}/api/users/:id",
               "host": [
-                "{{baseUrl}}"
+                "{{base_url}}"
               ],
               "path": [
                 "api",
-                "claims",
-                "number",
-                "{{claimNumber}}"
-              ]
-            }
-          },
-          "response": []
-        }
-      ]
-    },
-    {
-      "name": "Claim Documents",
-      "item": [
-        {
-          "name": "Get Documents for Claim",
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{token}}"
-              }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/api/claims/{{claimId}}/documents",
-              "host": [
-                "{{baseUrl}}"
+                "users",
+                ":id"
               ],
-              "path": [
-                "api",
-                "claims",
-                "{{claimId}}",
-                "documents"
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "1"
+                }
               ]
             }
           },
           "response": []
         },
         {
-          "name": "Upload Claim Document",
+          "name": "Activate User (ADMIN)",
           "request": {
-            "method": "POST",
+            "method": "PATCH",
             "header": [
               {
                 "key": "Authorization",
-                "value": "Bearer {{customerToken}}"
-              },
-              {
-                "key": "Content-Type",
-                "value": "application/json"
+                "value": "Bearer {{admin-token}}",
+                "type": "text"
               }
             ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"documentType\": \"HOSPITAL_BILL\",\n  \"documentUrl\": \"https://storage.example.com/docs/hospital-bill-001.pdf\",\n  \"description\": \"Hospital bill for surgery\"\n}"
-            },
             "url": {
-              "raw": "{{baseUrl}}/api/claims/{{claimId}}/documents",
+              "raw": "{{base_url}}/api/users/:id/activate",
               "host": [
-                "{{baseUrl}}"
+                "{{base_url}}"
               ],
               "path": [
                 "api",
-                "claims",
-                "{{claimId}}",
-                "documents"
+                "users",
+                ":id",
+                "activate"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "1"
+                }
               ]
             }
           },
           "response": []
         },
         {
-          "name": "Delete Claim Document",
+          "name": "Deactivate User (ADMIN)",
           "request": {
-            "method": "DELETE",
+            "method": "PATCH",
             "header": [
               {
                 "key": "Authorization",
-                "value": "Bearer {{customerToken}}"
+                "value": "Bearer {{admin-token}}",
+                "type": "text"
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/api/claims/{{claimId}}/documents/{{documentId}}",
+              "raw": "{{base_url}}/api/users/:id/deactivate",
               "host": [
-                "{{baseUrl}}"
+                "{{base_url}}"
               ],
               "path": [
                 "api",
-                "claims",
-                "{{claimId}}",
-                "documents",
-                "{{documentId}}"
-              ]
-            }
-          },
-          "response": []
-        }
-      ]
-    },
-    {
-      "name": "Claim Status History",
-      "item": [
-        {
-          "name": "Get Claim Status History",
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{adminToken}}"
-              }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/api/claim-history/{{claimId}}",
-              "host": [
-                "{{baseUrl}}"
+                "users",
+                ":id",
+                "deactivate"
               ],
-              "path": [
-                "api",
-                "claim-history",
-                "{{claimId}}"
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "1"
+                }
               ]
             }
           },
@@ -1519,53 +1940,65 @@
       ]
     }
   ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "packages": {},
+        "requests": {},
+        "exec": [
+          "// Get the current request name (e.g., \"Get Customers (ADMIN)\")\r",
+          "const requestName = pm.info.eventName === \"prerequest\" ? pm.execution.location[pm.execution.location.length - 1] : \"\";\r",
+          "\r",
+          "let tokenToUse = null;\r",
+          "\r",
+          "// Determine which token to inject based on the request name tags\r",
+          "if (requestName.includes(\"(ADMIN)\")) {\r",
+          "    tokenToUse = pm.collectionVariables.get(\"admin_token\");\r",
+          "} else if (requestName.includes(\"(AGENT)\")) {\r",
+          "    tokenToUse = pm.collectionVariables.get(\"agent_token\");\r",
+          "} else if (requestName.includes(\"(CUSTOMER)\")) {\r",
+          "    tokenToUse = pm.collectionVariables.get(\"customer_token\");\r",
+          "}\r",
+          "\r",
+          "// If a relevant token is found, automatically inject it into the Authorization Header\r",
+          "if (tokenToUse) {\r",
+          "    pm.request.headers.upsert({\r",
+          "        key: \"Authorization\",\r",
+          "        value: \"Bearer \" + tokenToUse\r",
+          "    });\r",
+          "}"
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "packages": {},
+        "requests": {},
+        "exec": [
+          ""
+        ]
+      }
+    }
+  ],
   "variable": [
     {
-      "key": "baseUrl",
+      "key": "base_url",
       "value": "http://localhost:8080"
     },
     {
-      "key": "userId",
-      "value": "1"
-    },
-    {
-      "key": "customerId",
-      "value": "1"
-    },
-    {
-      "key": "productId",
-      "value": "1"
-    },
-    {
-      "key": "planId",
-      "value": "1"
-    },
-    {
-      "key": "policyId",
-      "value": "1"
-    },
-    {
-      "key": "paymentId",
-      "value": "1"
-    },
-    {
-      "key": "claimId",
-      "value": "1"
-    },
-    {
-      "key": "documentId",
-      "value": "1"
-    },
-    {
-      "key": "adminToken",
+      "key": "customer-token",
       "value": ""
     },
     {
-      "key": "token",
+      "key": "admin-token",
       "value": ""
     },
     {
-      "key": "customerToken",
+      "key": "agent_token",
       "value": ""
     }
   ]

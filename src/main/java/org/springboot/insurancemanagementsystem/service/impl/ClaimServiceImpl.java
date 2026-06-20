@@ -292,31 +292,55 @@ public class ClaimServiceImpl implements ClaimService {
         return toClaimResponse(updatedClaim, byClaimId);
     }
 
+//    @Override
+//    public ClaimResponseDto getClaimById(
+//            Long claimId) {
+//
+//        log.debug("Fetching claim by id={}", claimId);
+//        Claim claimEntity = getClaimEntity(claimId);
+//        List<ClaimDocument> byClaimId = claimDocumentRepository.findByClaimId(claimEntity.getId());
+//        return toClaimResponse(claimEntity, byClaimId);
+//    }
     @Override
-    public ClaimResponseDto getClaimById(
-            Long claimId) {
-
+    public ClaimResponseDto getClaimById(Long claimId, String email, String role) {
         log.debug("Fetching claim by id={}", claimId);
-        Claim claimEntity = getClaimEntity(claimId);
-        List<ClaimDocument> byClaimId = claimDocumentRepository.findByClaimId(claimEntity.getId());
-        return toClaimResponse(claimEntity, byClaimId);
+        Claim claim = claimRepository.findById(claimId)
+                .orElseThrow(() -> new ResourceNotFoundException("Claim not found"));
+
+        if ("CUSTOMER".equals(role) && !claim.getPolicy().getCustomer().getUser().getEmail().equals(email)) {
+            throw new BusinessException("Access denied. You can only view your own claims.");
+        }
+
+        return toClaimResponse(claim, claimDocumentRepository.findByClaimId(claimId));
     }
 
+//    @Override
+//    public ClaimResponseDto getClaimByNumber(
+//            String claimNumber) {
+//
+//        log.debug("Fetching claim by number={}",
+//                claimNumber);
+//
+//        Claim claim =
+//                claimRepository.findByClaimNumber(claimNumber)
+//                        .orElseThrow(() ->
+//                                new ResourceNotFoundException(
+//                                        "Claim not found"));
+//
+//        List<ClaimDocument> byClaimId = claimDocumentRepository.findByClaimId(claim.getId());
+//        return toClaimResponse(claim, byClaimId);
+//    }
     @Override
-    public ClaimResponseDto getClaimByNumber(
-            String claimNumber) {
+    public ClaimResponseDto getClaimByNumber(String claimNumber, String email, String role) {
+        log.debug("Fetching claim by number={}", claimNumber);
+        Claim claim = claimRepository.findByClaimNumber(claimNumber)
+                .orElseThrow(() -> new ResourceNotFoundException("Claim not found with number: " + claimNumber));
 
-        log.debug("Fetching claim by number={}",
-                claimNumber);
+        if ("CUSTOMER".equals(role) && !claim.getPolicy().getCustomer().getUser().getEmail().equals(email)) {
+            throw new BusinessException("Access denied. You can only view your own claims.");
+        }
 
-        Claim claim =
-                claimRepository.findByClaimNumber(claimNumber)
-                        .orElseThrow(() ->
-                                new ResourceNotFoundException(
-                                        "Claim not found"));
-
-        List<ClaimDocument> byClaimId = claimDocumentRepository.findByClaimId(claim.getId());
-        return toClaimResponse(claim, byClaimId);
+        return toClaimResponse(claim, claimDocumentRepository.findByClaimId(claim.getId()));
     }
 
     @Override

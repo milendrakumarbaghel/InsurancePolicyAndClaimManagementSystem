@@ -22,6 +22,8 @@ public interface PremiumPaymentRepository
 
     List<PremiumPayment> findByPolicy_Id(Long policyId);
 
+    Page<PremiumPayment> findByPolicy_Customer_Id(Long customerId, Pageable pageable);
+
     Page<PremiumPayment> findByStatus(
             PaymentStatus status,
             Pageable pageable

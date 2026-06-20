@@ -126,12 +126,17 @@ public class ClaimController {
     @GetMapping("/{claimId}")
     @PreAuthorize("hasAnyRole('ADMIN','AGENT','CUSTOMER')")
     public ResponseEntity<ClaimResponseDto> getClaimById(
-            @PathVariable Long claimId) {
+            @PathVariable Long claimId,
+            Authentication authentication) {
 
         log.info("Fetching claim details for claimId: {}", claimId);
 
-        ClaimResponseDto response =
-                claimService.getClaimById(claimId);
+        String email = authentication.getName();
+        String role = authentication.getAuthorities().stream()
+                .map(r -> r.getAuthority().replace("ROLE_", ""))
+                .findFirst().orElse("");
+
+        ClaimResponseDto response = claimService.getClaimById(claimId, email, role);
 
         log.info("Claim details retrieved successfully for claimId: {}",
                 claimId);
@@ -140,20 +145,25 @@ public class ClaimController {
     }
 
     @GetMapping("/number/{claimNumber}")
-    @PreAuthorize("hasAnyRole('ADMIN','AGENT')")
+    @PreAuthorize("hasAnyRole('ADMIN','AGENT','CUSTOMER')")
     public ResponseEntity<ClaimResponseDto> getClaimByNumber(
-            @PathVariable String claimNumber) {
+            @PathVariable String claimNumber, Authentication authentication) {
 
         log.info("Fetching claim details using claim number: {}",
                 claimNumber);
 
-        ClaimResponseDto response =
-                claimService.getClaimByNumber(claimNumber);
+        String email = authentication.getName();
+        String role = authentication.getAuthorities().stream()
+                .map(grantedAuthority -> grantedAuthority.getAuthority().replace("ROLE_", ""))
+                .findFirst()
+                .orElse("");
+
+        ClaimResponseDto claimResponse = claimService.getClaimByNumber(claimNumber, email, role);
 
         log.info("Claim retrieved successfully for claim number: {}",
                 claimNumber);
 
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(claimResponse);
     }
 
     @GetMapping("/my")

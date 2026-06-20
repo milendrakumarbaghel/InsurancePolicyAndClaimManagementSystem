@@ -1,10 +1,12 @@
 package org.springboot.insurancemanagementsystem.controller;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springboot.insurancemanagementsystem.dto.ClaimDocumentResponse;
 import org.springboot.insurancemanagementsystem.service.ClaimDocumentService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -13,6 +15,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/claim-documents")
 @RequiredArgsConstructor
+@Slf4j
 @CrossOrigin(origins = "http://localhost:5173")
 public class ClaimDocumentController {
 
@@ -38,14 +41,20 @@ public class ClaimDocumentController {
     @GetMapping("/claim/{claimId}")
     public ResponseEntity<List<ClaimDocumentResponse>>
     getDocumentsByClaimId(
-            @PathVariable Long claimId) {
+            @PathVariable Long claimId, Authentication authentication) {
 
-        return ResponseEntity.ok(
-                claimDocumentService
-                        .getDocumentsByClaimId(
-                                claimId
-                        )
-        );
+        log.info("REST request to get Documents for Claim ID : {}", claimId);
+
+        String email = authentication.getName();
+
+        String role = authentication.getAuthorities().stream()
+                .map(grantedAuthority -> grantedAuthority.getAuthority().replace("ROLE_", ""))
+                .findFirst()
+                .orElse("");
+
+        List<ClaimDocumentResponse> responses = claimDocumentService.getDocumentsByClaimId(claimId, email, role);
+
+        return ResponseEntity.ok(responses);
     }
 
     @GetMapping("/{documentId}")
