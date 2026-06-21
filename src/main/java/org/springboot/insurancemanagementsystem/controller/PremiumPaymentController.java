@@ -92,7 +92,7 @@ public class PremiumPaymentController {
     }
 
     @GetMapping
-    @PreAuthorize("hasAnyRole('ADMIN','AGENT')")
+    @PreAuthorize("hasAnyRole('ADMIN','AGENT','CUSTOMER')")
     public ResponseEntity<Page<PaymentResponseDto>> getAllPayments(
 
             @RequestParam(defaultValue = "0")
