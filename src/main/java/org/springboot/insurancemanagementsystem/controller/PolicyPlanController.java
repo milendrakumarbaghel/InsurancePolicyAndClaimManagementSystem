@@ -175,7 +175,7 @@ public class PolicyPlanController {
                 "Policy plan deactivated successfully");
     }
 
-    @PatchMapping("/{planId}/deactivate")
+    @PatchMapping("/{planId}/activate")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<String> activatePlan(
             @PathVariable Long planId) {
