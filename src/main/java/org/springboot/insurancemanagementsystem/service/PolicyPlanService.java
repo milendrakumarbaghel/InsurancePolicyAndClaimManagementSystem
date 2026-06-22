@@ -26,4 +26,6 @@ public interface PolicyPlanService {
             String sortDir);
 
     void deactivatePlan(Long planId);
+    void activatePlan(Long planId);
+
 }

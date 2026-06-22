@@ -174,4 +174,25 @@ public class PolicyPlanController {
         return ResponseEntity.ok(
                 "Policy plan deactivated successfully");
     }
+
+    @PatchMapping("/{planId}/deactivate")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<String> activatePlan(
+            @PathVariable Long planId) {
+
+        log.info(
+                "Policy plan activation request received for planId: {}",
+                planId
+        );
+
+        policyPlanService.deactivatePlan(planId);
+
+        log.info(
+                "Policy plan activated successfully. Plan ID: {}",
+                planId
+        );
+
+        return ResponseEntity.ok(
+                "Policy plan deactivated successfully");
+    }
 }

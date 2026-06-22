@@ -256,6 +256,35 @@ public class PolicyPlanServiceImpl implements PolicyPlanService {
                 plan.getPlanName());
     }
 
+    @Override
+    public void activatePlan(Long planId) {
+
+        log.info(
+                "Plan activation request received. PlanId={}",
+                planId);
+
+        PolicyPlan plan =
+                planRepository.findById(planId)
+                        .orElseThrow(() -> {
+
+                            log.warn(
+                                    "Plan not found for activation. PlanId={}",
+                                    planId);
+
+                            return new ResourceNotFoundException(
+                                    "Plan not found");
+                        });
+
+        plan.setActive(true);
+        plan.setUpdatedAt(LocalDateTime.now());
+        planRepository.save(plan);
+
+        log.info(
+                "Policy plan activated successfully. PlanId={}, PlanName={}",
+                plan.getId(),
+                plan.getPlanName());
+    }
+
     private void validatePlan(
             PolicyPlanRequestDto request) {
 
