@@ -185,7 +185,7 @@ public class PolicyPlanController {
                 planId
         );
 
-        policyPlanService.deactivatePlan(planId);
+        policyPlanService.activatePlan(planId);
 
         log.info(
                 "Policy plan activated successfully. Plan ID: {}",
@@ -193,6 +193,6 @@ public class PolicyPlanController {
         );
 
         return ResponseEntity.ok(
-                "Policy plan deactivated successfully");
+                "Policy plan activated successfully");
     }
 }

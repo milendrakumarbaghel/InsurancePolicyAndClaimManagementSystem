@@ -16,4 +16,5 @@ public class PolicyPlanResponseDto {
     private Double premiumAmount;
     private String premiumType;
     private Integer duration;
+    private boolean active;
 }
