@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springboot.insurancemanagementsystem.dto.LoginRequestDto;
 import org.springboot.insurancemanagementsystem.dto.LoginResponseDto;
+import org.springboot.insurancemanagementsystem.dto.LogoutRequestDto;
 import org.springboot.insurancemanagementsystem.dto.RefreshTokenRequestDto;
 import org.springboot.insurancemanagementsystem.dto.RegisterRequestDto;
 import org.springboot.insurancemanagementsystem.dto.UserResponseDto;
@@ -58,6 +59,16 @@ public class AuthController {
         LoginResponseDto response = authService.refreshToken(request);
 
         return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/logout")
+    public ResponseEntity<Void> logout(
+            @RequestHeader(value = "Authorization", required = false) String authorizationHeader,
+            @RequestBody(required = false) LogoutRequestDto request) {
+
+        authService.logout(authorizationHeader, request);
+
+        return ResponseEntity.noContent().build();
     }
 
     @PostMapping("/agents")

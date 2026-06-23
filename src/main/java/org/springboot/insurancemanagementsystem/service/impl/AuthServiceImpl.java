@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springboot.insurancemanagementsystem.dto.LoginRequestDto;
 import org.springboot.insurancemanagementsystem.dto.LoginResponseDto;
+import org.springboot.insurancemanagementsystem.dto.LogoutRequestDto;
 import org.springboot.insurancemanagementsystem.dto.RefreshTokenRequestDto;
 import org.springboot.insurancemanagementsystem.dto.RegisterRequestDto;
 import org.springboot.insurancemanagementsystem.dto.UserResponseDto;
@@ -16,6 +17,7 @@ import org.springboot.insurancemanagementsystem.exception.UserInactiveException;
 import org.springboot.insurancemanagementsystem.repository.UserRepository;
 import org.springboot.insurancemanagementsystem.security.util.JwtUtil;
 import org.springboot.insurancemanagementsystem.service.AuthService;
+import org.springboot.insurancemanagementsystem.service.TokenBlacklistService;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.AuthenticationException;
@@ -38,6 +40,7 @@ public class AuthServiceImpl implements AuthService {
     private final ModelMapper modelMapper;
     private final UserDetailsService userDetailsService;
     private final OtpServiceImp otpServiceImp;
+    private final TokenBlacklistService tokenBlacklistService;
 
     @Override
     public UserResponseDto register(RegisterRequestDto request) {
@@ -121,7 +124,6 @@ public class AuthServiceImpl implements AuthService {
         return LoginResponseDto.builder()
                 .accessToken(accessToken)
                 .refreshToken(refreshToken)
-                .token(accessToken)
                 .tokenType("Bearer")
                 .email(user.getEmail())
                 .role(user.getRole().name())
@@ -153,23 +155,42 @@ public class AuthServiceImpl implements AuthService {
 
         UserDetails userDetails = userDetailsService.loadUserByUsername(user.getEmail());
 
+        if (tokenBlacklistService.isBlacklisted(request.getRefreshToken())) {
+            log.warn("Blacklisted refresh token used for email: {}", userEmail);
+            throw new InvalidCredentialsException("Invalid refresh token");
+        }
+
         if (!jwtUtil.isRefreshTokenValid(request.getRefreshToken(), userDetails)) {
             log.warn("Refresh token validation failed for email: {}", userEmail);
             throw new InvalidCredentialsException("Invalid refresh token");
         }
 
         String accessToken = jwtUtil.generateAccessToken(userDetails);
+        String refreshToken = jwtUtil.generateRefreshToken(userDetails);
+
+        tokenBlacklistService.blacklist(request.getRefreshToken());
 
         return LoginResponseDto.builder()
                 .accessToken(accessToken)
-                .refreshToken(request.getRefreshToken())
-                .token(accessToken)
+                .refreshToken(refreshToken)
                 .tokenType("Bearer")
                 .email(user.getEmail())
                 .role(user.getRole().name())
+                .name(user.getFullName())
                 .expiresInMin(jwtUtil.getJwtExpiration() / 1000 / 60)
                 .refreshExpiresInMin(jwtUtil.getRefreshExpirationMillis() / 1000 / 60)
                 .build();
+    }
+
+    @Override
+    public void logout(String authorizationHeader, LogoutRequestDto request) {
+        if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
+            tokenBlacklistService.blacklist(authorizationHeader.substring(7));
+        }
+
+        if (request != null && request.getRefreshToken() != null) {
+            tokenBlacklistService.blacklist(request.getRefreshToken());
+        }
     }
 
     @Override

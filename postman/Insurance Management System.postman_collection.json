@@ -45,11 +45,11 @@
               "listen": "test",
               "script": {
                 "exec": [
-                  "// Assuming your API returns JSON like: { \"token\": \"ey...\" }\r",
+                  "// Assuming your API returns JSON like: { \"accessToken\": \"ey...\" }\r",
                   "const responseData = pm.response.json();\r",
                   "\r",
-                  "if (pm.response.code === 200 && responseData.token) {\r",
-                  "    pm.collectionVariables.set(\"admin_token\", responseData.token);\r",
+                  "if (pm.response.code === 200 && responseData.accessToken) {\r",
+                  "    pm.collectionVariables.set(\"admin_token\", responseData.accessToken);\r",
                   "    console.log(\"Admin token saved successfully!\");\r",
                   "}"
                 ],
@@ -94,8 +94,8 @@
                 "exec": [
                   "const responseData = pm.response.json();\r",
                   "\r",
-                  "if (pm.response.code === 200 && responseData.token) {\r",
-                  "    pm.collectionVariables.set(\"agent_token\", responseData.token);\r",
+                  "if (pm.response.code === 200 && responseData.accessToken) {\r",
+                  "    pm.collectionVariables.set(\"agent_token\", responseData.accessToken);\r",
                   "    console.log(\"Agent token saved successfully!\");\r",
                   "}"
                 ],
@@ -140,8 +140,8 @@
                 "exec": [
                   "const responseData = pm.response.json();\r",
                   "\r",
-                  "if (pm.response.code === 200 && responseData.token) {\r",
-                  "    pm.collectionVariables.set(\"customer_token\", responseData.token);\r",
+                  "if (pm.response.code === 200 && responseData.accessToken) {\r",
+                  "    pm.collectionVariables.set(\"customer_token\", responseData.accessToken);\r",
                   "    console.log(\"Customer token saved successfully!\");\r",
                   "}"
                 ],
