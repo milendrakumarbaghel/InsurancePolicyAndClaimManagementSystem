@@ -38,42 +38,6 @@ public class AuthServiceImpl implements AuthService {
     private final UserDetailsService userDetailsService;
     private final OtpServiceImp otpServiceImp;
 
-//    @Override
-//    public UserResponseDto register(RegisterRequestDto request) {
-//
-//        log.info("Registration request received for email: {}", request.getEmail());
-//
-//        if (userRepository.existsByEmail(request.getEmail())) {
-//
-//            log.warn("Registration failed. Email already exists: {}", request.getEmail());
-//
-//            throw new DuplicateResourceException(
-//                    "Email already registered");
-//        }
-//
-//        User user = User.builder()
-//                .fullName(request.getFullName())
-//                .email(request.getEmail())
-//                .mobileNumber(request.getMobileNumber())
-//                .password(passwordEncoder.encode(request.getPassword()))
-//                .role(Role.CUSTOMER)
-//                .active(true)
-//                .createdAt(LocalDateTime.now())
-//                .build();
-//
-//        User savedUser = userRepository.save(user);
-//
-//        log.info(
-//                "Customer registered successfully. UserId={}, Email={}",
-//                savedUser.getId(),
-//                savedUser.getEmail()
-//        );
-//
-//        UserResponseDto map = modelMapper.map(savedUser, UserResponseDto.class);
-//        map.setUserId(savedUser.getId());
-//        return map;
-//    }
-
     @Override
     public UserResponseDto register(RegisterRequestDto request) {
 
@@ -156,6 +120,7 @@ public class AuthServiceImpl implements AuthService {
                 .tokenType("Bearer")
                 .email(user.getEmail())
                 .role(user.getRole().name())
+                .name(user.getFullName())
                 .expiresInMin(jwtUtil.getJwtExpiration() / 1000 / 60)
                 .build();
     }
