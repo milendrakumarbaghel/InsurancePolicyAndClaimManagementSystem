@@ -122,6 +122,7 @@ public class PremiumPaymentServiceImpl
         payment.setTransactionReference(
                 transactionRef);
         payment.setCreatedAt(LocalDateTime.now());
+        payment.setPaymentDate(LocalDateTime.now());
 
         PremiumPayment savedPayment =
                 paymentRepository.save(payment);
