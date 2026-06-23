@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springboot.insurancemanagementsystem.dto.LoginRequestDto;
 import org.springboot.insurancemanagementsystem.dto.LoginResponseDto;
+import org.springboot.insurancemanagementsystem.dto.RefreshTokenRequestDto;
 import org.springboot.insurancemanagementsystem.dto.RegisterRequestDto;
 import org.springboot.insurancemanagementsystem.dto.UserResponseDto;
 import org.springboot.insurancemanagementsystem.service.AuthService;
@@ -46,6 +47,15 @@ public class AuthController {
         LoginResponseDto response = authService.login(request);
 
         log.info("User logged in successfully: {}", request.getEmail());
+
+        return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/refresh-token")
+    public ResponseEntity<LoginResponseDto> refreshToken(
+            @Valid @RequestBody RefreshTokenRequestDto request) {
+
+        LoginResponseDto response = authService.refreshToken(request);
 
         return ResponseEntity.ok(response);
     }

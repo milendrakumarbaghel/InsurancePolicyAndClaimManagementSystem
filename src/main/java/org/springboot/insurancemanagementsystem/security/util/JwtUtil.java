@@ -21,16 +21,34 @@ import java.util.function.Function;
 @Service
 public class JwtUtil {
 
+    private static final String TOKEN_TYPE_CLAIM = "tokenType";
+    private static final String ACCESS_TOKEN_TYPE = "ACCESS";
+    private static final String REFRESH_TOKEN_TYPE = "REFRESH";
+
     @Value("${app.jwt.secret}")
     private String secretKey;
 
     @Value("${app.jwt.expiration}")
     private long jwtExpiration;
 
-    public String generateToken(UserDetails userDetails) {
+    @Value("${app.jwt.refresh-expiration:604800000}")
+    private long refreshExpiration;
+
+    public String generateAccessToken(UserDetails userDetails) {
         Map<String, Object> claims = new HashMap<>();
         claims.put("role", userDetails.getAuthorities().iterator().next().getAuthority());
+        claims.put(TOKEN_TYPE_CLAIM, ACCESS_TOKEN_TYPE);
         return buildToken(claims, userDetails.getUsername(), jwtExpiration);
+    }
+
+    public String generateToken(UserDetails userDetails) {
+        return generateAccessToken(userDetails);
+    }
+
+    public String generateRefreshToken(UserDetails userDetails) {
+        Map<String, Object> claims = new HashMap<>();
+        claims.put(TOKEN_TYPE_CLAIM, REFRESH_TOKEN_TYPE);
+        return buildToken(claims, userDetails.getUsername(), refreshExpiration);
     }
 
     private String buildToken(Map<String, Object> claims, String subject, long expiration) {
@@ -48,12 +66,28 @@ public class JwtUtil {
         return username.equals(userDetails.getUsername()) && !isTokenExpired(token);
     }
 
+    public boolean isAccessTokenValid(String token, UserDetails userDetails) {
+        return isTokenValid(token, userDetails) && ACCESS_TOKEN_TYPE.equals(extractTokenType(token));
+    }
+
+    public boolean isRefreshTokenValid(String token, UserDetails userDetails) {
+        return isTokenValid(token, userDetails) && REFRESH_TOKEN_TYPE.equals(extractTokenType(token));
+    }
+
     public String extractUsername(String token) {
         return extractClaim(token, Claims::getSubject);
     }
 
+    public String extractTokenType(String token) {
+        return extractClaim(token, claims -> claims.get(TOKEN_TYPE_CLAIM, String.class));
+    }
+
     public long getExpirationMillis() {
         return jwtExpiration;
+    }
+
+    public long getRefreshExpirationMillis() {
+        return refreshExpiration;
     }
 
     private boolean isTokenExpired(String token) {

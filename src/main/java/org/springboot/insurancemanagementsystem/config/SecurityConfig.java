@@ -66,6 +66,7 @@ public class SecurityConfig {
                         // PUBLIC APIs
                         .requestMatchers(HttpMethod.POST, "/api/auth/register").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/auth/login").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/auth/refresh-token").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/otp/*").permitAll()
 
                         // Swagger

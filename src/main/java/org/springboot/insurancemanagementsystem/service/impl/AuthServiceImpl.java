@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springboot.insurancemanagementsystem.dto.LoginRequestDto;
 import org.springboot.insurancemanagementsystem.dto.LoginResponseDto;
+import org.springboot.insurancemanagementsystem.dto.RefreshTokenRequestDto;
 import org.springboot.insurancemanagementsystem.dto.RegisterRequestDto;
 import org.springboot.insurancemanagementsystem.dto.UserResponseDto;
 import org.springboot.insurancemanagementsystem.entitie.User;
@@ -106,8 +107,10 @@ public class AuthServiceImpl implements AuthService {
         UserDetails userDetails =
                 userDetailsService.loadUserByUsername(user.getEmail());
 
-        String token =
-                jwtUtil.generateToken(userDetails);
+        String accessToken =
+                jwtUtil.generateAccessToken(userDetails);
+        String refreshToken =
+                jwtUtil.generateRefreshToken(userDetails);
 
         log.info(
                 "User logged in successfully. Email={}, Role={}",
@@ -116,12 +119,56 @@ public class AuthServiceImpl implements AuthService {
         );
 
         return LoginResponseDto.builder()
-                .token(token)
+                .accessToken(accessToken)
+                .refreshToken(refreshToken)
+                .token(accessToken)
                 .tokenType("Bearer")
                 .email(user.getEmail())
                 .role(user.getRole().name())
                 .name(user.getFullName())
                 .expiresInMin(jwtUtil.getJwtExpiration() / 1000 / 60)
+                .refreshExpiresInMin(jwtUtil.getRefreshExpirationMillis() / 1000 / 60)
+                .build();
+    }
+
+    @Override
+    public LoginResponseDto refreshToken(RefreshTokenRequestDto request) {
+
+        String userEmail;
+
+        try {
+            userEmail = jwtUtil.extractUsername(request.getRefreshToken());
+        } catch (Exception ex) {
+            log.warn("Invalid refresh token received: {}", ex.getMessage());
+            throw new InvalidCredentialsException("Invalid refresh token");
+        }
+
+        User user = userRepository.findByEmail(userEmail)
+                .orElseThrow(() -> new InvalidCredentialsException("Invalid refresh token"));
+
+        if (!user.isActive()) {
+            log.warn("Inactive user attempted token refresh: {}", userEmail);
+            throw new UserInactiveException("User account is inactive");
+        }
+
+        UserDetails userDetails = userDetailsService.loadUserByUsername(user.getEmail());
+
+        if (!jwtUtil.isRefreshTokenValid(request.getRefreshToken(), userDetails)) {
+            log.warn("Refresh token validation failed for email: {}", userEmail);
+            throw new InvalidCredentialsException("Invalid refresh token");
+        }
+
+        String accessToken = jwtUtil.generateAccessToken(userDetails);
+
+        return LoginResponseDto.builder()
+                .accessToken(accessToken)
+                .refreshToken(request.getRefreshToken())
+                .token(accessToken)
+                .tokenType("Bearer")
+                .email(user.getEmail())
+                .role(user.getRole().name())
+                .expiresInMin(jwtUtil.getJwtExpiration() / 1000 / 60)
+                .refreshExpiresInMin(jwtUtil.getRefreshExpirationMillis() / 1000 / 60)
                 .build();
     }
 
