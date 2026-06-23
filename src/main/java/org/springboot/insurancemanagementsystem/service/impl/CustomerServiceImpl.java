@@ -170,14 +170,16 @@ public class CustomerServiceImpl implements CustomerService {
             int page,
             int size,
             String sortBy,
-            String sortDir) {
+            String sortDir,
+            String search) {
 
         log.info(
-                "Fetching all customers. Page={}, Size={}, SortBy={}, SortDir={}",
+                "Fetching all customers. Page={}, Size={}, SortBy={}, SortDir={}, search: {}",
                 page,
                 size,
                 sortBy,
-                sortDir);
+                sortDir,
+                search);
 
         Sort sort = sortDir.equalsIgnoreCase("asc")
                 ? Sort.by(sortBy).ascending()
@@ -186,8 +188,13 @@ public class CustomerServiceImpl implements CustomerService {
         Pageable pageable =
                 PageRequest.of(page, size, sort);
 
-        Page<Customer> customers =
-                customerRepository.findAll(pageable);
+        Page<Customer> customers;
+
+        if (search != null && !search.trim().isEmpty()) {
+            customers = customerRepository.searchCustomers(search.trim(), pageable);
+        } else {
+            customers = customerRepository.findAll(pageable);
+        }
 
         log.info(
                 "Customer list fetched successfully. TotalRecords={}",

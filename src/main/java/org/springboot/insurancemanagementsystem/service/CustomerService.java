@@ -14,5 +14,5 @@ public interface CustomerService {
 
     CustomerResponseDto getCustomerById(Long customerId);
 
-    Page<CustomerResponseDto> getAllCustomers(int page, int size, String sortBy, String sortDir);
+    Page<CustomerResponseDto> getAllCustomers(int page, int size, String sortBy, String sortDir,String search);
 }

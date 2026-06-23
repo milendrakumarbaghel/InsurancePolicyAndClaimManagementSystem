@@ -5,6 +5,8 @@ import org.springboot.insurancemanagementsystem.entitie.User;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.util.Optional;
 
@@ -24,5 +26,10 @@ public interface CustomerRepository
 
     Page<Customer> findByState(String state,
                                Pageable pageable);
+
+    @Query("SELECT c FROM Customer c WHERE " +
+            "LOWER(c.user.fullName) LIKE LOWER(CONCAT('%', :search, '%')) OR " +
+            "LOWER(c.user.email) LIKE LOWER(CONCAT('%', :search, '%'))")
+    Page<Customer> searchCustomers(@Param("search") String search, Pageable pageable);
 
 }

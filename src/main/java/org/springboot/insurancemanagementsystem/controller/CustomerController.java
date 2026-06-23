@@ -118,21 +118,26 @@ public class CustomerController {
             String sortBy,
 
             @RequestParam(defaultValue = "desc")
-            String sortDir) {
+            String sortDir,
+
+            @RequestParam(required = false)
+                    String search) {
 
         log.info(
-                "Fetching customers | page: {}, size: {}, sortBy: {}, sortDir: {}",
+                "Fetching customers | page: {}, size: {}, sortBy: {}, sortDir: {}, search: {}",
                 page,
                 size,
                 sortBy,
-                sortDir);
+                sortDir,
+                search);
 
         Page<CustomerResponseDto> customers =
                 customerService.getAllCustomers(
                         page,
                         size,
                         sortBy,
-                        sortDir);
+                        sortDir,
+                        search);
 
         log.info(
                 "Retrieved {} customer records",
