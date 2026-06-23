@@ -167,7 +167,6 @@ public class AuthServiceImpl implements AuthService {
 
         String accessToken = jwtUtil.generateAccessToken(userDetails);
         String refreshToken = jwtUtil.generateRefreshToken(userDetails);
-
         tokenBlacklistService.blacklist(request.getRefreshToken());
 
         return LoginResponseDto.builder()
