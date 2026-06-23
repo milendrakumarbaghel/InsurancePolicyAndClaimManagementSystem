@@ -2,6 +2,7 @@ package org.springboot.insurancemanagementsystem.service;
 
 import org.springboot.insurancemanagementsystem.dto.PolicyRequestDto;
 import org.springboot.insurancemanagementsystem.dto.PolicyResponseDto;
+import org.springboot.insurancemanagementsystem.enums.PolicyStatus;
 import org.springframework.data.domain.Page;
 
 import java.util.List;
@@ -27,7 +28,8 @@ public interface PolicyService {
             int page,
             int size,
             String sortBy,
-            String sortDir);
+            String sortDir,
+            PolicyStatus status);
 
     PolicyResponseDto cancelPolicy(Long policyId);
 }

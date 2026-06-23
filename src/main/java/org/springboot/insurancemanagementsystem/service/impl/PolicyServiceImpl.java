@@ -212,11 +212,12 @@ public class PolicyServiceImpl implements PolicyService {
             int page,
             int size,
             String sortBy,
-            String sortDir) {
+            String sortDir,
+            PolicyStatus status) {
 
         log.debug(
-                "Fetching all policies. page={}, size={}, sortBy={}, sortDir={}",
-                page, size, sortBy, sortDir);
+                "Fetching all policies. page={}, size={}, sortBy={}, sortDir={}, status={}",
+                page, size, sortBy, sortDir, status);
 
         Sort sort =
                 sortDir.equalsIgnoreCase("asc")
@@ -226,9 +227,15 @@ public class PolicyServiceImpl implements PolicyService {
         Pageable pageable =
                 PageRequest.of(page, size, sort);
 
-        return policyRepository
-                .findAll(pageable)
-                .map(this::mapToResponseDto);
+        Page<Policy> policyPage;
+
+        if (status != null) {
+            policyPage = policyRepository.findByStatus(status, pageable);
+        } else {
+            policyPage = policyRepository.findAll(pageable);
+        }
+
+        return policyPage.map(this::mapToResponseDto);
     }
 
     @Override

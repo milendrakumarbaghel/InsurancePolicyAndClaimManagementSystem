@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springboot.insurancemanagementsystem.dto.PolicyRequestDto;
 import org.springboot.insurancemanagementsystem.dto.PolicyResponseDto;
+import org.springboot.insurancemanagementsystem.enums.PolicyStatus;
 import org.springboot.insurancemanagementsystem.service.PolicyService;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
@@ -160,14 +161,18 @@ public class PolicyController {
             String sortBy,
 
             @RequestParam(defaultValue = "desc")
-            String sortDir) {
+            String sortDir,
+
+            @RequestParam(required = false)
+            PolicyStatus status) {
 
         log.info(
-                "Fetching all policies | page: {}, size: {}, sortBy: {}, sortDir: {}",
+                "Fetching all policies | page: {}, size: {}, sortBy: {}, sortDir: {}, status: {}",
                 page,
                 size,
                 sortBy,
-                sortDir
+                sortDir,
+                status
         );
 
         Page<PolicyResponseDto> policies =
@@ -175,7 +180,8 @@ public class PolicyController {
                         page,
                         size,
                         sortBy,
-                        sortDir);
+                        sortDir,
+                        status);
 
         log.info(
                 "Retrieved {} policy records",
