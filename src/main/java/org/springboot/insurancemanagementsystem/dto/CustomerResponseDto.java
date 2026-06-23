@@ -18,6 +18,8 @@ public class CustomerResponseDto {
     private String city;
     private String state;
     private String nomineeName;
+    private String email;
+    private String mobileNumber;
     private String nomineeRelation;
     private String address;
     private String pinCode;

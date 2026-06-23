@@ -213,11 +213,12 @@ public class PolicyServiceImpl implements PolicyService {
             int size,
             String sortBy,
             String sortDir,
-            PolicyStatus status) {
+            PolicyStatus status,
+            Long customerId) {
 
         log.debug(
-                "Fetching all policies. page={}, size={}, sortBy={}, sortDir={}, status={}",
-                page, size, sortBy, sortDir, status);
+                "Fetching all policies. page={}, size={}, sortBy={}, sortDir={}, status={}, customerId: {}",
+                page, size, sortBy, sortDir, status,customerId);
 
         Sort sort =
                 sortDir.equalsIgnoreCase("asc")
@@ -229,7 +230,11 @@ public class PolicyServiceImpl implements PolicyService {
 
         Page<Policy> policyPage;
 
-        if (status != null) {
+        if (customerId != null && status != null) {
+            policyPage = policyRepository.findByCustomerIdAndStatus(customerId, status, pageable);
+        } else if (customerId != null) {
+            policyPage = policyRepository.findByCustomerId(customerId, pageable);
+        } else if (status != null) {
             policyPage = policyRepository.findByStatus(status, pageable);
         } else {
             policyPage = policyRepository.findAll(pageable);

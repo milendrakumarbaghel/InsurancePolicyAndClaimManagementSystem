@@ -164,15 +164,19 @@ public class PolicyController {
             String sortDir,
 
             @RequestParam(required = false)
-            PolicyStatus status) {
+            PolicyStatus status,
+
+            @RequestParam(required = false)
+                    Long customerId) {
 
         log.info(
-                "Fetching all policies | page: {}, size: {}, sortBy: {}, sortDir: {}, status: {}",
+                "Fetching all policies | page: {}, size: {}, sortBy: {}, sortDir: {}, status: {}, customerId: {}",
                 page,
                 size,
                 sortBy,
                 sortDir,
-                status
+                status,
+                customerId
         );
 
         Page<PolicyResponseDto> policies =
@@ -181,7 +185,8 @@ public class PolicyController {
                         size,
                         sortBy,
                         sortDir,
-                        status);
+                        status,
+                        customerId);
 
         log.info(
                 "Retrieved {} policy records",

@@ -29,7 +29,8 @@ public interface PolicyService {
             int size,
             String sortBy,
             String sortDir,
-            PolicyStatus status);
+            PolicyStatus status,
+            Long customerId);
 
     PolicyResponseDto cancelPolicy(Long policyId);
 }
