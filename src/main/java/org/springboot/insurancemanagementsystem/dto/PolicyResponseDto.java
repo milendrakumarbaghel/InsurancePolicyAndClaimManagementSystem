@@ -19,4 +19,5 @@ public class PolicyResponseDto {
     private LocalDate endDate;
     private String status;
     private Double totalPremiumPaid;
+    private String productType;
 }

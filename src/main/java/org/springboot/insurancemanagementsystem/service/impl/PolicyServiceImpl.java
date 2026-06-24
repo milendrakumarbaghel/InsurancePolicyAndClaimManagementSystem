@@ -9,6 +9,7 @@ import org.springboot.insurancemanagementsystem.entitie.Customer;
 import org.springboot.insurancemanagementsystem.entitie.Policy;
 import org.springboot.insurancemanagementsystem.entitie.PolicyPlan;
 import org.springboot.insurancemanagementsystem.enums.PolicyStatus;
+import org.springboot.insurancemanagementsystem.enums.ProductType;
 import org.springboot.insurancemanagementsystem.exception.BusinessException;
 import org.springboot.insurancemanagementsystem.exception.ResourceNotFoundException;
 import org.springboot.insurancemanagementsystem.repository.CustomerRepository;
@@ -67,6 +68,24 @@ public class PolicyServiceImpl implements PolicyService {
                     planId);
             throw new BusinessException(
                     "Selected plan is inactive");
+        }
+
+        ProductType productType = plan.getProduct().getProductType();
+        List<PolicyStatus> activeStatuses = List.of(PolicyStatus.ACTIVE, PolicyStatus.PENDING_PAYMENT);
+
+        long activeCount = policyRepository.countByCustomerAndPlan_Product_ProductTypeAndStatusIn(customer, productType, activeStatuses);
+
+        boolean canPurchase = switch (productType) {
+            case HEALTH -> activeCount < 2;
+            case MOTOR -> activeCount < 1;
+            case LIFE -> activeCount < 5;
+            case TRAVEL -> activeCount == 0;
+            default -> true;
+        };
+
+        if (!canPurchase) {
+            log.warn("Purchase rejected: Maximum limit reached for productType={} by customer={}", productType, customerEmail);
+            throw new BusinessException("You have reached the maximum allowed policies for this product type: " + productType);
         }
 
         Policy policy = new Policy();
@@ -309,6 +328,7 @@ public class PolicyServiceImpl implements PolicyService {
                 policy.getCustomer()
                         .getUser()
                         .getFullName());
+        dto.setProductType(policy.getPlan().getProduct().getProductType().name());
 
         dto.setPlanName(
                 policy.getPlan()
