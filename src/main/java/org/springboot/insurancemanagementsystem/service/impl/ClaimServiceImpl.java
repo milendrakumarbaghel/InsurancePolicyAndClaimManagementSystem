@@ -475,6 +475,7 @@ public class ClaimServiceImpl implements ClaimService {
                 .claimNumber(cl.getClaimNumber())
                 .policyId(po != null ? po.getId() : null)
                 .policyNumber(po != null ? po.getPolicyNumber() : null)
+                .incidentDate(cl.getIncidentDate().toString())
                 .customerName(c != null && c.getUser() != null ? c.getUser().getFullName() : null)
                 .claimAmount(cl.getClaimAmount() == null ? null : cl.getClaimAmount())
                 .claimStatus(cl.getClaimStatus() == null ? null : cl.getClaimStatus().name())

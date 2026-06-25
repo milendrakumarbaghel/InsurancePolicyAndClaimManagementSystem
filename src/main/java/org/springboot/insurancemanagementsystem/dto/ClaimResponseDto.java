@@ -15,6 +15,7 @@ public class ClaimResponseDto {
     private String claimNumber;
     private Long policyId;
     private String policyNumber;
+    private String incidentDate;
     private String customerName;
     private Double claimAmount;
     private String claimStatus;
