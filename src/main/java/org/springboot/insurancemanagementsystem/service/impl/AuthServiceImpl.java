@@ -89,7 +89,9 @@ public class AuthServiceImpl implements AuthService {
             log.warn("Inactive user attempted login: {}", request.getEmail());
 
             throw new UserInactiveException(
-                    "User account is inactive");
+                    "User account is inactive",
+                    user.isEmailVerified(),
+                    user.isMobileVerified());
         }
 
         try {

@@ -72,9 +72,15 @@ public class GlobalExceptionHandler {
 
         log.warn("UserInactiveException: {}", ex.getMessage());
 
-        return buildResponse(
-                HttpStatus.FORBIDDEN,
-                ex.getMessage());
+        Map<String, Object> error = new LinkedHashMap<>();
+        error.put("timestamp", LocalDateTime.now());
+        error.put("status", HttpStatus.FORBIDDEN.value());
+        error.put("error", HttpStatus.FORBIDDEN.getReasonPhrase());
+        error.put("message", ex.getMessage());
+        error.put("emailVerified", ex.isEmailVerified());
+        error.put("mobileVerified", ex.isMobileVerified());
+
+        return new ResponseEntity<>(error, HttpStatus.FORBIDDEN);
     }
 
     @ExceptionHandler(BadRequestException.class)
