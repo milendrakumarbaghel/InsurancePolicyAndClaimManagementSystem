@@ -20,6 +20,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -73,7 +74,7 @@ public class PolicyPlanServiceImpl implements PolicyPlanService {
         plan.setCoverageAmount(request.getCoverageAmount());
         plan.setPremiumAmount(request.getPremiumAmount());
         plan.setPremiumType(
-                PremiumType.valueOf(request.getPremiumType()));
+                parsePremiumType(request.getPremiumType()));
         plan.setDuration(request.getDuration());
         plan.setTermsAndConditions(
                 request.getTermsAndConditions());
@@ -132,7 +133,7 @@ public class PolicyPlanServiceImpl implements PolicyPlanService {
         plan.setCoverageAmount(request.getCoverageAmount());
         plan.setPremiumAmount(request.getPremiumAmount());
         plan.setPremiumType(
-                PremiumType.valueOf(request.getPremiumType()));
+                parsePremiumType(request.getPremiumType()));
         plan.setDuration(request.getDuration());
         plan.setTermsAndConditions(
                 request.getTermsAndConditions());
@@ -331,6 +332,24 @@ public class PolicyPlanServiceImpl implements PolicyPlanService {
 
             throw new BusinessException(
                     "Duration must be greater than zero");
+        }
+
+        parsePremiumType(request.getPremiumType());
+    }
+
+    private PremiumType parsePremiumType(String premiumType) {
+
+        if (premiumType == null) {
+            throw new BusinessException(
+                    "Premium type is required");
+        }
+
+        try {
+            return PremiumType.valueOf(premiumType);
+        } catch (IllegalArgumentException ex) {
+            throw new BusinessException(
+                    "Invalid premium type. Allowed values are: "
+                            + Arrays.toString(PremiumType.values()));
         }
     }
 

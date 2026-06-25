@@ -1,6 +1,8 @@
 package org.springboot.insurancemanagementsystem.enums;
 
 public enum PremiumType {
-    ONE_TIME,
+    MONTHLY,
+    QUARTERLY,
+    HALF_YEARLY,
     ANNUAL
 }

@@ -41,7 +41,7 @@ public class PolicyPlanRequestDto {
     @NotBlank(message = "Premium type is required")
     @Pattern(
             regexp = "^[A-Z_]+$",
-            message = "Premium type must contain only uppercase alphabetic letters or underscores (e.g., MONTHLY, YEARLY)"
+            message = "Premium type must contain only uppercase alphabetic letters or underscores (e.g., MONTHLY, QUARTERLY, HALF_YEARLY, ANNUAL)"
     )
     private String premiumType;
 

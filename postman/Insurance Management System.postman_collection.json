@@ -1445,7 +1445,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\r\n  \"productId\": 1,\r\n  \"planName\": \"Health Secure Gold\",\r\n  \"coverageAmount\": 5000000.00,\r\n  \"premiumAmount\": 15000.00,\r\n  \"premiumType\": \"YEARLY\",\r\n  \"duration\": 20,\r\n  \"termsAndConditions\": \"Policy covers hospitalization expenses, subject to exclusions and waiting periods as defined in the policy document.\",\r\n  \"active\": true\r\n}"
+              "raw": "{\r\n  \"productId\": 1,\r\n  \"planName\": \"Health Secure Gold\",\r\n  \"coverageAmount\": 5000000.00,\r\n  \"premiumAmount\": 15000.00,\r\n  \"premiumType\": \"MONTHLY\",\r\n  \"duration\": 20,\r\n  \"termsAndConditions\": \"Policy covers hospitalization expenses, subject to exclusions and waiting periods as defined in the policy document.\",\r\n  \"active\": true\r\n}"
             },
             "url": {
               "raw": "{{base_url}}/api/plans",
@@ -1477,7 +1477,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\r\n  \"productId\": 1,\r\n  \"planName\": \"Health Secure Platinum\",\r\n  \"coverageAmount\": 10000000.00,\r\n  \"premiumAmount\": 25000.00,\r\n  \"premiumType\": \"YEARLY\",\r\n  \"duration\": 30,\r\n  \"termsAndConditions\": \"Updated policy provides enhanced coverage, cashless treatment benefits and additional wellness services subject to policy terms.\",\r\n  \"active\": true\r\n}"
+              "raw": "{\r\n  \"productId\": 1,\r\n  \"planName\": \"Health Secure Platinum\",\r\n  \"coverageAmount\": 10000000.00,\r\n  \"premiumAmount\": 25000.00,\r\n  \"premiumType\": \"QUARTERLY\",\r\n  \"duration\": 30,\r\n  \"termsAndConditions\": \"Updated policy provides enhanced coverage, cashless treatment benefits and additional wellness services subject to policy terms.\",\r\n  \"active\": true\r\n}"
             },
             "url": {
               "raw": "{{base_url}}/api/plans/:planId",
