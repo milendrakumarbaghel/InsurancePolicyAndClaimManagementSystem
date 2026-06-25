@@ -1,5 +1,7 @@
 package org.springboot.insurancemanagementsystem.service.impl;
 
+import com.cloudinary.Cloudinary;
+import com.cloudinary.utils.ObjectUtils;
 import lombok.RequiredArgsConstructor;
 import org.springboot.insurancemanagementsystem.dto.ClaimDocumentResponse;
 import org.springboot.insurancemanagementsystem.entitie.Claim;
@@ -12,8 +14,10 @@ import org.springboot.insurancemanagementsystem.service.CloudinaryService;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -24,35 +28,83 @@ public class ClaimDocumentServiceImpl
 
     private final ClaimDocumentRepository claimDocumentRepository;
 
-    private final CloudinaryService cloudinaryService;
+//    private final CloudinaryService cloudinaryService;
+    private final Cloudinary cloudinary;
 
     @Override
-    public ClaimDocumentResponse uploadDocument(
-            Long claimId,
-            MultipartFile file) {
+    public ClaimDocumentResponse uploadDocument(Long claimId, MultipartFile file) {
 
         Claim claim = claimRepository.findById(claimId)
-                .orElseThrow(() ->
-                        new BusinessException(
-                                "Claim not found"));
+                .orElseThrow(() -> new BusinessException("Claim not found"));
 
-        String documentUrl =
-                cloudinaryService.uploadFile(file);
+        String documentUrl = uploadFile(file); // use your method
 
-        ClaimDocument document =
-                ClaimDocument.builder()
-                        .claim(claim)
-                        .documentName(file.getOriginalFilename())
-                        .documentType(file.getContentType())
-                        .documentReference(documentUrl)
-                        .uploadedDate(LocalDateTime.now())
-                        .build();
+        ClaimDocument document = ClaimDocument.builder()
+                .claim(claim)
+                .documentName(file.getOriginalFilename())
+                .documentType(file.getContentType())
+                .documentReference(documentUrl)
+                .uploadedDate(LocalDateTime.now())
+                .build();
 
-        ClaimDocument saved =
-                claimDocumentRepository.save(document);
+        ClaimDocument saved = claimDocumentRepository.save(document);
 
         return mapToResponse(saved);
     }
+
+
+    public String uploadFile(MultipartFile file) {
+        try {
+            String resourceType = "auto";
+
+            // Optional: force PDFs to raw
+            if ("application/pdf".equals(file.getContentType())) {
+                resourceType = "raw";
+            }
+
+            Map uploadResult = cloudinary.uploader().upload(
+                    file.getBytes(),
+                    ObjectUtils.asMap(
+                            "resource_type", resourceType
+                    )
+            );
+
+            return uploadResult.get("secure_url").toString();
+
+        } catch (IOException e) {
+            throw new RuntimeException("File upload failed", e);
+        }
+    }
+
+//    @Override
+//    public ClaimDocumentResponse uploadDocument(
+//            Long claimId,
+//            MultipartFile file) {
+//
+//        Claim claim = claimRepository.findById(claimId)
+//                .orElseThrow(() ->
+//                        new BusinessException(
+//                                "Claim not found"));
+//
+//        String documentUrl =
+//                cloudinaryService.uploadFile(file);
+//
+//        ClaimDocument document =
+//                ClaimDocument.builder()
+//                        .claim(claim)
+//                        .documentName(file.getOriginalFilename())
+//                        .documentType(file.getContentType())
+//                        .documentReference(documentUrl)
+//                        .uploadedDate(LocalDateTime.now())
+//                        .build();
+//
+//        ClaimDocument saved =
+//                claimDocumentRepository.save(document);
+//
+//        return mapToResponse(saved);
+//    }
+
+
 
 //    @Override
 //    public List<ClaimDocumentResponse> getDocumentsByClaimId(
