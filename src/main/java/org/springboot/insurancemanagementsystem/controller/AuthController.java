@@ -3,11 +3,14 @@ package org.springboot.insurancemanagementsystem.controller;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springboot.insurancemanagementsystem.dto.ForgotPasswordRequestDto;
 import org.springboot.insurancemanagementsystem.dto.LoginRequestDto;
 import org.springboot.insurancemanagementsystem.dto.LoginResponseDto;
 import org.springboot.insurancemanagementsystem.dto.LogoutRequestDto;
+import org.springboot.insurancemanagementsystem.dto.OtpResponseDto;
 import org.springboot.insurancemanagementsystem.dto.RefreshTokenRequestDto;
 import org.springboot.insurancemanagementsystem.dto.RegisterRequestDto;
+import org.springboot.insurancemanagementsystem.dto.ResetPasswordRequestDto;
 import org.springboot.insurancemanagementsystem.dto.UserResponseDto;
 import org.springboot.insurancemanagementsystem.service.AuthService;
 import org.springframework.http.HttpStatus;
@@ -69,6 +72,36 @@ public class AuthController {
         authService.logout(authorizationHeader, request);
 
         return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/forgot-password")
+    public ResponseEntity<OtpResponseDto> forgotPassword(
+            @Valid @RequestBody ForgotPasswordRequestDto request) {
+
+        log.info("Forgot password request received for email: {}", request.getEmail());
+
+        authService.forgotPassword(request);
+
+        return ResponseEntity.ok(
+                OtpResponseDto.builder()
+                        .success(true)
+                        .message("If the email exists, a password reset OTP has been sent.")
+                        .build());
+    }
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<OtpResponseDto> resetPassword(
+            @Valid @RequestBody ResetPasswordRequestDto request) {
+
+        log.info("Password reset confirmation received for email: {}", request.getEmail());
+
+        authService.resetPassword(request);
+
+        return ResponseEntity.ok(
+                OtpResponseDto.builder()
+                        .success(true)
+                        .message("Password reset successfully.")
+                        .build());
     }
 
     @PostMapping("/agents")
