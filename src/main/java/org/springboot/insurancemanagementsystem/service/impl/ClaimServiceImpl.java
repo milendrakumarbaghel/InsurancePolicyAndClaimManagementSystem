@@ -367,7 +367,8 @@ public class ClaimServiceImpl implements ClaimService {
             int page,
             int size,
             String sortBy,
-            String sortDir) {
+            String sortDir,
+            String status) {
 
         log.debug("Fetching all claims page={}, size={}",
                 page,
@@ -381,11 +382,18 @@ public class ClaimServiceImpl implements ClaimService {
         Pageable pageable =
                 PageRequest.of(page, size, sort);
 
-        return claimRepository
-                .findAll(pageable)
-                .map(claim -> toClaimResponse(
-                        claim,
-                        claimDocumentRepository.findByClaimId(claim.getId())));
+        Page<Claim> claims;
+
+
+         if (status != null && !status.isEmpty()) {
+            claims = claimRepository.findByClaimStatus(ClaimStatus.valueOf(status), pageable);
+        }else {
+            claims = claimRepository.findAll(pageable);
+        }
+
+        return claims.map(claim -> toClaimResponse(
+                claim,
+                claimDocumentRepository.findByClaimId(claim.getId())));
     }
 
     private Claim getClaimEntity(
@@ -422,45 +430,6 @@ public class ClaimServiceImpl implements ClaimService {
                 .toUpperCase();
     }
 
-//    private ClaimResponseDto mapToResponseDto(Claim claim) {
-//
-//        ClaimResponseDto dto =
-//                modelMapper.map(
-//                        claim,
-//                        ClaimResponseDto.class);
-//
-//        if (claim.getPolicy() != null) {
-//
-//            dto.setPolicyId(
-//                    claim.getPolicy().getId());
-//
-//            dto.setPolicyNumber(
-//                    claim.getPolicy().getPolicyNumber());
-//
-//            if (claim.getPolicy().getCustomer() != null
-//                    && claim.getPolicy().getCustomer().getUser() != null) {
-//
-//                dto.setCustomerName(
-//                        claim.getPolicy()
-//                                .getCustomer()
-//                                .getUser()
-//                                .getFullName());
-//            }
-//        }
-//
-//        if (claim.getClaimStatus() != null) {
-//            dto.setClaimStatus(
-//                    claim.getClaimStatus().name());
-//        }
-//
-//        dto.setAgentRemarks(
-//                claim.getAgentRemarks());
-//
-//        dto.setAdminRemarks(
-//                claim.getAdminRemarks());
-//
-//        return dto;
-//    }
 
     private void recordHistory(Claim claim, ClaimStatus previous, ClaimStatus next,
                                String remarks, User by) {

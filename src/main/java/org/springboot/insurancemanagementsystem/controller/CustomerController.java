@@ -68,6 +68,19 @@ public class CustomerController {
         return ResponseEntity.ok(response);
     }
 
+    @GetMapping("/user/{userId}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<CustomerResponseDto> getCustomerByUserId(@PathVariable Long userId, Authentication authentication) {
+
+        log.info("Fetching profile for customer: {} with userId: {}", authentication.getName(), userId);
+
+        CustomerResponseDto customerByUserId = customerService.getCustomerByUserId(userId);
+
+        log.info("Customer profile retrieved successfully for userID: {}", userId);
+
+        return ResponseEntity.ok(customerByUserId);
+    }
+
     @GetMapping("/me")
     @PreAuthorize("hasRole('CUSTOMER')")
     public ResponseEntity<CustomerResponseDto> getMyProfile(

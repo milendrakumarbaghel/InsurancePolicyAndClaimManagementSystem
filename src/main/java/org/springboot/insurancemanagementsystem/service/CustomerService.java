@@ -2,6 +2,7 @@ package org.springboot.insurancemanagementsystem.service;
 
 import org.springboot.insurancemanagementsystem.dto.CustomerRequestDto;
 import org.springboot.insurancemanagementsystem.dto.CustomerResponseDto;
+import org.springboot.insurancemanagementsystem.entitie.Customer;
 import org.springframework.data.domain.Page;
 
 public interface CustomerService {
@@ -15,4 +16,6 @@ public interface CustomerService {
     CustomerResponseDto getCustomerById(Long customerId);
 
     Page<CustomerResponseDto> getAllCustomers(int page, int size, String sortBy, String sortDir,String search);
+
+    CustomerResponseDto getCustomerByUserId(Long userId);
 }

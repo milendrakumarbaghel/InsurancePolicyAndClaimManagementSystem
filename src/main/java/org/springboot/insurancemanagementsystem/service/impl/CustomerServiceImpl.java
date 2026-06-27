@@ -19,6 +19,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -126,6 +127,18 @@ public class CustomerServiceImpl implements CustomerService {
                 customerId);
 
         return mapToResponseDto(updatedCustomer);
+    }
+
+    @Override
+    public CustomerResponseDto getCustomerByUserId(Long userId) {
+        Customer customer = customerRepository
+                .findByUserId(userId)
+                .orElseThrow(() -> {
+                    log.warn("Customer profile not found for userID: {}", userId);
+                    return new ResourceNotFoundException("Customer profile not found");
+                });
+
+        return mapToResponseDto(customer);
     }
 
     @Override

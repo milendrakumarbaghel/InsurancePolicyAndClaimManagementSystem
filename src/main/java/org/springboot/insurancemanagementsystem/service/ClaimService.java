@@ -39,5 +39,6 @@ public interface ClaimService {
             int page,
             int size,
             String sortBy,
-            String sortDir);
+            String sortDir,
+            String status);
 }

@@ -200,14 +200,17 @@ public class ClaimController {
             String sortBy,
 
             @RequestParam(defaultValue = "desc")
-            String sortDir) {
+            String sortDir,
+
+            @RequestParam(required = false) String status) {
 
         log.info(
-                "Fetching all claims | page: {}, size: {}, sortBy: {}, sortDir: {}",
+                "Fetching all claims | page: {}, size: {}, sortBy: {}, sortDir: {},status {}",
                 page,
                 size,
                 sortBy,
-                sortDir
+                sortDir,
+                status
         );
 
         Page<ClaimResponseDto> claims =
@@ -215,7 +218,8 @@ public class ClaimController {
                         page,
                         size,
                         sortBy,
-                        sortDir
+                        sortDir,
+                        status
                 );
 
         log.info("Retrieved {} claims from database",
