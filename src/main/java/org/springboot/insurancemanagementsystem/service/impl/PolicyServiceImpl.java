@@ -18,9 +18,9 @@ import org.springboot.insurancemanagementsystem.repository.PolicyRepository;
 import org.springboot.insurancemanagementsystem.service.PolicyService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -39,216 +39,103 @@ public class PolicyServiceImpl implements PolicyService {
     private final ModelMapper modelMapper;
 
     @Override
-    public PolicyResponseDto purchasePolicy(
-            Long planId,
-            String customerEmail) {
+    @Transactional
+    public PolicyResponseDto purchasePolicy(Long planId, String customerEmail) {
+        log.info("Processing policy purchase. planId={}, customerEmail={}", planId, customerEmail);
 
-        log.info("Policy purchase request received for planId={} by customer={}",
-                planId, customerEmail);
+        Customer customer = customerRepository.findByUserEmail(customerEmail)
+                .orElseThrow(() -> new ResourceNotFoundException("Customer profile not found"));
 
-        Customer customer = customerRepository
-                .findByUserEmail(customerEmail)
-                .orElseThrow(() -> {
-                    log.warn("Customer profile not found for email={}",
-                            customerEmail);
-                    return new ResourceNotFoundException(
-                            "Customer profile not found");
-                });
-
-        PolicyPlan plan = planRepository
-                .findById(planId)
-                .orElseThrow(() -> {
-                    log.warn("Policy plan not found with id={}", planId);
-                    return new ResourceNotFoundException(
-                            "Plan not found");
-                });
+        PolicyPlan plan = planRepository.findById(planId)
+                .orElseThrow(() -> new ResourceNotFoundException("Plan not found"));
 
         if (!plan.isActive()) {
-            log.warn("Attempt to purchase inactive plan. planId={}",
-                    planId);
-            throw new BusinessException(
-                    "Selected plan is inactive");
+            throw new BusinessException("Selected plan is currently inactive.");
         }
 
-        ProductType productType = plan.getProduct().getProductType();
-        List<PolicyStatus> activeStatuses = List.of(PolicyStatus.ACTIVE, PolicyStatus.PENDING_PAYMENT);
+        validatePurchaseLimits(customer, plan);
 
-        long activeCount = policyRepository.countByCustomerAndPlan_Product_ProductTypeAndStatusIn(customer, productType, activeStatuses);
+        Policy policy = Policy.builder()
+                .policyNumber(generatePolicyNumber())
+                .customer(customer)
+                .plan(plan)
+                .startDate(LocalDate.now())
+                .endDate(LocalDate.now().plusMonths(plan.getDuration()))
+                .totalPremiumPaid(0.0)
+                .status(PolicyStatus.PENDING_PAYMENT)
+                .createdAt(LocalDateTime.now())
+                .build();
 
-        boolean canPurchase = switch (productType) {
-            case HEALTH -> activeCount < 2;
-            case MOTOR -> activeCount < 1;
-            case LIFE -> activeCount < 5;
-            case TRAVEL -> activeCount == 0;
-            default -> true;
-        };
-
-        if (!canPurchase) {
-            log.warn("Purchase rejected: Maximum limit reached for productType={} by customer={}", productType, customerEmail);
-            throw new BusinessException("You have reached the maximum allowed policies for this product type: " + productType);
-        }
-
-        Policy policy = new Policy();
-
-        String policyNumber = generatePolicyNumber();
-
-        policy.setPolicyNumber(policyNumber);
-        policy.setCustomer(customer);
-        policy.setPlan(plan);
-        policy.setStartDate(LocalDate.now());
-        policy.setEndDate(
-                LocalDate.now()
-                        .plusMonths(plan.getDuration()));
-        policy.setTotalPremiumPaid(0.0);
-        policy.setStatus(PolicyStatus.PENDING_PAYMENT);
-
-        Policy savedPolicy =
-                policyRepository.save(policy);
-
-        log.info("Policy created successfully. policyNumber={}, customer={}",
-                savedPolicy.getPolicyNumber(),
-                customerEmail);
+        Policy savedPolicy = policyRepository.save(policy);
+        log.info("Policy {} created successfully for {}", savedPolicy.getPolicyNumber(), customerEmail);
 
         return mapToResponseDto(savedPolicy);
     }
 
     @Override
-    public PolicyResponseDto issuePolicy(
-            PolicyRequestDto request) {
+    @Transactional
+    public PolicyResponseDto issuePolicy(PolicyRequestDto request) {
+        log.info("Manual issuance requested. customerId={}, planId={}", request.getCustomerId(), request.getPlanId());
 
-        log.info("Manual policy issuance requested. customerId={}, planId={}",
-                request.getCustomerId(),
-                request.getPlanId());
+        Customer customer = customerRepository.findById(request.getCustomerId())
+                .orElseThrow(() -> new ResourceNotFoundException("Customer not found"));
 
-        Customer customer =
-                customerRepository.findById(
-                                request.getCustomerId())
-                        .orElseThrow(() -> {
-                            log.warn("Customer not found. customerId={}",
-                                    request.getCustomerId());
-                            return new ResourceNotFoundException(
-                                    "Customer not found");
-                        });
+        PolicyPlan plan = planRepository.findById(request.getPlanId())
+                .orElseThrow(() -> new ResourceNotFoundException("Plan not found"));
 
-        PolicyPlan plan =
-                planRepository.findById(
-                                request.getPlanId())
-                        .orElseThrow(() -> {
-                            log.warn("Plan not found. planId={}",
-                                    request.getPlanId());
-                            return new ResourceNotFoundException(
-                                    "Plan not found");
-                        });
+        Policy policy = Policy.builder()
+                .policyNumber(generatePolicyNumber())
+                .customer(customer)
+                .plan(plan)
+                .startDate(request.getStartDate())
+                .endDate(request.getStartDate().plusMonths(plan.getDuration()))
+                .totalPremiumPaid(0.0)
+                .status(PolicyStatus.PENDING_PAYMENT)
+                .createdAt(LocalDateTime.now())
+                .updatedAt(LocalDateTime.now())
+                .build();
 
-        Policy policy = new Policy();
-
-        policy.setPolicyNumber(
-                generatePolicyNumber());
-
-        policy.setCustomer(customer);
-        policy.setPlan(plan);
-
-        policy.setStartDate(
-                request.getStartDate());
-
-        policy.setUpdatedAt(
-                LocalDateTime.now());
-
-        policy.setEndDate(
-                request.getStartDate()
-                        .plusMonths(plan.getDuration()));
-
-        policy.setTotalPremiumPaid(0.0);
-
-        policy.setStatus(
-                PolicyStatus.PENDING_PAYMENT);
-
-        Policy savedPolicy =
-                policyRepository.save(policy);
-
-        log.info("Policy issued successfully. policyNumber={}",
-                savedPolicy.getPolicyNumber());
+        Policy savedPolicy = policyRepository.save(policy);
+        log.info("Policy {} issued manually.", savedPolicy.getPolicyNumber());
 
         return mapToResponseDto(savedPolicy);
     }
 
     @Override
+    @Transactional(readOnly = true)
     public PolicyResponseDto getPolicyById(Long policyId, String email, String role) {
-        log.debug("Fetching policy by id={}", policyId);
         Policy policy = policyRepository.findById(policyId)
-                .orElseThrow(() -> {
-                    log.warn("Policy not found. id={}",
-                            policyId);
-                    return new ResourceNotFoundException(
-                            "Policy not found");
-                });
+                .orElseThrow(() -> new ResourceNotFoundException("Policy not found"));
 
-        if ("CUSTOMER".equals(role) && !policy.getCustomer().getUser().getEmail().equals(email)) {
-            throw new BusinessException("Access denied. You can only view your own policy details.");
-        }
-
+        validateCustomerAccess(policy, email, role);
         return mapToResponseDto(policy);
     }
 
     @Override
-    public PolicyResponseDto getPolicyByNumber(
-            String policyNumber) {
-
-        log.debug("Fetching policy by number={}",
-                policyNumber);
-
-        Policy policy =
-                policyRepository
-                        .findByPolicyNumber(
-                                policyNumber)
-                        .orElseThrow(() -> {
-                            log.warn("Policy not found. number={}",
-                                    policyNumber);
-                            return new ResourceNotFoundException(
-                                    "Policy not found");
-                        });
-
+    @Transactional(readOnly = true)
+    public PolicyResponseDto getPolicyByNumber(String policyNumber) {
+        Policy policy = policyRepository.findByPolicyNumber(policyNumber)
+                .orElseThrow(() -> new ResourceNotFoundException("Policy not found"));
         return mapToResponseDto(policy);
     }
 
     @Override
-    public List<PolicyResponseDto> getMyPolicies(
-            String customerEmail) {
-
-        log.debug("Fetching policies for customer={}",
-                customerEmail);
-
-        return policyRepository
-                .findByCustomerUserEmail(
-                        customerEmail)
-                .stream()
+    @Transactional(readOnly = true)
+    public List<PolicyResponseDto> getMyPolicies(String customerEmail) {
+        return policyRepository.findByCustomerUserEmail(customerEmail).stream()
                 .map(this::mapToResponseDto)
                 .collect(Collectors.toList());
     }
 
     @Override
-    public Page<PolicyResponseDto> getAllPolicies(
-            int page,
-            int size,
-            String sortBy,
-            String sortDir,
-            PolicyStatus status,
-            Long customerId) {
+    @Transactional(readOnly = true)
+    public Page<PolicyResponseDto> getAllPolicies(int page, int size, String sortBy, String sortDir, PolicyStatus status, Long customerId) {
+        Sort sort = sortDir.equalsIgnoreCase("asc") ? Sort.by(sortBy).ascending() : Sort.by(sortBy).descending();
+        PageRequest pageable = PageRequest.of(page, size, sort);
 
-        log.debug(
-                "Fetching all policies. page={}, size={}, sortBy={}, sortDir={}, status={}, customerId: {}",
-                page, size, sortBy, sortDir, status,customerId);
-
-        Sort sort =
-                sortDir.equalsIgnoreCase("asc")
-                        ? Sort.by(sortBy).ascending()
-                        : Sort.by(sortBy).descending();
-
-        Pageable pageable =
-                PageRequest.of(page, size, sort);
-
+        // REQUIREMENT: These repository methods MUST use @EntityGraph(attributePaths = {"customer.user", "plan.product"})
+        // in PolicyRepository.java to prevent severe N+1 database queries.
         Page<Policy> policyPage;
-
         if (customerId != null && status != null) {
             policyPage = policyRepository.findByCustomerIdAndStatus(customerId, status, pageable);
         } else if (customerId != null) {
@@ -263,81 +150,67 @@ public class PolicyServiceImpl implements PolicyService {
     }
 
     @Override
-    public PolicyResponseDto cancelPolicy(
-            Long policyId) {
+    @Transactional
+    public PolicyResponseDto cancelPolicy(Long policyId) {
+        Policy policy = policyRepository.findById(policyId)
+                .orElseThrow(() -> new ResourceNotFoundException("Policy not found"));
 
-        log.info("Policy cancellation requested. policyId={}",
-                policyId);
-
-        Policy policy =
-                policyRepository.findById(policyId)
-                        .orElseThrow(() -> {
-                            log.warn("Policy not found. id={}",
-                                    policyId);
-                            return new ResourceNotFoundException(
-                                    "Policy not found");
-                        });
-
-        if (policy.getStatus()
-                == PolicyStatus.CANCELLED) {
-
-            log.warn("Policy already cancelled. policyNumber={}",
-                    policy.getPolicyNumber());
-
-            throw new BusinessException(
-                    "Policy already cancelled");
+        if (policy.getStatus() == PolicyStatus.CANCELLED) {
+            throw new BusinessException("Policy is already cancelled");
         }
 
-        policy.setStatus(
-                PolicyStatus.CANCELLED);
+        policy.setStatus(PolicyStatus.CANCELLED);
+        policy.setUpdatedAt(LocalDateTime.now());
 
-        Policy updatedPolicy =
-                policyRepository.save(policy);
+        log.info("Policy {} cancelled.", policy.getPolicyNumber());
+        return mapToResponseDto(policyRepository.save(policy));
+    }
 
-        log.info("Policy cancelled successfully. policyNumber={}",
-                updatedPolicy.getPolicyNumber());
+    // --- Helper Methods ---
 
-        return mapToResponseDto(updatedPolicy);
+    private void validatePurchaseLimits(Customer customer, PolicyPlan plan) {
+        ProductType type = plan.getProduct().getProductType();
+        long activeCount = policyRepository.countByCustomerAndPlan_Product_ProductTypeAndStatusIn(
+                customer, type, List.of(PolicyStatus.ACTIVE, PolicyStatus.PENDING_PAYMENT));
+
+        boolean canPurchase = switch (type) {
+            case HEALTH -> activeCount < 2;
+            case MOTOR -> activeCount < 1;
+            case LIFE -> activeCount < 5;
+            case TRAVEL -> activeCount == 0;
+        };
+
+        if (!canPurchase) {
+            throw new BusinessException("Maximum limit reached for product type: " + type);
+        }
+    }
+
+    private void validateCustomerAccess(Policy policy, String email, String role) {
+        if ("CUSTOMER".equals(role) && !policy.getCustomer().getUser().getEmail().equals(email)) {
+            log.warn("Unauthorized access attempt. email={} tried to view policyId={}", email, policy.getId());
+            throw new BusinessException("Access denied. You can only view your own policy details.");
+        }
     }
 
     private String generatePolicyNumber() {
-
-        String policyNumber =
-                "POL-"
-                        + UUID.randomUUID()
-                        .toString()
-                        .substring(0, 8)
-                        .toUpperCase();
-
-        log.debug("Generated policy number={}",
-                policyNumber);
-
-        return policyNumber;
+        return "POL-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
     }
 
-    private PolicyResponseDto mapToResponseDto(
-            Policy policy) {
-
-        PolicyResponseDto dto =
-                modelMapper.map(
-                        policy,
-                        PolicyResponseDto.class);
+    private PolicyResponseDto mapToResponseDto(Policy policy) {
+        PolicyResponseDto dto = modelMapper.map(policy, PolicyResponseDto.class);
         dto.setPolicyId(policy.getId());
 
-        dto.setCustomerName(
-                policy.getCustomer()
-                        .getUser()
-                        .getFullName());
-        dto.setProductType(policy.getPlan().getProduct().getProductType().name());
-
-        dto.setPlanName(
-                policy.getPlan()
-                        .getPlanName());
-
-        dto.setStatus(
-                policy.getStatus()
-                        .name());
-
+        // Null checks added for safety against bad data mapping
+        if (policy.getCustomer() != null && policy.getCustomer().getUser() != null) {
+            dto.setCustomerName(policy.getCustomer().getUser().getFullName());
+        }
+        if (policy.getPlan() != null) {
+            dto.setPlanName(policy.getPlan().getPlanName());
+            if (policy.getPlan().getProduct() != null) {
+                dto.setProductType(policy.getPlan().getProduct().getProductType().name());
+            }
+        }
+        dto.setStatus(policy.getStatus().name());
         return dto;
     }
 }

@@ -30,7 +30,6 @@ import java.util.stream.Collectors;
 @Slf4j
 public class ClaimServiceImpl implements ClaimService {
 
-
     private final ClaimRepository claimRepository;
     private final PolicyRepository policyRepository;
     private final ClaimDocumentRepository claimDocumentRepository;
@@ -136,57 +135,34 @@ public class ClaimServiceImpl implements ClaimService {
             ClaimReviewRequestDto request,
             String agentEmail) {
 
-        log.info("Agent {} reviewing claimId={}",
-                agentEmail,
-                claimId);
+        log.info("Agent {} reviewing claimId={}", agentEmail, claimId);
 
-        Claim claim =
-                getClaimEntity(claimId);
+        Claim claim = getClaimEntity(claimId);
 
         claim.setAgentRemarks(request.getRemarks());
         claim.setUpdatedAt(LocalDateTime.now());
 
-        User agent =
-                userRepository.findByEmail(agentEmail)
-                        .orElseThrow(() ->
-                                new ResourceNotFoundException(
-                                        "Agent not found"));
+        User agent = userRepository.findByEmail(agentEmail)
+                .orElseThrow(() -> new ResourceNotFoundException("Agent not found"));
 
         validateFinalStatus(claim);
-
-        ClaimStatus oldStatus =
-                claim.getClaimStatus();
+        ClaimStatus oldStatus = claim.getClaimStatus();
 
         if (request.getRecommended()) {
-
-            claim.setClaimStatus(
-                    ClaimStatus.RECOMMENDED_APPROVAL);
-
+            claim.setClaimStatus(ClaimStatus.RECOMMENDED_APPROVAL);
         } else {
-
-            claim.setClaimStatus(
-                    ClaimStatus.RECOMMENDED_REJECTION);
+            claim.setClaimStatus(ClaimStatus.RECOMMENDED_REJECTION);
         }
 
-        Claim updatedClaim =
-                claimRepository.save(claim);
-
+        Claim updatedClaim = claimRepository.save(claim);
         List<ClaimDocument> byClaimId = claimDocumentRepository.findByClaimId(updatedClaim.getId());
 
-        historyService.recordStatusChange(
-                claim,
-                oldStatus,
-                updatedClaim.getClaimStatus(),
-                request.getRemarks(),
-                agent);
+        historyService.recordStatusChange(claim, oldStatus, updatedClaim.getClaimStatus(), request.getRemarks(), agent);
 
         log.info("Claim {} reviewed by agent {}. Status changed from {} to {}",
-                updatedClaim.getClaimNumber(),
-                agentEmail,
-                oldStatus,
-                updatedClaim.getClaimStatus());
+                updatedClaim.getClaimNumber(), agentEmail, oldStatus, updatedClaim.getClaimStatus());
 
-        return toClaimResponse(updatedClaim, byClaimId);
+        return toEnhancedClaimResponse(updatedClaim, byClaimId);
     }
 
     @Override
@@ -195,55 +171,30 @@ public class ClaimServiceImpl implements ClaimService {
             String remarks,
             String adminEmail) {
 
-        log.info("Admin {} approving claimId={}",
-                adminEmail,
-                claimId);
+        log.info("Admin {} approving claimId={}", adminEmail, claimId);
 
-        Claim claim =
-                getClaimEntity(claimId);
-
+        Claim claim = getClaimEntity(claimId);
         claim.setAdminRemarks(remarks);
 
-        User admin =
-                userRepository.findByEmail(adminEmail)
-                        .orElseThrow(() ->
-                                new ResourceNotFoundException(
-                                        "Admin not found"));
+        User admin = userRepository.findByEmail(adminEmail)
+                .orElseThrow(() -> new ResourceNotFoundException("Admin not found"));
 
-        if (claim.getClaimStatus()
-                != ClaimStatus.RECOMMENDED_APPROVAL) {
-
-            log.warn("Claim {} cannot be approved. Current status={}",
-                    claim.getClaimNumber(),
-                    claim.getClaimStatus());
-
-            throw new BusinessException(
-                    "Claim not recommended for approval");
+        if (claim.getClaimStatus() != ClaimStatus.RECOMMENDED_APPROVAL) {
+            log.warn("Claim {} cannot be approved. Current status={}", claim.getClaimNumber(), claim.getClaimStatus());
+            throw new BusinessException("Claim not recommended for approval");
         }
 
-        ClaimStatus oldStatus =
-                claim.getClaimStatus();
-
-        claim.setClaimStatus(
-                ClaimStatus.APPROVED);
+        ClaimStatus oldStatus = claim.getClaimStatus();
+        claim.setClaimStatus(ClaimStatus.APPROVED);
         claim.setUpdatedAt(LocalDateTime.now());
 
-        Claim updatedClaim =
-                claimRepository.save(claim);
-
+        Claim updatedClaim = claimRepository.save(claim);
         List<ClaimDocument> byClaimId = claimDocumentRepository.findByClaimId(updatedClaim.getId());
 
-        historyService.recordStatusChange(
-                claim,
-                oldStatus,
-                ClaimStatus.APPROVED,
-                remarks,
-                admin);
+        historyService.recordStatusChange(claim, oldStatus, ClaimStatus.APPROVED, remarks, admin);
 
-        log.info("Claim {} approved by admin {}",
-                updatedClaim.getClaimNumber(),
-                adminEmail);
-        return toClaimResponse(updatedClaim, byClaimId);
+        log.info("Claim {} approved by admin {}", updatedClaim.getClaimNumber(), adminEmail);
+        return toEnhancedClaimResponse(updatedClaim, byClaimId);
     }
 
     @Override
@@ -252,55 +203,27 @@ public class ClaimServiceImpl implements ClaimService {
             String remarks,
             String adminEmail) {
 
-        log.info("Admin {} rejecting claimId={}",
-                adminEmail,
-                claimId);
+        log.info("Admin {} rejecting claimId={}", adminEmail, claimId);
 
-        Claim claim =
-                getClaimEntity(claimId);
-
-        User admin =
-                userRepository.findByEmail(adminEmail)
-                        .orElseThrow(() ->
-                                new ResourceNotFoundException(
-                                        "Admin not found"));
+        Claim claim = getClaimEntity(claimId);
+        User admin = userRepository.findByEmail(adminEmail)
+                .orElseThrow(() -> new ResourceNotFoundException("Admin not found"));
 
         validateFinalStatus(claim);
 
-        ClaimStatus oldStatus =
-                claim.getClaimStatus();
+        ClaimStatus oldStatus = claim.getClaimStatus();
         claim.setAdminRemarks(remarks);
-
-        claim.setClaimStatus(
-                ClaimStatus.REJECTED);
+        claim.setClaimStatus(ClaimStatus.REJECTED);
         claim.setUpdatedAt(LocalDateTime.now());
 
-        Claim updatedClaim =
-                claimRepository.save(claim);
+        Claim updatedClaim = claimRepository.save(claim);
+        historyService.recordStatusChange(claim, oldStatus, ClaimStatus.REJECTED, remarks, admin);
 
-        historyService.recordStatusChange(
-                claim,
-                oldStatus,
-                ClaimStatus.REJECTED,
-                remarks,
-                admin);
-
-        log.info("Claim {} rejected by admin {}",
-                updatedClaim.getClaimNumber(),
-                adminEmail);
+        log.info("Claim {} rejected by admin {}", updatedClaim.getClaimNumber(), adminEmail);
         List<ClaimDocument> byClaimId = claimDocumentRepository.findByClaimId(updatedClaim.getId());
-        return toClaimResponse(updatedClaim, byClaimId);
+        return toEnhancedClaimResponse(updatedClaim, byClaimId);
     }
 
-//    @Override
-//    public ClaimResponseDto getClaimById(
-//            Long claimId) {
-//
-//        log.debug("Fetching claim by id={}", claimId);
-//        Claim claimEntity = getClaimEntity(claimId);
-//        List<ClaimDocument> byClaimId = claimDocumentRepository.findByClaimId(claimEntity.getId());
-//        return toClaimResponse(claimEntity, byClaimId);
-//    }
     @Override
     public ClaimResponseDto getClaimById(Long claimId, String email, String role) {
         log.debug("Fetching claim by id={}", claimId);
@@ -311,25 +234,9 @@ public class ClaimServiceImpl implements ClaimService {
             throw new BusinessException("Access denied. You can only view your own claims.");
         }
 
-        return toClaimResponse(claim, claimDocumentRepository.findByClaimId(claimId));
+        return toEnhancedClaimResponse(claim, claimDocumentRepository.findByClaimId(claimId));
     }
 
-//    @Override
-//    public ClaimResponseDto getClaimByNumber(
-//            String claimNumber) {
-//
-//        log.debug("Fetching claim by number={}",
-//                claimNumber);
-//
-//        Claim claim =
-//                claimRepository.findByClaimNumber(claimNumber)
-//                        .orElseThrow(() ->
-//                                new ResourceNotFoundException(
-//                                        "Claim not found"));
-//
-//        List<ClaimDocument> byClaimId = claimDocumentRepository.findByClaimId(claim.getId());
-//        return toClaimResponse(claim, byClaimId);
-//    }
     @Override
     public ClaimResponseDto getClaimByNumber(String claimNumber, String email, String role) {
         log.debug("Fetching claim by number={}", claimNumber);
@@ -340,24 +247,18 @@ public class ClaimServiceImpl implements ClaimService {
             throw new BusinessException("Access denied. You can only view your own claims.");
         }
 
-        return toClaimResponse(claim, claimDocumentRepository.findByClaimId(claim.getId()));
+        return toEnhancedClaimResponse(claim, claimDocumentRepository.findByClaimId(claim.getId()));
     }
 
     @Override
     public List<ClaimResponseDto> getMyClaims(String customerEmail) {
-
-        log.debug("Fetching claims for customer={}",
-                customerEmail);
-
-        List<Claim> claims =
-                claimRepository.findByPolicyCustomerUserEmail(customerEmail);
+        log.debug("Fetching claims for customer={}", customerEmail);
+        List<Claim> claims = claimRepository.findByPolicyCustomerUserEmail(customerEmail);
 
         return claims.stream()
                 .map(claim -> {
-                    List<ClaimDocument> docs =
-                            claimDocumentRepository.findByClaimId(claim.getId());
-
-                    return toClaimResponse(claim, docs);
+                    List<ClaimDocument> docs = claimDocumentRepository.findByClaimId(claim.getId());
+                    return toClaimResponse(claim, docs); // Use standard to keep lists light
                 })
                 .collect(Collectors.toList());
     }
@@ -370,69 +271,38 @@ public class ClaimServiceImpl implements ClaimService {
             String sortDir,
             String status) {
 
-        log.debug("Fetching all claims page={}, size={}",
-                page,
-                size);
-
-        Sort sort =
-                sortDir.equalsIgnoreCase("asc")
-                        ? Sort.by(sortBy).ascending()
-                        : Sort.by(sortBy).descending();
-
-        Pageable pageable =
-                PageRequest.of(page, size, sort);
-
+        log.debug("Fetching all claims page={}, size={}", page, size);
+        Sort sort = sortDir.equalsIgnoreCase("asc") ? Sort.by(sortBy).ascending() : Sort.by(sortBy).descending();
+        Pageable pageable = PageRequest.of(page, size, sort);
         Page<Claim> claims;
 
-
-         if (status != null && !status.isEmpty()) {
+        if (status != null && !status.isEmpty()) {
             claims = claimRepository.findByClaimStatus(ClaimStatus.valueOf(status), pageable);
-        }else {
+        } else {
             claims = claimRepository.findAll(pageable);
         }
 
-        return claims.map(claim -> toClaimResponse(
-                claim,
-                claimDocumentRepository.findByClaimId(claim.getId())));
+        // Use standard response for list views to prevent N+1 payload bloat
+        return claims.map(claim -> toClaimResponse(claim, claimDocumentRepository.findByClaimId(claim.getId())));
     }
 
-    private Claim getClaimEntity(
-            Long claimId) {
-
+    private Claim getClaimEntity(Long claimId) {
         return claimRepository.findById(claimId)
-                .orElseThrow(() ->
-                        new ResourceNotFoundException(
-                                "Claim not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Claim not found"));
     }
 
-    private void validateFinalStatus(
-            Claim claim) {
-
-        if (claim.getClaimStatus()
-                == ClaimStatus.APPROVED
-                || claim.getClaimStatus()
-                == ClaimStatus.REJECTED) {
-
-            log.warn("Modification attempted on finalized claim {}",
-                    claim.getClaimNumber());
-
-            throw new BusinessException(
-                    "Approved or rejected claim cannot be modified");
+    private void validateFinalStatus(Claim claim) {
+        if (claim.getClaimStatus() == ClaimStatus.APPROVED || claim.getClaimStatus() == ClaimStatus.REJECTED) {
+            log.warn("Modification attempted on finalized claim {}", claim.getClaimNumber());
+            throw new BusinessException("Approved or rejected claim cannot be modified");
         }
     }
 
     private String generateClaimNumber() {
-
-        return "CLM-"
-                + UUID.randomUUID()
-                .toString()
-                .substring(0, 8)
-                .toUpperCase();
+        return "CLM-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
     }
 
-
-    private void recordHistory(Claim claim, ClaimStatus previous, ClaimStatus next,
-                               String remarks, User by) {
+    private void recordHistory(Claim claim, ClaimStatus previous, ClaimStatus next, String remarks, User by) {
         historyService.recordStatusChange(claim, previous, next, remarks, by);
     }
 
@@ -444,10 +314,11 @@ public class ClaimServiceImpl implements ClaimService {
                 .claimNumber(cl.getClaimNumber())
                 .policyId(po != null ? po.getId() : null)
                 .policyNumber(po != null ? po.getPolicyNumber() : null)
-                .incidentDate(cl.getIncidentDate().toString())
+                .incidentDate(cl.getIncidentDate() != null ? cl.getIncidentDate().toString() : null)
                 .customerName(c != null && c.getUser() != null ? c.getUser().getFullName() : null)
-                .claimAmount(cl.getClaimAmount() == null ? null : cl.getClaimAmount())
-                .claimStatus(cl.getClaimStatus() == null ? null : cl.getClaimStatus().name())
+                .claimAmount(cl.getClaimAmount())
+                .claimReason(cl.getClaimReason())
+                .claimStatus(cl.getClaimStatus() != null ? cl.getClaimStatus().name() : null)
                 .agentRemarks(cl.getAgentRemarks())
                 .adminRemarks(cl.getAdminRemarks())
                 .documents(docs == null
@@ -457,11 +328,82 @@ public class ClaimServiceImpl implements ClaimService {
                                 .claimDocumentId(doc.getId())
                                 .documentName(doc.getDocumentName())
                                 .documentType(doc.getDocumentType())
-//                                .documentUrl()
                                 .documentReference(doc.getDocumentReference())
                                 .uploadedDate(doc.getUploadedDate())
                                 .build())
                         .toList())
                 .build();
+    }
+
+    private ClaimResponseDto toEnhancedClaimResponse(Claim cl, List<ClaimDocument> docs) {
+        ClaimResponseDto response = toClaimResponse(cl, docs);
+
+        Policy po = cl.getPolicy();
+        if (po != null) {
+            PolicyPlan plan = po.getPlan();
+            if (plan != null) {
+                response.setPlanDetails(ClaimResponseDto.PlanDetailsDto.builder()
+                        .planName(plan.getPlanName())
+                        .coverageAmount(plan.getCoverageAmount())
+                        .premiumAmount(plan.getPremiumAmount())
+                        .premiumType(plan.getPremiumType() != null ? plan.getPremiumType().name() : null)
+                        .duration(plan.getDuration())
+                        .termsAndConditions(plan.getTermsAndConditions())
+                        .build());
+            }
+
+            Customer customer = po.getCustomer();
+            if (customer != null && customer.getUser() != null) {
+                List<Claim> allCustomerClaims = claimRepository.findByPolicyCustomerUserEmail(customer.getUser().getEmail());
+
+                List<ClaimResponseDto.ClaimHistoryDto> history = new ArrayList<>();
+                int previousPlanClaimsCount = 0;
+                double previousPlanClaimAmount = 0.0;
+
+                for (Claim histClaim : allCustomerClaims) {
+                    if (histClaim.getId().equals(cl.getId())) continue;
+
+                    Policy histPolicy = histClaim.getPolicy();
+                    PolicyPlan histPlan = histPolicy != null ? histPolicy.getPlan() : null;
+                    String histPlanName = histPlan != null ? histPlan.getPlanName() : "N/A";
+                    Double histCoverage = histPlan != null ? histPlan.getCoverageAmount() : 0.0;
+
+                    history.add(ClaimResponseDto.ClaimHistoryDto.builder()
+                            .claimNumber(histClaim.getClaimNumber())
+                            .planName(histPlanName)
+                            .coverageAmount(histCoverage)
+                            .claimedAmount(histClaim.getClaimAmount())
+                            .claimStatus(histClaim.getClaimStatus() != null ? histClaim.getClaimStatus().name() : null)
+                            .claimDate(histClaim.getCreatedAt() != null ? histClaim.getCreatedAt().toString() : null)
+                            .build());
+
+                    if (plan != null && histPlan != null && plan.getId().equals(histPlan.getId())) {
+                        previousPlanClaimsCount++;
+                        if (histClaim.getClaimStatus() == ClaimStatus.APPROVED) {
+                            previousPlanClaimAmount += (histClaim.getClaimAmount() != null ? histClaim.getClaimAmount() : 0.0);
+                        }
+                    }
+                }
+
+                history.sort((a, b) -> {
+                    if (a.getClaimDate() == null && b.getClaimDate() == null) return 0;
+                    if (a.getClaimDate() == null) return 1;
+                    if (b.getClaimDate() == null) return -1;
+                    return b.getClaimDate().compareTo(a.getClaimDate());
+                });
+
+                response.setCustomerClaimHistory(history);
+
+                if (plan != null) {
+                    double remaining = plan.getCoverageAmount() - previousPlanClaimAmount;
+                    response.setPlanSummary(ClaimResponseDto.PlanSummaryDto.builder()
+                            .totalPreviousClaims(previousPlanClaimsCount)
+                            .totalPreviousClaimAmount(previousPlanClaimAmount)
+                            .remainingCoverage(Math.max(remaining, 0.0))
+                            .build());
+                }
+            }
+        }
+        return response;
     }
 }
