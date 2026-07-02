@@ -344,10 +344,14 @@
           "response": []
         },
         {
-          "name": "Approve Claim (ADMIN)",
+          "name": "Assign Claim to Agent (ADMIN)",
           "request": {
             "method": "PUT",
             "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
               {
                 "key": "Authorization",
                 "value": "Bearer {{admin-token}}",
@@ -356,7 +360,47 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "",
+              "raw": "{\n  \"agentId\": 2\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/claims/:claimId/assign",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "claims",
+                ":claimId",
+                "assign"
+              ],
+              "variable": [
+                {
+                  "key": "claimId",
+                  "value": "1"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Approve Claim (ADMIN)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin-token}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"remarks\": \"Approved after document verification\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -364,7 +408,7 @@
               }
             },
             "url": {
-              "raw": "{{base_url}}/api/claims/:claimId/approve?remarks=Approved",
+              "raw": "{{base_url}}/api/claims/:claimId/approve",
               "host": [
                 "{{base_url}}"
               ],
@@ -373,12 +417,6 @@
                 "claims",
                 ":claimId",
                 "approve"
-              ],
-              "query": [
-                {
-                  "key": "remarks",
-                  "value": "Approved"
-                }
               ],
               "variable": [
                 {
@@ -396,13 +434,26 @@
             "method": "PUT",
             "header": [
               {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
                 "key": "Authorization",
                 "value": "Bearer {{admin-token}}",
                 "type": "text"
               }
             ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"remarks\": \"Insufficient documentation provided\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
             "url": {
-              "raw": "{{base_url}}/api/claims/:claimId/reject?remarks=Insufficient documents",
+              "raw": "{{base_url}}/api/claims/:claimId/reject",
               "host": [
                 "{{base_url}}"
               ],
@@ -411,12 +462,6 @@
                 "claims",
                 ":claimId",
                 "reject"
-              ],
-              "query": [
-                {
-                  "key": "remarks",
-                  "value": "Insufficient documents"
-                }
               ],
               "variable": [
                 {
@@ -460,7 +505,7 @@
           "response": []
         },
         {
-          "name": "Get Claim By Number (ADMIN, AGENT)",
+          "name": "Get Claim By Number (ADMIN, AGENT, CUSTOMER)",
           "request": {
             "method": "GET",
             "header": [
@@ -548,6 +593,49 @@
                 {
                   "key": "sortBy",
                   "value": "id"
+                },
+                {
+                  "key": "sortDir",
+                  "value": "desc"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Agent Assigned Claims (AGENT)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{agent_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/claims/assigned?page=0&size=10&sortBy=assignedAt&sortDir=desc",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "claims",
+                "assigned"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "0"
+                },
+                {
+                  "key": "size",
+                  "value": "10"
+                },
+                {
+                  "key": "sortBy",
+                  "value": "assignedAt"
                 },
                 {
                   "key": "sortDir",
