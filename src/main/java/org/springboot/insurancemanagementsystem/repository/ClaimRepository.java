@@ -43,4 +43,10 @@ public interface ClaimRepository
     );
 
     List<Claim> findByPolicyCustomerUserEmail(String customerEmail);
+
+    Page<Claim> findByAssignedAgentId(Long agentId, Pageable pageable);
+
+    long countByAssignedAgentIdAndClaimStatusIn(Long agentId, Collection<ClaimStatus> statuses);
+
+    Page<Claim> findByAssignedAgentEmail(String agentEmail, Pageable pageable);
 }

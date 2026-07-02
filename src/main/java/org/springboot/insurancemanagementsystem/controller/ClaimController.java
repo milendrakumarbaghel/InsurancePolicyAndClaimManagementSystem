@@ -3,6 +3,8 @@ package org.springboot.insurancemanagementsystem.controller;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springboot.insurancemanagementsystem.dto.AdminClaimDecisionRequestDto;
+import org.springboot.insurancemanagementsystem.dto.ClaimAssignRequestDto;
 import org.springboot.insurancemanagementsystem.dto.ClaimRequestDto;
 import org.springboot.insurancemanagementsystem.dto.ClaimResponseDto;
 import org.springboot.insurancemanagementsystem.dto.ClaimReviewRequestDto;
@@ -77,11 +79,36 @@ public class ClaimController {
         return ResponseEntity.ok(response);
     }
 
+    @PutMapping("/{claimId}/assign")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ClaimResponseDto> assignClaimToAgent(
+            @PathVariable Long claimId,
+            @Valid @RequestBody ClaimAssignRequestDto request,
+            Authentication authentication) {
+
+        log.info("Admin {} assigning claimId: {} to agentId: {}",
+                authentication.getName(),
+                claimId,
+                request.getAgentId());
+
+        ClaimResponseDto response =
+                claimService.assignClaimToAgent(
+                        claimId,
+                        request.getAgentId(),
+                        authentication.getName()
+                );
+
+        log.info("Claim {} assigned to agent successfully",
+                response.getClaimNumber());
+
+        return ResponseEntity.ok(response);
+    }
+
     @PutMapping("/{claimId}/approve")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ClaimResponseDto> approveClaim(
             @PathVariable Long claimId,
-            @RequestParam(required = false) String remarks,
+            @Valid @RequestBody AdminClaimDecisionRequestDto request,
             Authentication authentication) {
 
         log.info("Claim approval initiated by admin: {} for claimId: {}",
@@ -91,7 +118,7 @@ public class ClaimController {
         ClaimResponseDto response =
                 claimService.approveClaim(
                         claimId,
-                        remarks,
+                        request.getRemarks(),
                         authentication.getName()
                 );
 
@@ -104,7 +131,7 @@ public class ClaimController {
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ClaimResponseDto> rejectClaim(
             @PathVariable Long claimId,
-            @RequestParam(required = false) String remarks,
+            @Valid @RequestBody AdminClaimDecisionRequestDto request,
             Authentication authentication) {
 
         log.info("Claim rejection initiated by admin: {} for claimId: {}",
@@ -114,7 +141,7 @@ public class ClaimController {
         ClaimResponseDto response =
                 claimService.rejectClaim(
                         claimId,
-                        remarks,
+                        request.getRemarks(),
                         authentication.getName()
                 );
 
@@ -224,6 +251,43 @@ public class ClaimController {
 
         log.info("Retrieved {} claims from database",
                 claims.getNumberOfElements());
+
+        return ResponseEntity.ok(claims);
+    }
+
+    @GetMapping("/assigned")
+    @PreAuthorize("hasRole('AGENT')")
+    public ResponseEntity<Page<ClaimResponseDto>> getAgentAssignedClaims(
+
+            @RequestParam(defaultValue = "0")
+            int page,
+
+            @RequestParam(defaultValue = "10")
+            int size,
+
+            @RequestParam(defaultValue = "assignedAt")
+            String sortBy,
+
+            @RequestParam(defaultValue = "desc")
+            String sortDir,
+
+            Authentication authentication) {
+
+        log.info("Fetching assigned claims for agent: {}",
+                authentication.getName());
+
+        Page<ClaimResponseDto> claims =
+                claimService.getAgentAssignedClaims(
+                        authentication.getName(),
+                        page,
+                        size,
+                        sortBy,
+                        sortDir
+                );
+
+        log.info("Retrieved {} assigned claims for agent: {}",
+                claims.getNumberOfElements(),
+                authentication.getName());
 
         return ResponseEntity.ok(claims);
     }

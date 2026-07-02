@@ -12,6 +12,7 @@ import org.springboot.insurancemanagementsystem.exception.ResourceNotFoundExcept
 import org.springboot.insurancemanagementsystem.repository.*;
 import org.springboot.insurancemanagementsystem.service.ClaimService;
 import org.springboot.insurancemanagementsystem.service.ClaimStatusHistoryService;
+import org.springboot.insurancemanagementsystem.service.EmailService;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -21,6 +22,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -37,6 +39,7 @@ public class ClaimServiceImpl implements ClaimService {
     private final UserRepository userRepository;
     private final ModelMapper modelMapper;
     private final ClaimStatusHistoryService historyService;
+    private final EmailService emailService;
 
     @Override
     public ClaimResponseDto raiseClaim(
@@ -130,6 +133,59 @@ public class ClaimServiceImpl implements ClaimService {
     }
 
     @Override
+    public ClaimResponseDto assignClaimToAgent(
+            Long claimId,
+            Long agentId,
+            String adminEmail) {
+
+        log.info("Admin {} assigning claimId={} to agentId={}", adminEmail, claimId, agentId);
+
+        Claim claim = getClaimEntity(claimId);
+
+        // Only allow assignment when claim is SUBMITTED or re-assignment when ASSIGNED
+        if (claim.getClaimStatus() != ClaimStatus.SUBMITTED && claim.getClaimStatus() != ClaimStatus.ASSIGNED) {
+            log.warn("Cannot assign claim {}. Current status={}", claim.getClaimNumber(), claim.getClaimStatus());
+            throw new BusinessException("Claim can only be assigned when in SUBMITTED or ASSIGNED status. Current status: " + claim.getClaimStatus());
+        }
+
+        User agent = userRepository.findById(agentId)
+                .orElseThrow(() -> new ResourceNotFoundException("Agent not found with id: " + agentId));
+
+        if (agent.getRole() != org.springboot.insurancemanagementsystem.enums.Role.AGENT) {
+            throw new BusinessException("User with id " + agentId + " is not an agent");
+        }
+
+        if (!agent.isActive()) {
+            throw new BusinessException("Agent is not active");
+        }
+
+        // Check if the claim is already assigned to the same agent
+        if (claim.getAssignedAgent() != null && claim.getAssignedAgent().getId().equals(agentId)) {
+            throw new BusinessException("Claim is already assigned to this agent");
+        }
+
+        User admin = userRepository.findByEmail(adminEmail)
+                .orElseThrow(() -> new ResourceNotFoundException("Admin not found"));
+
+        ClaimStatus oldStatus = claim.getClaimStatus();
+        claim.setAssignedAgent(agent);
+        claim.setAssignedAt(LocalDateTime.now());
+        claim.setClaimStatus(ClaimStatus.ASSIGNED);
+        claim.setUpdatedAt(LocalDateTime.now());
+
+        Claim updatedClaim = claimRepository.save(claim);
+        List<ClaimDocument> docs = claimDocumentRepository.findByClaimId(updatedClaim.getId());
+
+        historyService.recordStatusChange(claim, oldStatus, ClaimStatus.ASSIGNED,
+                "Claim assigned to agent: " + agent.getFullName(), admin);
+
+        log.info("Claim {} assigned to agent {} by admin {}",
+                updatedClaim.getClaimNumber(), agent.getFullName(), adminEmail);
+
+        return toEnhancedClaimResponse(updatedClaim, docs);
+    }
+
+    @Override
     public ClaimResponseDto reviewClaim(
             Long claimId,
             ClaimReviewRequestDto request,
@@ -139,13 +195,24 @@ public class ClaimServiceImpl implements ClaimService {
 
         Claim claim = getClaimEntity(claimId);
 
-        claim.setAgentRemarks(request.getRemarks());
-        claim.setUpdatedAt(LocalDateTime.now());
+        // Validate the claim is in ASSIGNED status
+        if (claim.getClaimStatus() != ClaimStatus.ASSIGNED) {
+            log.warn("Claim {} cannot be reviewed. Current status={}", claim.getClaimNumber(), claim.getClaimStatus());
+            throw new BusinessException("Claim can only be reviewed when in ASSIGNED status. Current status: " + claim.getClaimStatus());
+        }
+
+        // Validate only the assigned agent can review
+        if (claim.getAssignedAgent() == null || !claim.getAssignedAgent().getEmail().equals(agentEmail)) {
+            log.warn("Agent {} is not assigned to claim {}", agentEmail, claim.getClaimNumber());
+            throw new BusinessException("Only the assigned agent can review this claim");
+        }
 
         User agent = userRepository.findByEmail(agentEmail)
                 .orElseThrow(() -> new ResourceNotFoundException("Agent not found"));
 
-        validateFinalStatus(claim);
+        claim.setAgentRemarks(request.getRemarks());
+        claim.setUpdatedAt(LocalDateTime.now());
+
         ClaimStatus oldStatus = claim.getClaimStatus();
 
         if (request.getRecommended()) {
@@ -174,17 +241,19 @@ public class ClaimServiceImpl implements ClaimService {
         log.info("Admin {} approving claimId={}", adminEmail, claimId);
 
         Claim claim = getClaimEntity(claimId);
-        claim.setAdminRemarks(remarks);
 
         User admin = userRepository.findByEmail(adminEmail)
                 .orElseThrow(() -> new ResourceNotFoundException("Admin not found"));
 
-        if (claim.getClaimStatus() != ClaimStatus.RECOMMENDED_APPROVAL) {
+        // Admin can approve from either RECOMMENDED_APPROVAL or RECOMMENDED_REJECTION (override)
+        if (claim.getClaimStatus() != ClaimStatus.RECOMMENDED_APPROVAL
+                && claim.getClaimStatus() != ClaimStatus.RECOMMENDED_REJECTION) {
             log.warn("Claim {} cannot be approved. Current status={}", claim.getClaimNumber(), claim.getClaimStatus());
-            throw new BusinessException("Claim not recommended for approval");
+            throw new BusinessException("Claim must be reviewed by an agent before admin can approve. Current status: " + claim.getClaimStatus());
         }
 
         ClaimStatus oldStatus = claim.getClaimStatus();
+        claim.setAdminRemarks(remarks);
         claim.setClaimStatus(ClaimStatus.APPROVED);
         claim.setUpdatedAt(LocalDateTime.now());
 
@@ -192,6 +261,9 @@ public class ClaimServiceImpl implements ClaimService {
         List<ClaimDocument> byClaimId = claimDocumentRepository.findByClaimId(updatedClaim.getId());
 
         historyService.recordStatusChange(claim, oldStatus, ClaimStatus.APPROVED, remarks, admin);
+
+        // Send email notification to the customer
+        notifyCustomer(updatedClaim, "APPROVED", remarks);
 
         log.info("Claim {} approved by admin {}", updatedClaim.getClaimNumber(), adminEmail);
         return toEnhancedClaimResponse(updatedClaim, byClaimId);
@@ -209,7 +281,12 @@ public class ClaimServiceImpl implements ClaimService {
         User admin = userRepository.findByEmail(adminEmail)
                 .orElseThrow(() -> new ResourceNotFoundException("Admin not found"));
 
-        validateFinalStatus(claim);
+        // Admin can reject from either RECOMMENDED_APPROVAL or RECOMMENDED_REJECTION (override)
+        if (claim.getClaimStatus() != ClaimStatus.RECOMMENDED_APPROVAL
+                && claim.getClaimStatus() != ClaimStatus.RECOMMENDED_REJECTION) {
+            log.warn("Claim {} cannot be rejected. Current status={}", claim.getClaimNumber(), claim.getClaimStatus());
+            throw new BusinessException("Claim must be reviewed by an agent before admin can reject. Current status: " + claim.getClaimStatus());
+        }
 
         ClaimStatus oldStatus = claim.getClaimStatus();
         claim.setAdminRemarks(remarks);
@@ -217,10 +294,14 @@ public class ClaimServiceImpl implements ClaimService {
         claim.setUpdatedAt(LocalDateTime.now());
 
         Claim updatedClaim = claimRepository.save(claim);
+        List<ClaimDocument> byClaimId = claimDocumentRepository.findByClaimId(updatedClaim.getId());
+
         historyService.recordStatusChange(claim, oldStatus, ClaimStatus.REJECTED, remarks, admin);
 
+        // Send email notification to the customer
+        notifyCustomer(updatedClaim, "REJECTED", remarks);
+
         log.info("Claim {} rejected by admin {}", updatedClaim.getClaimNumber(), adminEmail);
-        List<ClaimDocument> byClaimId = claimDocumentRepository.findByClaimId(updatedClaim.getId());
         return toEnhancedClaimResponse(updatedClaim, byClaimId);
     }
 
@@ -286,6 +367,27 @@ public class ClaimServiceImpl implements ClaimService {
         return claims.map(claim -> toClaimResponse(claim, claimDocumentRepository.findByClaimId(claim.getId())));
     }
 
+    @Override
+    public Page<ClaimResponseDto> getAgentAssignedClaims(
+            String agentEmail,
+            int page,
+            int size,
+            String sortBy,
+            String sortDir) {
+
+        log.debug("Fetching assigned claims for agent={}", agentEmail);
+
+        User agent = userRepository.findByEmail(agentEmail)
+                .orElseThrow(() -> new ResourceNotFoundException("Agent not found"));
+
+        Sort sort = sortDir.equalsIgnoreCase("asc") ? Sort.by(sortBy).ascending() : Sort.by(sortBy).descending();
+        Pageable pageable = PageRequest.of(page, size, sort);
+
+        Page<Claim> claims = claimRepository.findByAssignedAgentEmail(agentEmail, pageable);
+
+        return claims.map(claim -> toClaimResponse(claim, claimDocumentRepository.findByClaimId(claim.getId())));
+    }
+
     private Claim getClaimEntity(Long claimId) {
         return claimRepository.findById(claimId)
                 .orElseThrow(() -> new ResourceNotFoundException("Claim not found"));
@@ -306,9 +408,28 @@ public class ClaimServiceImpl implements ClaimService {
         historyService.recordStatusChange(claim, previous, next, remarks, by);
     }
 
+    private void notifyCustomer(Claim claim, String status, String remarks) {
+        try {
+            Policy policy = claim.getPolicy();
+            if (policy != null && policy.getCustomer() != null && policy.getCustomer().getUser() != null) {
+                User customerUser = policy.getCustomer().getUser();
+                emailService.sendClaimStatusNotification(
+                        customerUser.getEmail(),
+                        customerUser.getFullName(),
+                        claim.getClaimNumber(),
+                        status,
+                        remarks
+                );
+            }
+        } catch (Exception e) {
+            log.error("Failed to send claim notification for claim {}: {}", claim.getClaimNumber(), e.getMessage());
+        }
+    }
+
     private ClaimResponseDto toClaimResponse(Claim cl, List<ClaimDocument> docs) {
         Policy po = cl.getPolicy();
         Customer c = po != null ? po.getCustomer() : null;
+        User assignedAgent = cl.getAssignedAgent();
         return ClaimResponseDto.builder()
                 .claimId(cl.getId())
                 .claimNumber(cl.getClaimNumber())
@@ -321,6 +442,9 @@ public class ClaimServiceImpl implements ClaimService {
                 .claimStatus(cl.getClaimStatus() != null ? cl.getClaimStatus().name() : null)
                 .agentRemarks(cl.getAgentRemarks())
                 .adminRemarks(cl.getAdminRemarks())
+                .assignedAgentId(assignedAgent != null ? assignedAgent.getId() : null)
+                .assignedAgentName(assignedAgent != null ? assignedAgent.getFullName() : null)
+                .assignedAt(cl.getAssignedAt() != null ? cl.getAssignedAt().toString() : null)
                 .documents(docs == null
                         ? List.of()
                         : docs.stream()

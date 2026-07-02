@@ -22,6 +22,9 @@ public class ClaimResponseDto {
     private String claimStatus;
     private String agentRemarks;
     private String adminRemarks;
+    private Long assignedAgentId;
+    private String assignedAgentName;
+    private String assignedAt;
     private List<ClaimDocumentResponse> documents;
 
     // Enriched Details

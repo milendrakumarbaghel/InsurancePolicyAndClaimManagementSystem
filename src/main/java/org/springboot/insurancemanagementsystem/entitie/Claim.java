@@ -38,6 +38,12 @@ public class Claim {
     private String agentRemarks;
     private String adminRemarks;
 
+    @ManyToOne
+    @JoinColumn(name = "assigned_agent_id")
+    private User assignedAgent;
+
+    private LocalDateTime assignedAt;
+
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 }
