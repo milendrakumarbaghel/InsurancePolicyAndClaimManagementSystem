@@ -29,6 +29,7 @@ public class User {
     private String mobileNumber;
 
     @Enumerated(EnumType.STRING)
+    @Column(length = 15)
     private Role role;
 
     private boolean active;

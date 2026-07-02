@@ -28,6 +28,7 @@ public class PolicyPlan {
     private Double premiumAmount;
 
     @Enumerated(EnumType.STRING)
+    @Column(length = 15)
     private PremiumType premiumType;
 
     private Integer duration;

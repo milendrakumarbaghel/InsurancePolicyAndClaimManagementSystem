@@ -28,12 +28,14 @@ public class PremiumPayment {
     private LocalDateTime paymentDate;
 
     @Enumerated(EnumType.STRING)
+    @Column(length = 15)
     private PaymentMode paymentMode;
 
     @Column(unique = true)
     private String transactionReference;
 
     @Enumerated(EnumType.STRING)
+    @Column(length = 15)
     private PaymentStatus status;
 
     private LocalDateTime createdAt;

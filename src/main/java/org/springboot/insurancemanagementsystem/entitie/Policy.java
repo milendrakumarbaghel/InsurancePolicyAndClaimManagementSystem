@@ -34,6 +34,7 @@ public class Policy {
     private LocalDate endDate;
 
     @Enumerated(EnumType.STRING)
+    @Column(length = 20)
     private PolicyStatus status;
 
     private Double totalPremiumPaid;

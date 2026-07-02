@@ -33,6 +33,7 @@ public class Claim {
     private LocalDate incidentDate;
 
     @Enumerated(EnumType.STRING)
+    @Column(length = 25)
     private ClaimStatus claimStatus;
 
     private String agentRemarks;

@@ -22,6 +22,7 @@ public class InsuranceProduct {
     private String productName;
 
     @Enumerated(EnumType.STRING)
+    @Column(length = 15)
     private ProductType productType;
 
     private String description;

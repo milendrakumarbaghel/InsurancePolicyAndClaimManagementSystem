@@ -23,9 +23,11 @@ public class ClaimStatusHistory {
     private Claim claim;
 
     @Enumerated(EnumType.STRING)
+    @Column(length = 25)
     private ClaimStatus previousStatus;
 
     @Enumerated(EnumType.STRING)
+    @Column(length = 25)
     private ClaimStatus newStatus;
 
     private String remarks;
