@@ -25,6 +25,7 @@ public class ClaimResponseDto {
     private Long assignedAgentId;
     private String assignedAgentName;
     private String assignedAt;
+    private String assignmentMessage;
     private List<ClaimDocumentResponse> documents;
 
     // Enriched Details

@@ -385,7 +385,8 @@ public class ClaimServiceImpl implements ClaimService {
 
         Page<Claim> claims = claimRepository.findByAssignedAgentEmail(agentEmail, pageable);
 
-        return claims.map(claim -> toClaimResponse(claim, claimDocumentRepository.findByClaimId(claim.getId())));
+        // Use enhanced response so agents can see documents and plan details for review
+        return claims.map(claim -> toEnhancedClaimResponse(claim, claimDocumentRepository.findByClaimId(claim.getId())));
     }
 
     private Claim getClaimEntity(Long claimId) {
@@ -426,6 +427,33 @@ public class ClaimServiceImpl implements ClaimService {
         }
     }
 
+    private String buildAssignmentMessage(Claim claim) {
+        if (claim.getAssignedAgent() == null) {
+            return null;
+        }
+
+        String customerName = "Unknown";
+        if (claim.getPolicy() != null && claim.getPolicy().getCustomer() != null
+                && claim.getPolicy().getCustomer().getUser() != null) {
+            customerName = claim.getPolicy().getCustomer().getUser().getFullName();
+        }
+
+        ClaimStatus status = claim.getClaimStatus();
+        if (status == ClaimStatus.ASSIGNED) {
+            return "This claim has been assigned to you for review by the Admin. "
+                    + "You have been assigned to review the claim submitted by Customer: " + customerName + ".";
+        } else if (status == ClaimStatus.RECOMMENDED_APPROVAL) {
+            return "You have recommended this claim for approval. Awaiting Admin's final decision.";
+        } else if (status == ClaimStatus.RECOMMENDED_REJECTION) {
+            return "You have recommended this claim for rejection. Awaiting Admin's final decision.";
+        } else if (status == ClaimStatus.APPROVED) {
+            return "This claim has been approved by the Admin.";
+        } else if (status == ClaimStatus.REJECTED) {
+            return "This claim has been rejected by the Admin.";
+        }
+        return null;
+    }
+
     private ClaimResponseDto toClaimResponse(Claim cl, List<ClaimDocument> docs) {
         Policy po = cl.getPolicy();
         Customer c = po != null ? po.getCustomer() : null;
@@ -445,6 +473,7 @@ public class ClaimServiceImpl implements ClaimService {
                 .assignedAgentId(assignedAgent != null ? assignedAgent.getId() : null)
                 .assignedAgentName(assignedAgent != null ? assignedAgent.getFullName() : null)
                 .assignedAt(cl.getAssignedAt() != null ? cl.getAssignedAt().toString() : null)
+                .assignmentMessage(buildAssignmentMessage(cl))
                 .documents(docs == null
                         ? List.of()
                         : docs.stream()
