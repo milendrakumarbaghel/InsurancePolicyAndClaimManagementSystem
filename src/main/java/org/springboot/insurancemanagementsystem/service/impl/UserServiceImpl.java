@@ -126,6 +126,15 @@ public class UserServiceImpl implements UserService {
         return userRepository.findByRole(Role.CUSTOMER);
     }
 
+    @Override
+    @Transactional(readOnly = true)
+    public List<UserResponseDto> getAgents() {
+        return userRepository.findByRole(Role.AGENT)
+                .stream()
+                .map(this::mapToResponse)
+                .toList();
+    }
+
     private UserResponseDto mapToResponse(
             User user) {
 

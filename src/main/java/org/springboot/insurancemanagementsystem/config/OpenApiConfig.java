@@ -79,7 +79,7 @@ public class OpenApiConfig {
 
                         new Tag()
                                 .name("User Management")
-                                .description("Admin-only APIs to view, create, activate, and deactivate user accounts. " +
+                                .description("Admin-only APIs to view, create, and manage user accounts, including agents and customers. " +
                                         "Requires ADMIN role."),
 
                         new Tag()

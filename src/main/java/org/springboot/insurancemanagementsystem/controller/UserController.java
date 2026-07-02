@@ -27,6 +27,18 @@ public class UserController {
         return userService.getCustomers();
     }
 
+    @GetMapping("/agents")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<List<UserResponseDto>> getAgents() {
+        log.info("Admin requested agent list");
+
+        List<UserResponseDto> agents = userService.getAgents();
+
+        log.info("Retrieved {} agents", agents.size());
+
+        return ResponseEntity.ok(agents);
+    }
+
     @GetMapping
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Page<UserResponseDto>> getAllUsers(

@@ -18,4 +18,6 @@ public interface UserService {
 
     public List<User> getCustomers();
 
+    List<UserResponseDto> getAgents();
+
 }
