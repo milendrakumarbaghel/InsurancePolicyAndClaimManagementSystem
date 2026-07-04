@@ -122,8 +122,12 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public List<User> getCustomers() {
-        return userRepository.findByRole(Role.CUSTOMER);
+    @Transactional(readOnly = true)
+    public List<UserResponseDto> getCustomers() {
+        return userRepository.findByRole(Role.CUSTOMER)
+                .stream()
+                .map(this::mapToResponse)
+                .toList();
     }
 
     @Override

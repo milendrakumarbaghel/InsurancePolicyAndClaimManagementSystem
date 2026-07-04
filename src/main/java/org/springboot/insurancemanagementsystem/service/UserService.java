@@ -1,7 +1,6 @@
 package org.springboot.insurancemanagementsystem.service;
 
 import org.springboot.insurancemanagementsystem.dto.UserResponseDto;
-import org.springboot.insurancemanagementsystem.entitie.User;
 import org.springframework.data.domain.Page;
 
 import java.util.List;
@@ -16,7 +15,7 @@ public interface UserService {
 
     void deactivateUser(Long id);
 
-    public List<User> getCustomers();
+    List<UserResponseDto> getCustomers();
 
     List<UserResponseDto> getAgents();
 

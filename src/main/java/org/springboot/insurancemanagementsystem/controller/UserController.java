@@ -3,7 +3,6 @@ package org.springboot.insurancemanagementsystem.controller;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springboot.insurancemanagementsystem.dto.UserResponseDto;
-import org.springboot.insurancemanagementsystem.entitie.User;
 import org.springboot.insurancemanagementsystem.service.UserService;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
@@ -23,8 +22,14 @@ public class UserController {
 
     @GetMapping("/customers")
     @PreAuthorize("hasRole('ADMIN')")
-    public List<User> getCustomers() {
-        return userService.getCustomers();
+    public ResponseEntity<List<UserResponseDto>> getCustomers() {
+        log.info("Admin requested customer list");
+
+        List<UserResponseDto> customers = userService.getCustomers();
+
+        log.info("Retrieved {} customers", customers.size());
+
+        return ResponseEntity.ok(customers);
     }
 
     @GetMapping("/agents")
