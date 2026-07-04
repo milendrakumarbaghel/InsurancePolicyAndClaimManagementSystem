@@ -6,6 +6,7 @@ import org.springboot.insurancemanagementsystem.dto.ClaimDocumentResponse;
 import org.springboot.insurancemanagementsystem.service.ClaimDocumentService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -22,6 +23,7 @@ public class ClaimDocumentController {
     private final ClaimDocumentService claimDocumentService;
 
     @PostMapping("/upload/{claimId}")
+    @PreAuthorize("hasRole('CUSTOMER')")
     public ResponseEntity<ClaimDocumentResponse>
     uploadDocument(
             @PathVariable Long claimId,
@@ -39,6 +41,7 @@ public class ClaimDocumentController {
     }
 
     @GetMapping("/claim/{claimId}")
+    @PreAuthorize("hasAnyRole('ADMIN','AGENT','CUSTOMER')")
     public ResponseEntity<List<ClaimDocumentResponse>>
     getDocumentsByClaimId(
             @PathVariable Long claimId, Authentication authentication) {
@@ -58,6 +61,7 @@ public class ClaimDocumentController {
     }
 
     @GetMapping("/{documentId}")
+    @PreAuthorize("hasAnyRole('ADMIN','AGENT','CUSTOMER')")  //
     public ResponseEntity<ClaimDocumentResponse>
     getDocumentById(
             @PathVariable Long documentId) {
@@ -71,6 +75,7 @@ public class ClaimDocumentController {
     }
 
     @DeleteMapping("/{documentId}")
+    @PreAuthorize("hasRole('CUSTOMER')")
     public ResponseEntity<String>
     deleteDocument(
             @PathVariable Long documentId) {
