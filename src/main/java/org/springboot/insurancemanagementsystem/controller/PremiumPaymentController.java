@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springboot.insurancemanagementsystem.dto.PaymentRequestDto;
 import org.springboot.insurancemanagementsystem.dto.PaymentResponseDto;
+import org.springboot.insurancemanagementsystem.security.util.SecurityUtil;
 import org.springboot.insurancemanagementsystem.service.PremiumPaymentService;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
@@ -117,10 +118,7 @@ public class PremiumPaymentController {
         );
 
         String email = authentication.getName();
-        String role = authentication.getAuthorities().stream()
-                .map(grantedAuthority -> grantedAuthority.getAuthority().replace("ROLE_", ""))
-                .findFirst()
-                .orElse("");
+        String role = SecurityUtil.extractRoleFromAuthentication(authentication);
 
         Page<PaymentResponseDto> paymentsPage = premiumPaymentService.getAllPayments(
                 page, size, sortBy, sortDir, email, role);

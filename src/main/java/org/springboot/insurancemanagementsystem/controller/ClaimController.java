@@ -8,6 +8,7 @@ import org.springboot.insurancemanagementsystem.dto.ClaimAssignRequestDto;
 import org.springboot.insurancemanagementsystem.dto.ClaimRequestDto;
 import org.springboot.insurancemanagementsystem.dto.ClaimResponseDto;
 import org.springboot.insurancemanagementsystem.dto.ClaimReviewRequestDto;
+import org.springboot.insurancemanagementsystem.security.util.SecurityUtil;
 import org.springboot.insurancemanagementsystem.service.ClaimService;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
@@ -159,9 +160,7 @@ public class ClaimController {
         log.info("Fetching claim details for claimId: {}", claimId);
 
         String email = authentication.getName();
-        String role = authentication.getAuthorities().stream()
-                .map(r -> r.getAuthority().replace("ROLE_", ""))
-                .findFirst().orElse("");
+        String role = SecurityUtil.extractRoleFromAuthentication(authentication);
 
         ClaimResponseDto response = claimService.getClaimById(claimId, email, role);
 
@@ -180,10 +179,7 @@ public class ClaimController {
                 claimNumber);
 
         String email = authentication.getName();
-        String role = authentication.getAuthorities().stream()
-                .map(grantedAuthority -> grantedAuthority.getAuthority().replace("ROLE_", ""))
-                .findFirst()
-                .orElse("");
+        String role = SecurityUtil.extractRoleFromAuthentication(authentication);
 
         ClaimResponseDto claimResponse = claimService.getClaimByNumber(claimNumber, email, role);
 

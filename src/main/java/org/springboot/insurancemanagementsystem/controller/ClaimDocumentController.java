@@ -3,6 +3,7 @@ package org.springboot.insurancemanagementsystem.controller;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springboot.insurancemanagementsystem.dto.ClaimDocumentResponse;
+import org.springboot.insurancemanagementsystem.security.util.SecurityUtil;
 import org.springboot.insurancemanagementsystem.service.ClaimDocumentService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -49,11 +50,7 @@ public class ClaimDocumentController {
         log.info("REST request to get Documents for Claim ID : {}", claimId);
 
         String email = authentication.getName();
-
-        String role = authentication.getAuthorities().stream()
-                .map(grantedAuthority -> grantedAuthority.getAuthority().replace("ROLE_", ""))
-                .findFirst()
-                .orElse("");
+        String role = SecurityUtil.extractRoleFromAuthentication(authentication);
 
         List<ClaimDocumentResponse> responses = claimDocumentService.getDocumentsByClaimId(claimId, email, role);
 

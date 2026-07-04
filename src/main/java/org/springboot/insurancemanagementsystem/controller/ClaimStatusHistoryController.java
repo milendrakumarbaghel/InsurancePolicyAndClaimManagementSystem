@@ -3,6 +3,7 @@ package org.springboot.insurancemanagementsystem.controller;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springboot.insurancemanagementsystem.dto.ClaimStatusHistoryResponse;
+import org.springboot.insurancemanagementsystem.security.util.SecurityUtil;
 import org.springboot.insurancemanagementsystem.service.ClaimStatusHistoryService;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
@@ -47,10 +48,7 @@ public class ClaimStatusHistoryController {
                 sortDir
         );
         String email = authentication.getName();
-        String role = authentication.getAuthorities().stream()
-                .map(grantedAuthority -> grantedAuthority.getAuthority().replace("ROLE_", ""))
-                .findFirst()
-                .orElse("");
+        String role = SecurityUtil.extractRoleFromAuthentication(authentication);
 
         Page<ClaimStatusHistoryResponse> history = claimStatusHistoryService.getClaimHistory(
                 claimId, page, size, sortBy, sortDir, email, role);

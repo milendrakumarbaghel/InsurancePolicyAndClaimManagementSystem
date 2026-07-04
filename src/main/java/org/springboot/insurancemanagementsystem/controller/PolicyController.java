@@ -6,6 +6,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springboot.insurancemanagementsystem.dto.PolicyRequestDto;
 import org.springboot.insurancemanagementsystem.dto.PolicyResponseDto;
 import org.springboot.insurancemanagementsystem.enums.PolicyStatus;
+import org.springboot.insurancemanagementsystem.security.util.SecurityUtil;
 import org.springboot.insurancemanagementsystem.service.PolicyService;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
@@ -87,11 +88,7 @@ public class PolicyController {
         );
 
         String email = authentication.getName();
-
-        String role = authentication.getAuthorities().stream()
-                .map(grantedAuthority -> grantedAuthority.getAuthority().replace("ROLE_", ""))
-                .findFirst()
-                .orElse("");
+        String role = SecurityUtil.extractRoleFromAuthentication(authentication);
 
         PolicyResponseDto response = policyService.getPolicyById(policyId, email, role);
 
