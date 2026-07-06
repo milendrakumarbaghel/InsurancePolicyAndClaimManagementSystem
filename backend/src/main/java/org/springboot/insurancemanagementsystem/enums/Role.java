@@ -2,6 +2,6 @@ package org.springboot.insurancemanagementsystem.enums;
 
 public enum Role {
     ADMIN,
-    AGENT,
+    INSURANCE_OPERATIONS_OFFICER,
     CUSTOMER
 }

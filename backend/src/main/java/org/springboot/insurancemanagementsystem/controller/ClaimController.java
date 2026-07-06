@@ -56,7 +56,7 @@ public class ClaimController {
 
 
     @PutMapping("/{claimId}/review")
-    @PreAuthorize("hasRole('AGENT')")
+    @PreAuthorize("hasRole('INSURANCE_OPERATIONS_OFFICER')")
     public ResponseEntity<ClaimResponseDto> reviewClaim(
             @PathVariable Long claimId,
             @Valid @RequestBody ClaimReviewRequestDto request,
@@ -82,7 +82,7 @@ public class ClaimController {
 
     @PutMapping("/{claimId}/assign")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<ClaimResponseDto> assignClaimToAgent(
+    public ResponseEntity<ClaimResponseDto> assignClaimToInsuranceOperationsOfficer(
             @PathVariable Long claimId,
             @Valid @RequestBody ClaimAssignRequestDto request,
             Authentication authentication) {
@@ -90,12 +90,12 @@ public class ClaimController {
         log.info("Admin {} assigning claimId: {} to agentId: {}",
                 authentication.getName(),
                 claimId,
-                request.getAgentId());
+                request.getInsuranceOperationsOfficerId());
 
         ClaimResponseDto response =
-                claimService.assignClaimToAgent(
+                claimService.assignClaimToInsuranceOperationsOfficer(
                         claimId,
-                        request.getAgentId(),
+                        request.getInsuranceOperationsOfficerId(),
                         authentication.getName()
                 );
 
@@ -152,7 +152,7 @@ public class ClaimController {
     }
 
     @GetMapping("/{claimId}")
-    @PreAuthorize("hasAnyRole('ADMIN','AGENT','CUSTOMER')")
+    @PreAuthorize("hasAnyRole('ADMIN','INSURANCE_OPERATIONS_OFFICER','CUSTOMER')")
     public ResponseEntity<ClaimResponseDto> getClaimById(
             @PathVariable Long claimId,
             Authentication authentication) {
@@ -171,7 +171,7 @@ public class ClaimController {
     }
 
     @GetMapping("/number/{claimNumber}")
-    @PreAuthorize("hasAnyRole('ADMIN','AGENT','CUSTOMER')")
+    @PreAuthorize("hasAnyRole('ADMIN','INSURANCE_OPERATIONS_OFFICER','CUSTOMER')")
     public ResponseEntity<ClaimResponseDto> getClaimByNumber(
             @PathVariable String claimNumber, Authentication authentication) {
 
@@ -210,7 +210,7 @@ public class ClaimController {
     }
 
     @GetMapping
-    @PreAuthorize("hasAnyRole('ADMIN','AGENT')")
+    @PreAuthorize("hasAnyRole('ADMIN','INSURANCE_OPERATIONS_OFFICER')")
     public ResponseEntity<Page<ClaimResponseDto>> getAllClaims(
 
             @RequestParam(defaultValue = "0")
@@ -252,8 +252,8 @@ public class ClaimController {
     }
 
     @GetMapping("/assigned")
-    @PreAuthorize("hasRole('AGENT')")
-    public ResponseEntity<Page<ClaimResponseDto>> getAgentAssignedClaims(
+    @PreAuthorize("hasRole('INSURANCE_OPERATIONS_OFFICER')")
+    public ResponseEntity<Page<ClaimResponseDto>> getAssignedClaims(
 
             @RequestParam(defaultValue = "0")
             int page,
@@ -273,7 +273,7 @@ public class ClaimController {
                 authentication.getName());
 
         Page<ClaimResponseDto> claims =
-                claimService.getAgentAssignedClaims(
+                claimService.getInsuranceOperationsOfficerAssignedClaims(
                         authentication.getName(),
                         page,
                         size,

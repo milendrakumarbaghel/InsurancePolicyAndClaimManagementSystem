@@ -104,16 +104,16 @@ public class AuthController {
                         .build());
     }
 
-    @PostMapping("/agents")
+    @PostMapping("/insurance-operations-officers")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<UserResponseDto> createAgent(
             @Valid @RequestBody RegisterRequestDto request) {
 
-        log.info("Agent creation request received for email: {}", request.getEmail());
+        log.info("Insurance Operations Officer creation request received for email: {}", request.getEmail());
 
-        UserResponseDto response = authService.createAgent(request);
+        UserResponseDto response = authService.createInsuranceOperationsOfficer(request);
 
-        log.info("Agent created successfully with email: {}", response.getEmail());
+        log.info("Insurance Operations Officer created successfully with email: {}", response.getEmail());
 
         return new ResponseEntity<>(
                 response,

@@ -268,16 +268,16 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public UserResponseDto createAgent(RegisterRequestDto request) {
+    public UserResponseDto createInsuranceOperationsOfficer(RegisterRequestDto request) {
 
-        log.info("Agent creation request received for email: {}", request.getEmail());
+        log.info("Insurance Operations Officer creation request received for email: {}", request.getEmail());
 
         if (userRepository.existsByEmail(request.getEmail())) {
 
-            log.warn("Agent creation failed. Email already exists: {}", request.getEmail());
+            log.warn("Insurance Operations Officer creation failed. Email already exists: {}", request.getEmail());
 
             throw new DuplicateResourceException(
-                    "Email already registered");
+                    "Insurance Operations Officer creation failed. Email already exists:"+request.getEmail());
         }
 
         User user = User.builder()
@@ -286,14 +286,14 @@ public class AuthServiceImpl implements AuthService {
                 .mobileNumber(request.getMobileNumber())
                 .password(passwordEncoder.encode(request.getPassword()))
                 .createdAt(LocalDateTime.now())
-                .role(Role.AGENT)
+                .role(Role.INSURANCE_OPERATIONS_OFFICER)
                 .active(true)
                 .build();
 
         user = userRepository.save(user);
 
         log.info(
-                "Agent created successfully. UserId={}, Email={}",
+                "Insurance Operations Officer created successfully. UserId={}, Email={}",
                 user.getId(),
                 user.getEmail()
         );

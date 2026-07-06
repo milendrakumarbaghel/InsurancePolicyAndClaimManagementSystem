@@ -50,7 +50,7 @@ public class PremiumPaymentController {
     }
 
     @GetMapping("/{paymentId}")
-    @PreAuthorize("hasAnyRole('ADMIN','AGENT','CUSTOMER')")
+    @PreAuthorize("hasAnyRole('ADMIN','INSURANCE_OPERATIONS_OFFICER','CUSTOMER')")
     public ResponseEntity<PaymentResponseDto> getPaymentById(
             @PathVariable Long paymentId,  Authentication authentication) {
 
@@ -74,7 +74,7 @@ public class PremiumPaymentController {
     }
 
     @GetMapping("/policy/{policyId}")
-    @PreAuthorize("hasAnyRole('ADMIN','AGENT','CUSTOMER')")
+    @PreAuthorize("hasAnyRole('ADMIN','INSURANCE_OPERATIONS_OFFICER','CUSTOMER')")
     public ResponseEntity<List<PaymentResponseDto>> getPolicyPayments(
             @PathVariable Long policyId,Authentication authentication) {
 
@@ -99,7 +99,7 @@ public class PremiumPaymentController {
     }
 
     @GetMapping
-    @PreAuthorize("hasAnyRole('ADMIN','AGENT','CUSTOMER')")
+    @PreAuthorize("hasAnyRole('ADMIN','INSURANCE_OPERATIONS_OFFICER','CUSTOMER')")
     public ResponseEntity<Page<PaymentResponseDto>> getAllPayments(
 
             @RequestParam(defaultValue = "0")

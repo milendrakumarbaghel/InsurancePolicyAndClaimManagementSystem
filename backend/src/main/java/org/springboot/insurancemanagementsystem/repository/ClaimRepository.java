@@ -44,9 +44,9 @@ public interface ClaimRepository
 
     List<Claim> findByPolicyCustomerUserEmail(String customerEmail);
 
-    Page<Claim> findByAssignedAgentId(Long agentId, Pageable pageable);
+    Page<Claim> findByAssignedInsuranceOperationsOfficerId(Long agentId, Pageable pageable);
 
-    long countByAssignedAgentIdAndClaimStatusIn(Long agentId, Collection<ClaimStatus> statuses);
+    long countByAssignedInsuranceOperationsOfficerIdAndClaimStatusIn(Long agentId, Collection<ClaimStatus> statuses);
 
-    Page<Claim> findByAssignedAgentEmail(String agentEmail, Pageable pageable);
+    Page<Claim> findByAssignedInsuranceOperationsOfficerEmail(String agentEmail, Pageable pageable);
 }

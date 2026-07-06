@@ -21,7 +21,7 @@ public class ClaimStatusHistoryController {
     private final ClaimStatusHistoryService claimStatusHistoryService;
 
     @GetMapping("/{claimId}")
-    @PreAuthorize("hasAnyRole('ADMIN','AGENT','CUSTOMER')")
+    @PreAuthorize("hasAnyRole('ADMIN','INSURANCE_OPERATIONS_OFFICER','CUSTOMER')")
     public ResponseEntity<Page<ClaimStatusHistoryResponse>> getClaimHistory(
 
             @PathVariable Long claimId,

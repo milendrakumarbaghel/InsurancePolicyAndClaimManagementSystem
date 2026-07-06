@@ -11,7 +11,7 @@ import lombok.*;
 @Builder
 public class ClaimAssignRequestDto {
 
-    @NotNull(message = "Agent ID is required")
-    @Min(value = 1, message = "Agent ID must be a positive number")
-    private Long agentId;
+    @NotNull(message = "Insurance Operations Officer ID is required")
+    @Min(value = 1, message = "Insurance Operations Officer ID must be a positive number")
+    private Long insuranceOperationsOfficerId;
 }

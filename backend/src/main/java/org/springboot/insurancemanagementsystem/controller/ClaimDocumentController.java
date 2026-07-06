@@ -42,7 +42,7 @@ public class ClaimDocumentController {
     }
 
     @GetMapping("/claim/{claimId}")
-    @PreAuthorize("hasAnyRole('ADMIN','AGENT','CUSTOMER')")
+    @PreAuthorize("hasAnyRole('ADMIN','INSURANCE_OPERATIONS_OFFICER','CUSTOMER')")
     public ResponseEntity<List<ClaimDocumentResponse>>
     getDocumentsByClaimId(
             @PathVariable Long claimId, Authentication authentication) {
@@ -58,7 +58,7 @@ public class ClaimDocumentController {
     }
 
     @GetMapping("/{documentId}")
-    @PreAuthorize("hasAnyRole('ADMIN','AGENT','CUSTOMER')")  //
+    @PreAuthorize("hasAnyRole('ADMIN','INSURANCE_OPERATIONS_OFFICER','CUSTOMER')")  //
     public ResponseEntity<ClaimDocumentResponse>
     getDocumentById(
             @PathVariable Long documentId) {

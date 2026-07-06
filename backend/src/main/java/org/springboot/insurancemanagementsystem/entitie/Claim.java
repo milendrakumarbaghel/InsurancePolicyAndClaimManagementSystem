@@ -40,8 +40,8 @@ public class Claim {
     private String adminRemarks;
 
     @ManyToOne
-    @JoinColumn(name = "assigned_agent_id")
-    private User assignedAgent;
+    @JoinColumn(name = "assigned_insurance_operations_officer_id")
+    private User assignedInsuranceOperationsOfficer;
 
     private LocalDateTime assignedAt;
 

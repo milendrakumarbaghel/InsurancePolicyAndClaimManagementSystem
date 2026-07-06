@@ -13,11 +13,6 @@ public interface ClaimService {
             ClaimRequestDto request,
             String customerEmail);
 
-    ClaimResponseDto assignClaimToAgent(
-            Long claimId,
-            Long agentId,
-            String adminEmail);
-
     ClaimResponseDto reviewClaim(
             Long claimId,
             ClaimReviewRequestDto request,
@@ -47,10 +42,6 @@ public interface ClaimService {
             String sortDir,
             String status);
 
-    Page<ClaimResponseDto> getAgentAssignedClaims(
-            String agentEmail,
-            int page,
-            int size,
-            String sortBy,
-            String sortDir);
+    ClaimResponseDto assignClaimToInsuranceOperationsOfficer(Long claimId, Long insuranceOperationsOfficerId, String adminEmail);
+    Page<ClaimResponseDto> getInsuranceOperationsOfficerAssignedClaims(String email, int page, int size, String sortBy, String sortDir);
 }

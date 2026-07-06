@@ -2,6 +2,7 @@ package org.springboot.insurancemanagementsystem.dto;
 
 import lombok.*;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Getter
@@ -20,11 +21,11 @@ public class ClaimResponseDto {
     private Double claimAmount;
     private String claimReason;
     private String claimStatus;
-    private String agentRemarks;
+    private String insuranceOperationsOfficerRemarks;
     private String adminRemarks;
-    private Long assignedAgentId;
-    private String assignedAgentName;
-    private String assignedAt;
+    private Long assignedInsuranceOperationsOfficerId;
+    private String assignedInsuranceOperationsOfficerName;
+    private LocalDateTime assignedAt;
     private String assignmentMessage;
     private List<ClaimDocumentResponse> documents;
 

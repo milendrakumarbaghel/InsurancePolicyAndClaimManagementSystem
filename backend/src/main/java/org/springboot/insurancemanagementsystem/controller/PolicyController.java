@@ -54,7 +54,7 @@ public class PolicyController {
     }
 
     @PostMapping("/issue")
-    @PreAuthorize("hasAnyRole('ADMIN', 'AGENT')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'INSURANCE_OPERATIONS_OFFICER')")
     public ResponseEntity<PolicyResponseDto> issuePolicy(
             @Valid @RequestBody PolicyRequestDto request) {
 
@@ -78,7 +78,7 @@ public class PolicyController {
     }
 
     @GetMapping("/{policyId}")
-    @PreAuthorize("hasAnyRole('ADMIN','AGENT','CUSTOMER')")
+    @PreAuthorize("hasAnyRole('ADMIN','INSURANCE_OPERATIONS_OFFICER','CUSTOMER')")
     public ResponseEntity<PolicyResponseDto> getPolicyById(
             @PathVariable Long policyId, Authentication authentication) {
 
@@ -101,7 +101,7 @@ public class PolicyController {
     }
 
     @GetMapping("/number/{policyNumber}")
-    @PreAuthorize("hasAnyRole('ADMIN','AGENT','CUSTOMER')")
+    @PreAuthorize("hasAnyRole('ADMIN','INSURANCE_OPERATIONS_OFFICER','CUSTOMER')")
     public ResponseEntity<PolicyResponseDto> getPolicyByNumber(
             @PathVariable String policyNumber) {
 
@@ -145,7 +145,7 @@ public class PolicyController {
     }
 
     @GetMapping
-    @PreAuthorize("hasAnyRole('ADMIN','AGENT')")
+    @PreAuthorize("hasAnyRole('ADMIN','INSURANCE_OPERATIONS_OFFICER')")
     public ResponseEntity<Page<PolicyResponseDto>> getAllPolicies(
 
             @RequestParam(defaultValue = "0")
@@ -194,7 +194,7 @@ public class PolicyController {
     }
 
     @PatchMapping("/{policyId}/cancel")
-    @PreAuthorize("hasAnyRole('ADMIN','AGENT')")
+    @PreAuthorize("hasAnyRole('ADMIN','INSURANCE_OPERATIONS_OFFICER')")
     public ResponseEntity<PolicyResponseDto> cancelPolicy(
             @PathVariable Long policyId) {
 

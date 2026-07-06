@@ -73,7 +73,7 @@ public class PolicyPlanController {
     }
 
     @GetMapping("/{planId}")
-    @PreAuthorize("hasAnyRole('ADMIN','AGENT','CUSTOMER')")
+    @PreAuthorize("hasAnyRole('ADMIN','INSURANCE_OPERATIONS_OFFICER','CUSTOMER')")
     public ResponseEntity<PolicyPlanResponseDto> getPlanById(
             @PathVariable Long planId) {
 
@@ -94,7 +94,7 @@ public class PolicyPlanController {
     }
 
     @GetMapping("/product/{productId}")
-    @PreAuthorize("hasAnyRole('ADMIN','AGENT','CUSTOMER')")
+    @PreAuthorize("hasAnyRole('ADMIN','INSURANCE_OPERATIONS_OFFICER','CUSTOMER')")
     public ResponseEntity<List<PolicyPlanResponseDto>> getPlansByProduct(
             @PathVariable Long productId) {
 
@@ -116,7 +116,7 @@ public class PolicyPlanController {
     }
 
     @GetMapping
-    @PreAuthorize("hasAnyRole('ADMIN','AGENT','CUSTOMER')")
+    @PreAuthorize("hasAnyRole('ADMIN','INSURANCE_OPERATIONS_OFFICER','CUSTOMER')")
     public ResponseEntity<Page<PolicyPlanResponseDto>> getAllPlans(
 
             @RequestParam(defaultValue = "0")

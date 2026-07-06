@@ -23,6 +23,6 @@ public interface AuthService {
 
     void resetPassword(ResetPasswordRequestDto request);
 
-    UserResponseDto createAgent(RegisterRequestDto request);
+    UserResponseDto createInsuranceOperationsOfficer(RegisterRequestDto request);
 
 }

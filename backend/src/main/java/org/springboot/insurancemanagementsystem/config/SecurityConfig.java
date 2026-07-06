@@ -87,19 +87,19 @@ public class SecurityConfig {
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
 
                         // AGENT ONLY
-                        .requestMatchers("/api/agent/**").hasRole("AGENT")
+                        .requestMatchers("/api/insurance-operations-officers/**").hasRole("INSURANCE_OPERATIONS_OFFICER")
 
                         // CUSTOMER ONLY
                         .requestMatchers("/api/customer/**").hasRole("CUSTOMER")
 
                         // SHARED ACCESS (ADMIN + AGENT)
-                        .requestMatchers("/api/products/**").hasAnyRole("ADMIN", "AGENT", "CUSTOMER")
-                        .requestMatchers("/api/plans/**").hasAnyRole("ADMIN", "AGENT", "CUSTOMER")
+                        .requestMatchers("/api/products/**").hasAnyRole("ADMIN", "INSURANCE_OPERATIONS_OFFICER", "CUSTOMER")
+                        .requestMatchers("/api/plans/**").hasAnyRole("ADMIN", "INSURANCE_OPERATIONS_OFFICER", "CUSTOMER")
 
-                        .requestMatchers("/api/policies/**").hasAnyRole("ADMIN", "AGENT", "CUSTOMER")
-                        .requestMatchers("/api/payments/**").hasAnyRole("ADMIN", "AGENT", "CUSTOMER")
+                        .requestMatchers("/api/policies/**").hasAnyRole("ADMIN", "INSURANCE_OPERATIONS_OFFICER", "CUSTOMER")
+                        .requestMatchers("/api/payments/**").hasAnyRole("ADMIN", "INSURANCE_OPERATIONS_OFFICER", "CUSTOMER")
 
-                        .requestMatchers("/api/claims/**").hasAnyRole("ADMIN", "AGENT", "CUSTOMER")
+                        .requestMatchers("/api/claims/**").hasAnyRole("ADMIN", "INSURANCE_OPERATIONS_OFFICER", "CUSTOMER")
 
                         // fallback
                         .anyRequest().authenticated()

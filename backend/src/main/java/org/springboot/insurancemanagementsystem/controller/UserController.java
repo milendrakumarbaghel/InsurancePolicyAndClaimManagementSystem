@@ -32,12 +32,12 @@ public class UserController {
         return ResponseEntity.ok(customers);
     }
 
-    @GetMapping("/agents")
+    @GetMapping("/insurance-operations-officers")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<List<UserResponseDto>> getAgents() {
+    public ResponseEntity<List<UserResponseDto>> getInsuranceOperationsOfficers() {
         log.info("Admin requested agent list");
 
-        List<UserResponseDto> agents = userService.getAgents();
+        List<UserResponseDto> agents = userService.getInsuranceOperationsOfficers();
 
         log.info("Retrieved {} agents", agents.size());
 

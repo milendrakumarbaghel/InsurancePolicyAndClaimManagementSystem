@@ -100,7 +100,7 @@ public class CustomerController {
     }
 
     @GetMapping("/{customerId}")
-    @PreAuthorize("hasAnyRole('ADMIN','AGENT')")
+    @PreAuthorize("hasAnyRole('ADMIN','INSURANCE_OPERATIONS_OFFICER')")
     public ResponseEntity<CustomerResponseDto> getCustomerById(
             @PathVariable Long customerId) {
 
@@ -118,7 +118,7 @@ public class CustomerController {
     }
 
     @GetMapping
-    @PreAuthorize("hasAnyRole('ADMIN','AGENT')")
+    @PreAuthorize("hasAnyRole('ADMIN','INSURANCE_OPERATIONS_OFFICER')")
     public ResponseEntity<Page<CustomerResponseDto>> getAllCustomers(
 
             @RequestParam(defaultValue = "0")

@@ -62,7 +62,7 @@ public class InsuranceProductController {
     }
 
     @GetMapping("/{productId}")
-    @PreAuthorize("hasAnyRole('ADMIN','AGENT','CUSTOMER')")
+    @PreAuthorize("hasAnyRole('ADMIN','INSURANCE_OPERATIONS_OFFICER','CUSTOMER')")
     public ResponseEntity<ProductResponseDto> getProductById(
             @PathVariable Long productId) {
 
@@ -80,7 +80,7 @@ public class InsuranceProductController {
     }
 
     @GetMapping
-    @PreAuthorize("hasAnyRole('ADMIN','AGENT','CUSTOMER')")
+    @PreAuthorize("hasAnyRole('ADMIN','INSURANCE_OPERATIONS_OFFICER','CUSTOMER')")
     public ResponseEntity<Page<ProductResponseDto>> getAllProducts(
 
             @RequestParam(defaultValue = "0")
@@ -116,7 +116,7 @@ public class InsuranceProductController {
     }
 
     @GetMapping("/active")
-    @PreAuthorize("hasAnyRole('ADMIN','AGENT','CUSTOMER')")
+    @PreAuthorize("hasAnyRole('ADMIN','INSURANCE_OPERATIONS_OFFICER','CUSTOMER')")
     public ResponseEntity<Page<ProductResponseDto>> getActiveProducts(
 
             @RequestParam(defaultValue = "0")

@@ -7,6 +7,7 @@ import org.springboot.insurancemanagementsystem.dto.*;
 import org.springboot.insurancemanagementsystem.entitie.*;
 import org.springboot.insurancemanagementsystem.enums.ClaimStatus;
 import org.springboot.insurancemanagementsystem.enums.PolicyStatus;
+import org.springboot.insurancemanagementsystem.enums.Role;
 import org.springboot.insurancemanagementsystem.exception.BusinessException;
 import org.springboot.insurancemanagementsystem.exception.ResourceNotFoundException;
 import org.springboot.insurancemanagementsystem.repository.*;
@@ -19,6 +20,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -133,12 +135,10 @@ public class ClaimServiceImpl implements ClaimService {
     }
 
     @Override
-    public ClaimResponseDto assignClaimToAgent(
-            Long claimId,
-            Long agentId,
-            String adminEmail) {
+    @Transactional
+    public ClaimResponseDto assignClaimToInsuranceOperationsOfficer(Long claimId, Long insuranceOperationsOfficerId, String adminEmail) {
 
-        log.info("Admin {} assigning claimId={} to agentId={}", adminEmail, claimId, agentId);
+        log.info("Admin {} assigning claimId={} to InsuranceOperationsOfficerId={}", adminEmail, claimId, insuranceOperationsOfficerId);
 
         Claim claim = getClaimEntity(claimId);
 
@@ -148,19 +148,19 @@ public class ClaimServiceImpl implements ClaimService {
             throw new BusinessException("Claim can only be assigned when in SUBMITTED or ASSIGNED status. Current status: " + claim.getClaimStatus());
         }
 
-        User agent = userRepository.findById(agentId)
-                .orElseThrow(() -> new ResourceNotFoundException("Agent not found with id: " + agentId));
+        User insuranceOperationsOfficer = userRepository.findById(insuranceOperationsOfficerId)
+                .orElseThrow(() -> new ResourceNotFoundException("InsuranceOperationsOfficer not found with id: " + insuranceOperationsOfficerId));
 
-        if (agent.getRole() != org.springboot.insurancemanagementsystem.enums.Role.AGENT) {
-            throw new BusinessException("User with id " + agentId + " is not an agent");
+        if (insuranceOperationsOfficer.getRole() != Role.INSURANCE_OPERATIONS_OFFICER) {
+            throw new BusinessException("User with id " + insuranceOperationsOfficerId + " is not an agent");
         }
 
-        if (!agent.isActive()) {
+        if (!insuranceOperationsOfficer.isActive()) {
             throw new BusinessException("Agent is not active");
         }
 
         // Check if the claim is already assigned to the same agent
-        if (claim.getAssignedAgent() != null && claim.getAssignedAgent().getId().equals(agentId)) {
+        if (claim.getAssignedInsuranceOperationsOfficer() != null && claim.getAssignedInsuranceOperationsOfficer().getId().equals(insuranceOperationsOfficerId)) {
             throw new BusinessException("Claim is already assigned to this agent");
         }
 
@@ -168,7 +168,7 @@ public class ClaimServiceImpl implements ClaimService {
                 .orElseThrow(() -> new ResourceNotFoundException("Admin not found"));
 
         ClaimStatus oldStatus = claim.getClaimStatus();
-        claim.setAssignedAgent(agent);
+        claim.setAssignedInsuranceOperationsOfficer(insuranceOperationsOfficer);
         claim.setAssignedAt(LocalDateTime.now());
         claim.setClaimStatus(ClaimStatus.ASSIGNED);
         claim.setUpdatedAt(LocalDateTime.now());
@@ -177,10 +177,10 @@ public class ClaimServiceImpl implements ClaimService {
         List<ClaimDocument> docs = claimDocumentRepository.findByClaimId(updatedClaim.getId());
 
         historyService.recordStatusChange(claim, oldStatus, ClaimStatus.ASSIGNED,
-                "Claim assigned to agent: " + agent.getFullName(), admin);
+                "Claim assigned to agent: " + insuranceOperationsOfficer.getFullName(), admin);
 
         log.info("Claim {} assigned to agent {} by admin {}",
-                updatedClaim.getClaimNumber(), agent.getFullName(), adminEmail);
+                updatedClaim.getClaimNumber(), insuranceOperationsOfficer.getFullName(), adminEmail);
 
         return toEnhancedClaimResponse(updatedClaim, docs);
     }
@@ -202,7 +202,7 @@ public class ClaimServiceImpl implements ClaimService {
         }
 
         // Validate only the assigned agent can review
-        if (claim.getAssignedAgent() == null || !claim.getAssignedAgent().getEmail().equals(agentEmail)) {
+        if (claim.getAssignedInsuranceOperationsOfficer() == null || !claim.getAssignedInsuranceOperationsOfficer().getEmail().equals(agentEmail)) {
             log.warn("Agent {} is not assigned to claim {}", agentEmail, claim.getClaimNumber());
             throw new BusinessException("Only the assigned agent can review this claim");
         }
@@ -368,7 +368,7 @@ public class ClaimServiceImpl implements ClaimService {
     }
 
     @Override
-    public Page<ClaimResponseDto> getAgentAssignedClaims(
+    public Page<ClaimResponseDto> getInsuranceOperationsOfficerAssignedClaims(
             String agentEmail,
             int page,
             int size,
@@ -383,7 +383,7 @@ public class ClaimServiceImpl implements ClaimService {
         Sort sort = sortDir.equalsIgnoreCase("asc") ? Sort.by(sortBy).ascending() : Sort.by(sortBy).descending();
         Pageable pageable = PageRequest.of(page, size, sort);
 
-        Page<Claim> claims = claimRepository.findByAssignedAgentEmail(agentEmail, pageable);
+        Page<Claim> claims = claimRepository.findByAssignedInsuranceOperationsOfficerEmail(agentEmail, pageable);
 
         // Use enhanced response so agents can see documents and plan details for review
         return claims.map(claim -> toEnhancedClaimResponse(claim, claimDocumentRepository.findByClaimId(claim.getId())));
@@ -428,7 +428,7 @@ public class ClaimServiceImpl implements ClaimService {
     }
 
     private String buildAssignmentMessage(Claim claim) {
-        if (claim.getAssignedAgent() == null) {
+        if (claim.getAssignedInsuranceOperationsOfficer() == null) {
             return null;
         }
 
@@ -457,7 +457,7 @@ public class ClaimServiceImpl implements ClaimService {
     private ClaimResponseDto toClaimResponse(Claim cl, List<ClaimDocument> docs) {
         Policy po = cl.getPolicy();
         Customer c = po != null ? po.getCustomer() : null;
-        User assignedAgent = cl.getAssignedAgent();
+        User assignedAgent = cl.getAssignedInsuranceOperationsOfficer();
         return ClaimResponseDto.builder()
                 .claimId(cl.getId())
                 .claimNumber(cl.getClaimNumber())
@@ -468,11 +468,11 @@ public class ClaimServiceImpl implements ClaimService {
                 .claimAmount(cl.getClaimAmount())
                 .claimReason(cl.getClaimReason())
                 .claimStatus(cl.getClaimStatus() != null ? cl.getClaimStatus().name() : null)
-                .agentRemarks(cl.getAgentRemarks())
+                .insuranceOperationsOfficerRemarks(cl.getAgentRemarks())
                 .adminRemarks(cl.getAdminRemarks())
-                .assignedAgentId(assignedAgent != null ? assignedAgent.getId() : null)
-                .assignedAgentName(assignedAgent != null ? assignedAgent.getFullName() : null)
-                .assignedAt(cl.getAssignedAt() != null ? cl.getAssignedAt().toString() : null)
+                .assignedInsuranceOperationsOfficerId(assignedAgent != null ? assignedAgent.getId() : null)
+                .assignedInsuranceOperationsOfficerName(assignedAgent != null ? assignedAgent.getFullName() : null)
+                .assignedAt(cl.getAssignedAt() != null ? cl.getAssignedAt() : null)
                 .assignmentMessage(buildAssignmentMessage(cl))
                 .documents(docs == null
                         ? List.of()

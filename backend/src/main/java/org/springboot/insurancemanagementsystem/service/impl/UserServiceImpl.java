@@ -132,8 +132,8 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<UserResponseDto> getAgents() {
-        return userRepository.findByRole(Role.AGENT)
+    public List<UserResponseDto> getInsuranceOperationsOfficers() {
+        return userRepository.findByRole(Role.INSURANCE_OPERATIONS_OFFICER)
                 .stream()
                 .map(this::mapToResponse)
                 .toList();
