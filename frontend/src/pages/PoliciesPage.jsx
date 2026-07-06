@@ -10,6 +10,7 @@ import Select from "../components/common/Select";
 import Button from "../components/common/Button";
 import Spinner from "../components/common/Spinner";
 import EmptyState from "../components/common/EmptyState";
+
 import { useAuth } from "../context/AuthContext";
 import { policyService } from "../services/policyService";
 import { getErrorMessage } from "../services/api";
@@ -29,7 +30,8 @@ function CustomerPolicies() {
       .finally(() => setIsLoading(false));
   }, []);
 
-  if (isLoading) return <Spinner label="Loading your policies…" />;
+  if (isLoading) return <Spinner label="Loading your policies..." />;
+
   if (policies.length === 0) {
     return (
       <EmptyState
@@ -57,8 +59,9 @@ function CustomerPolicies() {
           </div>
           <h3 className="mt-4 font-display text-lg font-semibold text-ink-900 dark:text-white">{p.planName}</h3>
           <p className="font-mono-data text-xs text-ink-400 mt-1">{p.policyNumber}</p>
+
           <div className="mt-4 flex justify-between text-sm">
-            <span className="text-ink-500">{formatDate(p.startDate)} – {formatDate(p.endDate)}</span>
+            <span className="text-ink-500">{formatDate(p.startDate)} - {formatDate(p.endDate)}</span>
           </div>
           <div className="mt-2 flex justify-between text-sm">
             <span className="text-ink-500">Premium paid</span>
@@ -70,7 +73,7 @@ function CustomerPolicies() {
   );
 }
 
-function AdminAgentPolicies() {
+function AdminInsuranceOperationsOfficerPolicies() {
   const navigate = useNavigate();
   const { content, page, setPage, totalPages, isLoading, filters, setFilter } = usePagedResource(
     (params) => policyService.getAll(params),
@@ -82,7 +85,7 @@ function AdminAgentPolicies() {
     { key: "customerName", header: "Customer" },
     { key: "planName", header: "Plan" },
     { key: "productType", header: "Type", render: (r) => toTitleCase(r.productType) },
-    { key: "dates", header: "Coverage", render: (r) => `${formatDate(r.startDate)} – ${formatDate(r.endDate)}` },
+    { key: "dates", header: "Coverage", render: (r) => `${formatDate(r.startDate)} - ${formatDate(r.endDate)}` },
     { key: "totalPremiumPaid", header: "Paid", render: (r) => <span className="font-mono-data">{formatCurrency(r.totalPremiumPaid)}</span> },
     { key: "status", header: "Status", render: (r) => <Stamp status={r.status} /> },
     {
@@ -116,7 +119,7 @@ function AdminAgentPolicies() {
 export default function PoliciesPage() {
   const { role } = useAuth();
   const isCustomer = role === ROLES.CUSTOMER;
-  const isPrivileged = role === ROLES.ADMIN || role === ROLES.AGENT;
+  const isPrivileged = role === ROLES.ADMIN || role === ROLES.INSURANCE_OPERATIONS_OFFICER;
 
   return (
     <div>
@@ -137,7 +140,7 @@ export default function PoliciesPage() {
         }
       />
       {isCustomer && <CustomerPolicies />}
-      {isPrivileged && <AdminAgentPolicies />}
+      {isPrivileged && <AdminInsuranceOperationsOfficerPolicies />}
     </div>
   );
 }

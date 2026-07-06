@@ -10,6 +10,7 @@ import Select from "../components/common/Select";
 import Button from "../components/common/Button";
 import Spinner from "../components/common/Spinner";
 import EmptyState from "../components/common/EmptyState";
+
 import { useAuth } from "../context/AuthContext";
 import { claimService } from "../services/claimService";
 import { getErrorMessage } from "../services/api";
@@ -29,7 +30,8 @@ function CustomerClaims() {
       .finally(() => setIsLoading(false));
   }, []);
 
-  if (isLoading) return <Spinner label="Loading your claims…" />;
+  if (isLoading) return <Spinner label="Loading your claims..." />;
+
   if (claims.length === 0) {
     return (
       <EmptyState
@@ -74,7 +76,7 @@ function PrivilegedClaims() {
     { key: "customerName", header: "Customer" },
     { key: "policyNumber", header: "Policy #", render: (r) => <span className="font-mono-data text-xs">{r.policyNumber}</span> },
     { key: "claimAmount", header: "Amount", render: (r) => <span className="font-mono-data">{formatCurrency(r.claimAmount)}</span> },
-    { key: "assignedAgentName", header: "Agent", render: (r) => r.assignedAgentName || "— Unassigned —" },
+    { key: "assignedInsuranceOperationsOfficerName", header: "Insurance Operations Officer", render: (r) => r.assignedInsuranceOperationsOfficerName || "--- Unassigned ---" },
     { key: "claimStatus", header: "Status", render: (r) => <Stamp status={r.claimStatus} /> },
     {
       key: "actions",
@@ -116,7 +118,7 @@ export default function ClaimsPage() {
         description={
           isCustomer
             ? "Track every claim you've raised, start to settlement."
-            : "Every claim in the system — assign, review, and decide."
+            : "Every claim in the system - assign, review, and decide."
         }
         actions={
           isCustomer && (

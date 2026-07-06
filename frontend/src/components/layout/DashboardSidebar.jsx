@@ -14,7 +14,7 @@ const navByRole = {
     { to: "/dashboard/payments", label: "Payments", icon: Wallet },
     { to: "/dashboard/claims", label: "My Claims", icon: FileWarning },
   ],
-  [ROLES.AGENT]: [
+  [ROLES.INSURANCE_OPERATIONS_OFFICER]: [
     { to: "/dashboard", label: "Overview", icon: LayoutDashboard, end: true },
     { to: "/dashboard/assigned-claims", label: "Assigned Claims", icon: ClipboardList },
     { to: "/dashboard/customers", label: "Customers", icon: Users },
@@ -26,7 +26,7 @@ const navByRole = {
   [ROLES.ADMIN]: [
     { to: "/dashboard", label: "Overview", icon: LayoutDashboard, end: true },
     { to: "/dashboard/users", label: "All Users", icon: UserCog },
-    { to: "/dashboard/agents", label: "Agents", icon: Users },
+    { to: "/dashboard/insurance-operations-officers", label: "Insurance Operations Officers", icon: Users },
     { to: "/dashboard/customers", label: "Customers", icon: Users },
     { to: "/dashboard/products", label: "Products", icon: Boxes },
     { to: "/dashboard/plans", label: "Plans", icon: FileStack },
@@ -44,6 +44,7 @@ export default function DashboardSidebar({ role, open, onClose }) {
       {open && (
         <div className="fixed inset-0 z-30 bg-ink-950/50 lg:hidden" onClick={onClose} />
       )}
+
       <aside
         className={`fixed z-40 inset-y-0 left-0 w-64 shrink-0 border-r border-ink-200 dark:border-ink-800
           bg-white dark:bg-ink-950 transform transition-transform duration-300 lg:static lg:translate-x-0
@@ -60,6 +61,7 @@ export default function DashboardSidebar({ role, open, onClose }) {
             <X className="h-5 w-5" />
           </button>
         </div>
+
         <nav className="flex flex-col gap-1 px-3 py-4">
           {items.map(({ to, label, icon: Icon, end }) => (
             <NavLink

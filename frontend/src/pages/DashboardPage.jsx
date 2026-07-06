@@ -49,7 +49,7 @@ function CustomerOverview() {
       .finally(() => setIsLoading(false));
   }, []);
 
-  if (isLoading) return <Spinner label="Loading your overview…" />;
+  if (isLoading) return <Spinner label="Loading your overview..." />;
 
   const activePolicies = policies.filter((p) => p.status === "ACTIVE").length;
   const openClaims = claims.filter((c) => !["APPROVED", "REJECTED"].includes(c.claimStatus)).length;
@@ -129,7 +129,7 @@ function CustomerOverview() {
   );
 }
 
-function AgentOverview() {
+function InsuranceOperationsOfficerOverview() {
   const [assigned, setAssigned] = useState({ content: [], totalElements: 0 });
   const [isLoading, setIsLoading] = useState(true);
 
@@ -140,7 +140,7 @@ function AgentOverview() {
       .finally(() => setIsLoading(false));
   }, []);
 
-  if (isLoading) return <Spinner label="Loading your queue…" />;
+  if (isLoading) return <Spinner label="Loading your queue..." />;
 
   const pendingReview = assigned.content.filter((c) => c.claimStatus === "ASSIGNED" || c.claimStatus === "UNDER_REVIEW").length;
 
@@ -149,7 +149,7 @@ function AgentOverview() {
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
         <StatCard icon={ClipboardList} label="Assigned to you" value={assigned.totalElements} />
         <StatCard icon={FileWarning} label="Awaiting your review" value={pendingReview} accent="gold" />
-        <StatCard icon={Users} label="Role" value="Agent" accent="success" />
+        <StatCard icon={Users} label="Role" value="Insurance Operations Officer" accent="success" />
       </div>
 
       <Card className="mt-8">
@@ -171,7 +171,7 @@ function AgentOverview() {
               >
                 <div>
                   <p className="font-mono-data text-sm font-semibold text-ink-800 dark:text-ink-100">{c.claimNumber}</p>
-                  <p className="text-xs text-ink-500">{c.customerName} — {formatCurrency(c.claimAmount)}</p>
+                  <p className="text-xs text-ink-500">{c.customerName} - {formatCurrency(c.claimAmount)}</p>
                 </div>
                 <Stamp status={c.claimStatus} />
               </Link>
@@ -191,26 +191,26 @@ function AdminOverview() {
     Promise.all([
       userService.getAll({ page: 0, size: 1 }),
       userService.getCustomers(),
-      userService.getAgents(),
+      userService.getInsuranceOperationsOfficers(),
     ])
-      .then(([users, customers, agents]) => {
+      .then(([users, customers, insuranceOperationsOfficers]) => {
         setStats({
           totalUsers: users.totalElements ?? 0,
           totalCustomers: customers?.length ?? 0,
-          totalAgents: agents?.length ?? 0,
+          totalInsuranceOperationsOfficers: insuranceOperationsOfficers?.length ?? 0,
         });
       })
       .finally(() => setIsLoading(false));
   }, []);
 
-  if (isLoading) return <Spinner label="Loading system overview…" />;
+  if (isLoading) return <Spinner label="Loading system overview..." />;
 
   return (
     <>
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
         <StatCard icon={UserCog} label="Total users" value={stats.totalUsers} />
         <StatCard icon={Users} label="Customers" value={stats.totalCustomers} accent="gold" />
-        <StatCard icon={Users} label="Agents" value={stats.totalAgents} accent="success" />
+        <StatCard icon={Users} label="Insurance Operations Officers" value={stats.totalInsuranceOperationsOfficers} accent="success" />
       </div>
 
       <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
@@ -242,11 +242,11 @@ function AdminOverview() {
             <p className="text-xs text-ink-500 mt-1">Assign, approve, or reject claims</p>
           </Card>
         </Link>
-        <Link to="/dashboard/agents" className="group">
+        <Link to="/dashboard/insurance-operations-officers" className="group">
           <Card className="h-full transition-all hover:-translate-y-1 hover:shadow-lg hover:border-harbor-300">
             <UserCog className="h-6 w-6 text-harbor-600 mb-3" />
-            <p className="font-display font-semibold text-ink-900 dark:text-white">Manage Agents</p>
-            <p className="text-xs text-ink-500 mt-1">Onboard new claim-review agents</p>
+            <p className="font-display font-semibold text-ink-900 dark:text-white">Manage Insurance Operations Officers</p>
+            <p className="text-xs text-ink-500 mt-1">Onboard new claim-review insurance operations officers</p>
           </Card>
         </Link>
       </div>
@@ -255,17 +255,18 @@ function AdminOverview() {
 }
 
 export default function DashboardPage() {
-  const { user, role } = useAuth();
+  const { role } = useAuth();
 
   return (
     <div>
-      <PageHeader
-        eyebrow={formatDate(new Date())}
-        title={`Welcome back, ${user?.name?.split(" ")[0] || ""}`}
-        description="Here's where things stand right now."
+      <PageHeader 
+        eyebrow="Dashboard" 
+        title="Welcome back" 
+        description={`You are logged in as ${role.replaceAll("_", " ")}.`} 
       />
+      
       {role === ROLES.CUSTOMER && <CustomerOverview />}
-      {role === ROLES.AGENT && <AgentOverview />}
+      {role === ROLES.INSURANCE_OPERATIONS_OFFICER && <InsuranceOperationsOfficerOverview />}
       {role === ROLES.ADMIN && <AdminOverview />}
     </div>
   );

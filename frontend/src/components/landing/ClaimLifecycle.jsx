@@ -1,7 +1,7 @@
 const stages = [
   { n: "01", label: "Submitted", detail: "Customer raises a claim with supporting documents." },
-  { n: "02", label: "Assigned", detail: "Admin routes the claim to an agent for review." },
-  { n: "03", label: "Reviewed", detail: "Agent recommends approval or rejection with remarks." },
+  { n: "02", label: "Assigned", detail: "Admin routes the claim to an insurance operations officer for review." },
+  { n: "03", label: "Reviewed", detail: "Insurance operations officer recommends approval or rejection with remarks." },
   { n: "04", label: "Decided", detail: "Admin issues the final approval or rejection." },
 ];
 

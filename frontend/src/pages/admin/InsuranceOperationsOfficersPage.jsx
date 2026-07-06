@@ -32,8 +32,8 @@ const schema = {
   ],
 };
 
-export default function AgentsPage() {
-  const [agents, setAgents] = useState([]);
+export default function InsuranceOperationsOfficersPage() {
+  const [insuranceOperationsOfficers, setInsuranceOperationsOfficers] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [modalOpen, setModalOpen] = useState(false);
 
@@ -41,8 +41,8 @@ export default function AgentsPage() {
     initialValues: { fullName: "", email: "", mobileNumber: "", password: "" },
     schema,
     onSubmit: async (formValues) => {
-      await authService.createAgent(formValues);
-      toast.success("Agent account created.");
+      await authService.createInsuranceOperationsOfficer(formValues);
+      toast.success("Insurance operations officer account created.");
       setModalOpen(false);
       reset();
       load();
@@ -52,9 +52,9 @@ export default function AgentsPage() {
   const load = () => {
     setIsLoading(true);
     userService
-      .getAgents()
-      .then(setAgents)
-      .catch((err) => toast.error(getErrorMessage(err, "Could not load agents.")))
+      .getInsuranceOperationsOfficers()
+      .then(setInsuranceOperationsOfficers)
+      .catch((err) => toast.error(getErrorMessage(err, "Could not load insurance operations officers.")))
       .finally(() => setIsLoading(false));
   };
 
@@ -71,26 +71,27 @@ export default function AgentsPage() {
     <div>
       <PageHeader
         eyebrow="Access"
-        title="Agents"
-        description="Agents review and recommend decisions on assigned claims."
-        actions={<Button icon={UserPlus} onClick={() => setModalOpen(true)}>New agent</Button>}
+        title="Insurance Operations Officers"
+        description="Insurance operations officers review and recommend decisions on assigned claims."
+        actions={<Button icon={UserPlus} onClick={() => setModalOpen(true)}>New insurance operations officer</Button>}
       />
 
-      {isLoading ? <Spinner label="Loading agents…" /> : <DataTable columns={columns} data={agents} keyField="userId" emptyTitle="No agents yet" />}
+      {isLoading ? <Spinner label="Loading insurance operations officers..." /> : <DataTable columns={columns} data={insuranceOperationsOfficers} keyField="userId" emptyTitle="No insurance operations officers yet" />}
 
       <Modal
         open={modalOpen}
         onClose={() => setModalOpen(false)}
-        title="Create agent account"
+        title="Create insurance operations officer account"
         footer={
           <>
             <Button variant="outline" onClick={() => setModalOpen(false)}>Cancel</Button>
-            <Button isLoading={isSubmitting} onClick={handleSubmit}>Create agent</Button>
+            <Button isLoading={isSubmitting} onClick={handleSubmit}>Create insurance operations officer</Button>
           </>
         }
       >
         <form className="space-y-4" onSubmit={handleSubmit} noValidate>
           {submitError && <Alert type="error">{submitError}</Alert>}
+
           <Input label="Full name" name="fullName" value={values.fullName} onChange={handleChange} onBlur={handleBlur} error={errors.fullName} required />
           <Input label="Email" name="email" type="email" value={values.email} onChange={handleChange} onBlur={handleBlur} error={errors.email} required />
           <Input label="Mobile number" name="mobileNumber" value={values.mobileNumber} onChange={handleChange} onBlur={handleBlur} error={errors.mobileNumber} required />

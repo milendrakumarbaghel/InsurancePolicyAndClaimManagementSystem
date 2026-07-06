@@ -8,17 +8,16 @@ export default function About() {
         </h2>
         <p className="mt-5 text-ink-600 dark:text-ink-300 leading-relaxed">
           Assurly was built for the three people who touch every policy: the customer who
-          needs a straight answer, the agent who needs the full case file, and the
+          needs a straight answer, the insurance operations officer who needs the full case file, and the
           administrator who needs to trust the number on the page. It replaces scattered
-          spreadsheets and phone calls with one system that everyone reads from — and writes
-          to — the same way.
+          spreadsheets and phone calls with one system that everyone reads from - and writes
+          to - the same way.
         </p>
         <p className="mt-4 text-ink-600 dark:text-ink-300 leading-relaxed">
           Nothing changes hands without a record: who assigned the claim, who reviewed it,
           and who signed off. That trail is the product.
         </p>
       </div>
-
       <div className="grid grid-cols-2 gap-4">
         <div className="rounded-2xl bg-harbor-600 text-white p-6 flex flex-col justify-between h-44">
           <p className="font-display text-3xl font-semibold">3</p>

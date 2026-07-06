@@ -9,7 +9,7 @@ const features = [
   {
     icon: FileSearch,
     title: "Claims with a visible paper trail",
-    description: "Every review, assignment, and decision is timestamped and attributed — no claim moves without a record.",
+    description: "Every review, assignment, and decision is timestamped and attributed - no claim moves without a record.",
   },
   {
     icon: Wallet,
@@ -19,7 +19,7 @@ const features = [
   {
     icon: Users,
     title: "Clear roles, clear responsibility",
-    description: "Customers, agents, and administrators each see exactly the tools their role needs — nothing more, nothing hidden.",
+    description: "Customers, insurance operations officers, and administrators each see exactly the tools their role needs - nothing more, nothing hidden.",
   },
   {
     icon: BellRing,
