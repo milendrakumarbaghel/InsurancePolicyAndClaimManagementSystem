@@ -59,8 +59,11 @@ public class PremiumPaymentController {
                 paymentId
         );
 
+        String email = authentication.getName();
+        String role = SecurityUtil.extractRoleFromAuthentication(authentication);
+
         PaymentResponseDto response =
-                premiumPaymentService.getPaymentById(paymentId, authentication.getName());
+                premiumPaymentService.getPaymentById(paymentId, email, role);
 
         log.info(
                 "Payment details retrieved successfully for paymentId: {}",
@@ -80,8 +83,11 @@ public class PremiumPaymentController {
                 policyId
         );
 
+        String email = authentication.getName();
+        String role = SecurityUtil.extractRoleFromAuthentication(authentication);
+
         List<PaymentResponseDto> payments =
-                premiumPaymentService.getPolicyPayments(policyId,authentication.getName());
+                premiumPaymentService.getPolicyPayments(policyId, email, role);
 
         log.info(
                 "Retrieved {} payment records for policyId: {}",

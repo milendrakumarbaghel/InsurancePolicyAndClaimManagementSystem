@@ -47,10 +47,10 @@ public class AuthServiceImpl implements AuthService {
     private final JwtUtil jwtUtil;
     private final ModelMapper modelMapper;
     private final UserDetailsService userDetailsService;
-    private final OtpServiceImp otpServiceImp;
+    private final OtpServiceImpl otpServiceImpl;
     private final TokenBlacklistService tokenBlacklistService;
     private final PasswordResetOtpRepository passwordResetOtpRepository;
-    private final EmailServiceImp emailService;
+    private final EmailServiceImpl emailService;
     private final SecureRandom secureRandom = new SecureRandom();
 
     @Value("${app.otp.expiry-minutes:5}")
@@ -75,7 +75,7 @@ public class AuthServiceImpl implements AuthService {
 
         User savedUser = userRepository.save(user);
 
-        otpServiceImp.createAndSendOtp(savedUser);  // ← send OTP after save
+        otpServiceImpl.createAndSendOtp(savedUser);  // ← send OTP after save
 
         log.info("Customer registered. OTP sent. UserId={}", savedUser.getId());
 

@@ -7,7 +7,6 @@ import org.springboot.insurancemanagementsystem.entitie.OtpVerification;
 import org.springboot.insurancemanagementsystem.entitie.User;
 import org.springboot.insurancemanagementsystem.exception.InvalidCredentialsException;
 import org.springboot.insurancemanagementsystem.repository.OtpVerificationRepository;
-import org.springboot.insurancemanagementsystem.service.EmailService;
 import org.springboot.insurancemanagementsystem.service.OtpService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -19,11 +18,11 @@ import java.time.LocalDateTime;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class OtpServiceImp implements OtpService {
+public class OtpServiceImpl implements OtpService {
 
     private final OtpVerificationRepository otpVerificationRepository;
-    private final EmailServiceImp emailService;
-    private final SmsServiceImp smsServiceImp;
+    private final EmailServiceImpl emailService;
+    private final SmsServiceImpl smsServiceImpl;
 
     private final SecureRandom secureRandom = new SecureRandom();
 
@@ -46,7 +45,7 @@ public class OtpServiceImp implements OtpService {
         otpVerificationRepository.save(otpVerification);
 
         emailService.sendOtp(user.getEmail(), emailOtp);
-        smsServiceImp.sendOtp(user.getMobileNumber(), phoneOtp);
+        smsServiceImpl.sendOtp(user.getMobileNumber(), phoneOtp);
 
         log.info("OTP created and sent for userId={}", user.getId());
     }

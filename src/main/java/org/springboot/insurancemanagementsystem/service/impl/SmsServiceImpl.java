@@ -10,7 +10,7 @@ import org.springframework.util.StringUtils;
 
 @Service
 @Slf4j
-public class SmsServiceImp implements SmsService {
+public class SmsServiceImpl implements SmsService {
 
     @Value("${app.twilio.account-sid}")
     private String accountSid;

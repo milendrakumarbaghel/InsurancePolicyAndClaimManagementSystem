@@ -182,7 +182,7 @@ public class PremiumPaymentServiceImpl
 
     @Override
     public PaymentResponseDto getPaymentById(
-            Long paymentId, String email) {
+            Long paymentId, String email, String role) {
 
         log.debug("Fetching payment by id={}",
                 paymentId);
@@ -200,7 +200,7 @@ public class PremiumPaymentServiceImpl
                         });
 
         User user = payment.getPolicy().getCustomer().getUser();
-        if ("CUSTOMER".equals(user.getRole().name()) && !user.getEmail().equals(email)) {
+        if ("CUSTOMER".equals(role) && !user.getEmail().equals(email)) {
             throw new BusinessException("Access denied. You can only view your own payment details.");
         }
 
@@ -209,13 +209,13 @@ public class PremiumPaymentServiceImpl
 
     @Override
     public List<PaymentResponseDto> getPolicyPayments(
-            Long policyId, String email) {
+            Long policyId, String email, String role) {
 
         log.info("Fetching payment history for policyId={}", policyId);
         Policy policy = policyRepository.findById(policyId)
                 .orElseThrow(() -> new ResourceNotFoundException("Policy not found"));
 
-        if ("CUSTOMER".equals(policy.getCustomer().getUser().getRole().name())
+        if ("CUSTOMER".equals(role)
                 && !policy.getCustomer().getUser().getEmail().equals(email)) {
             throw new BusinessException("You are not authorized to access payments for this policy.");
         }
