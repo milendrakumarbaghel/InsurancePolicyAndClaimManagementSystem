@@ -17,19 +17,23 @@ export const patterns = {
   planName: /^[a-zA-Z0-9\s'(),.-]+$/,
 };
 
-export const required = (message = "This field is required") => (value) => {
-  if (value === null || value === undefined || value === "") return message;
-  if (Array.isArray(value) && value.length === 0) return message;
-  return null;
-};
+export const required =
+  (message = "This field is required") =>
+  (value) => {
+    if (value === null || value === undefined || value === "") return message;
+    if (Array.isArray(value) && value.length === 0) return message;
+    return null;
+  };
 
 export const minLength = (min, message) => (value) => {
-  if (value && value.length < min) return message || `Must be at least ${min} characters`;
+  if (value && value.length < min)
+    return message || `Must be at least ${min} characters`;
   return null;
 };
 
 export const maxLength = (max, message) => (value) => {
-  if (value && value.length > max) return message || `Must be at most ${max} characters`;
+  if (value && value.length > max)
+    return message || `Must be at most ${max} characters`;
   return null;
 };
 
@@ -38,61 +42,87 @@ export const pattern = (regex, message) => (value) => {
   return null;
 };
 
-export const email = (message = "Invalid email format") => (value) => {
-  if (value && !patterns.email.test(value)) return message;
-  return null;
-};
+export const email =
+  (message = "Invalid email format") =>
+  (value) => {
+    if (value && !patterns.email.test(value)) return message;
+    return null;
+  };
 
 export const min = (m, message) => (value) => {
-  if (value !== "" && value !== null && value !== undefined && Number(value) < m) {
+  if (
+    value !== "" &&
+    value !== null &&
+    value !== undefined &&
+    Number(value) < m
+  ) {
     return message || `Must be at least ${m}`;
   }
   return null;
 };
 
 export const max = (m, message) => (value) => {
-  if (value !== "" && value !== null && value !== undefined && Number(value) > m) {
+  if (
+    value !== "" &&
+    value !== null &&
+    value !== undefined &&
+    Number(value) > m
+  ) {
     return message || `Must be at most ${m}`;
   }
   return null;
 };
 
-export const positive = (message = "Must be greater than zero") => (value) => {
-  if (value !== "" && value !== null && value !== undefined && Number(value) <= 0) return message;
-  return null;
-};
+export const positive =
+  (message = "Must be greater than zero") =>
+  (value) => {
+    if (
+      value !== "" &&
+      value !== null &&
+      value !== undefined &&
+      Number(value) <= 0
+    )
+      return message;
+    return null;
+  };
 
 export const matchesField = (otherValue, message) => (value) => {
   if (value !== otherValue) return message;
   return null;
 };
 
-export const pastOrPresent = (message = "Cannot be a future date") => (value) => {
-  if (!value) return null;
-  const d = new Date(value);
-  const today = new Date();
-  today.setHours(23, 59, 59, 999);
-  if (d > today) return message;
-  return null;
-};
+export const pastOrPresent =
+  (message = "Cannot be a future date") =>
+  (value) => {
+    if (!value) return null;
+    const d = new Date(value);
+    const today = new Date();
+    today.setHours(23, 59, 59, 999);
+    if (d > today) return message;
+    return null;
+  };
 
-export const futureOrPresent = (message = "Cannot be a past date") => (value) => {
-  if (!value) return null;
-  const d = new Date(value);
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  if (d < today) return message;
-  return null;
-};
+export const futureOrPresent =
+  (message = "Cannot be a past date") =>
+  (value) => {
+    if (!value) return null;
+    const d = new Date(value);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    if (d < today) return message;
+    return null;
+  };
 
-export const pastDate18Years = (message = "You must be at least 18 years old") => (value) => {
-  if (!value) return null;
-  const dob = new Date(value);
-  const cutoff = new Date();
-  cutoff.setFullYear(cutoff.getFullYear() - 18);
-  if (dob > cutoff) return message;
-  return null;
-};
+export const pastDate18Years =
+  (message = "You must be at least 18 years old") =>
+  (value) => {
+    if (!value) return null;
+    const dob = new Date(value);
+    const cutoff = new Date();
+    cutoff.setFullYear(cutoff.getFullYear() - 18);
+    if (dob > cutoff) return message;
+    return null;
+  };
 
 /**
  * Runs an array of validator functions against a value, returning the first error found.

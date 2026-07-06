@@ -54,4 +54,5 @@ export const DOCUMENT_TYPE_SUGGESTIONS = [
   "Identity Proof",
   "Photograph",
   "Invoice",
+  "Other",
 ];
