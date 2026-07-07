@@ -1,14 +1,16 @@
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
+import toast from "react-hot-toast";
 import PageHeader from "../components/common/PageHeader";
 import DataTable from "../components/common/DataTable";
 import Pagination from "../components/common/Pagination";
 import Input from "../components/common/Input";
 import Button from "../components/common/Button";
-import { Search } from "lucide-react";
+import { Search, Download } from "lucide-react";
 import { customerService } from "../services/customerService";
 import { usePagedResource } from "../hooks/usePagedResource";
 import { formatDate } from "../utils/formatters";
+import { exportToCSV } from "../utils/exportCsv";
 
 export default function CustomersPage() {
   const navigate = useNavigate();
@@ -17,6 +19,22 @@ export default function CustomersPage() {
     (params) => customerService.getAll(params),
     { size: 10, sortBy: "id", sortDir: "desc" }
   );
+
+  const handleExport = () => {
+    if (!content || content.length === 0) {
+      toast.error("No data to export.");
+      return;
+    }
+    exportToCSV("customers", content, [
+      { key: "customerId", header: "Customer ID" },
+      { key: "fullName", header: "Name" },
+      { key: "email", header: "Email" },
+      { key: "mobileNumber", header: "Mobile" },
+      { key: "city", header: "City" },
+      { key: "dateOfBirth", header: "Date of Birth", format: (v) => formatDate(v) },
+    ]);
+    toast.success("Customers exported successfully.");
+  };
 
   const columns = [
     { key: "fullName", header: "Name", render: (r) => <span className="font-medium text-ink-900 dark:text-white">{r.fullName}</span> },
@@ -37,7 +55,12 @@ export default function CustomersPage() {
 
   return (
     <div>
-      <PageHeader eyebrow="Directory" title="Customers" description="Everyone who holds a policy with Assurly." />
+      <PageHeader
+        eyebrow="Directory"
+        title="Customers"
+        description="Everyone who holds a policy with Assurly."
+        actions={<Button icon={Download} variant="outline" onClick={handleExport}>Export CSV</Button>}
+      />
 
       <form
         className="mb-4 flex gap-2 max-w-sm"

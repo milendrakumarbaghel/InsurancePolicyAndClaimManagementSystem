@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
-import { ShieldCheck, PlusCircle } from "lucide-react";
+import { ShieldCheck, PlusCircle, Download } from "lucide-react";
 import PageHeader from "../components/common/PageHeader";
 import DataTable from "../components/common/DataTable";
 import Pagination from "../components/common/Pagination";
@@ -17,6 +17,7 @@ import { getErrorMessage } from "../services/api";
 import { usePagedResource } from "../hooks/usePagedResource";
 import { ROLES, POLICY_STATUSES } from "../utils/constants";
 import { formatCurrency, formatDate, toTitleCase } from "../utils/formatters";
+import { exportToCSV } from "../utils/exportCsv";
 
 function CustomerPolicies() {
   const [policies, setPolicies] = useState([]);
@@ -80,6 +81,25 @@ function AdminInsuranceOperationsOfficerPolicies() {
     { size: 10, sortBy: "id", sortDir: "desc" }
   );
 
+  const handleExport = () => {
+    if (!content || content.length === 0) {
+      toast.error("No data to export.");
+      return;
+    }
+    exportToCSV("policies", content, [
+      { key: "policyId", header: "Policy ID" },
+      { key: "policyNumber", header: "Policy #" },
+      { key: "customerName", header: "Customer" },
+      { key: "planName", header: "Plan" },
+      { key: "productType", header: "Type", format: (v) => toTitleCase(v) },
+      { key: "startDate", header: "Start Date", format: (v) => formatDate(v) },
+      { key: "endDate", header: "End Date", format: (v) => formatDate(v) },
+      { key: "totalPremiumPaid", header: "Premium Paid", format: (v) => formatCurrency(v) },
+      { key: "status", header: "Status" },
+    ]);
+    toast.success("Policies exported successfully.");
+  };
+
   const columns = [
     { key: "policyNumber", header: "Policy #", render: (r) => <span className="font-mono-data font-medium">{r.policyNumber}</span> },
     { key: "customerName", header: "Customer" },
@@ -101,7 +121,7 @@ function AdminInsuranceOperationsOfficerPolicies() {
 
   return (
     <div>
-      <div className="mb-4 flex flex-wrap gap-3">
+      <div className="mb-4 flex flex-wrap items-center gap-3">
         <Select
           containerClassName="w-48"
           placeholder="All statuses"
@@ -109,6 +129,7 @@ function AdminInsuranceOperationsOfficerPolicies() {
           value={filters.status || ""}
           onChange={(e) => setFilter("status", e.target.value)}
         />
+        <Button icon={Download} variant="outline" size="sm" onClick={handleExport}>Export CSV</Button>
       </div>
       <DataTable columns={columns} data={content} isLoading={isLoading} keyField="policyId" emptyTitle="No policies found" />
       <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />

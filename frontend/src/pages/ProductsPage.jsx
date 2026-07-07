@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
-import { Plus, Boxes, Pencil, Power, PowerOff, ArrowRight } from "lucide-react";
+import { Plus, Boxes, Pencil, Power, PowerOff, ArrowRight, Download } from "lucide-react";
 import PageHeader from "../components/common/PageHeader";
 import Card from "../components/common/Card";
 import Button from "../components/common/Button";
@@ -13,6 +13,7 @@ import { productService } from "../services/productService";
 import { getErrorMessage } from "../services/api";
 import { ROLES } from "../utils/constants";
 import { toTitleCase } from "../utils/formatters";
+import { exportToCSV } from "../utils/exportCsv";
 
 export default function ProductsPage() {
   const { role } = useAuth();
@@ -54,6 +55,21 @@ export default function ProductsPage() {
     }
   };
 
+  const handleExport = () => {
+    if (!products || products.length === 0) {
+      toast.error("No data to export.");
+      return;
+    }
+    exportToCSV("products", products, [
+      { key: "productId", header: "Product ID" },
+      { key: "productName", header: "Product Name" },
+      { key: "productType", header: "Type", format: (v) => toTitleCase(v) },
+      { key: "description", header: "Description" },
+      { key: "active", header: "Status", format: (v) => (v ? "Active" : "Inactive") },
+    ]);
+    toast.success("Products exported successfully.");
+  };
+
   return (
     <div>
       <PageHeader
@@ -65,11 +81,14 @@ export default function ProductsPage() {
             : "Explore available product lines, then view plans to purchase coverage."
         }
         actions={
-          isAdmin && (
-            <Button icon={Plus} onClick={() => navigate("/dashboard/products/new")}>
-              New product
-            </Button>
-          )
+          <>
+            <Button icon={Download} variant="outline" onClick={handleExport}>Export CSV</Button>
+            {isAdmin && (
+              <Button icon={Plus} onClick={() => navigate("/dashboard/products/new")}>
+                New product
+              </Button>
+            )}
+          </>
         }
       />
 

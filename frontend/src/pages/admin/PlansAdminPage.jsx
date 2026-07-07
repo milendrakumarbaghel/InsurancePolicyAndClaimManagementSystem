@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
-import { Plus, Pencil, Power, PowerOff } from "lucide-react";
+import { Plus, Pencil, Power, PowerOff, Download } from "lucide-react";
 import { useState } from "react";
 import PageHeader from "../../components/common/PageHeader";
 import DataTable from "../../components/common/DataTable";
@@ -11,6 +11,7 @@ import { planService } from "../../services/planService";
 import { getErrorMessage } from "../../services/api";
 import { usePagedResource } from "../../hooks/usePagedResource";
 import { formatCurrency, toTitleCase } from "../../utils/formatters";
+import { exportToCSV } from "../../utils/exportCsv";
 import { useAuth } from "../../context/AuthContext";
 import { ROLES } from "../../utils/constants";
 
@@ -39,6 +40,24 @@ export default function PlansAdminPage() {
     } finally {
       setBusyId(null);
     }
+  };
+
+  const handleExport = () => {
+    if (!content || content.length === 0) {
+      toast.error("No data to export.");
+      return;
+    }
+    exportToCSV("plans", content, [
+      { key: "PolicyPlanId", header: "Plan ID" },
+      { key: "planName", header: "Plan Name" },
+      { key: "productName", header: "Product" },
+      { key: "coverageAmount", header: "Coverage Amount", format: (v) => formatCurrency(v) },
+      { key: "premiumAmount", header: "Premium Amount", format: (v) => formatCurrency(v) },
+      { key: "premiumType", header: "Premium Cycle", format: (v) => toTitleCase(v) },
+      { key: "duration", header: "Duration (months)" },
+      { key: "active", header: "Status", format: (v) => (v ? "Active" : "Inactive") },
+    ]);
+    toast.success("Plans exported successfully.");
   };
 
   const columns = [
@@ -77,7 +96,12 @@ export default function PlansAdminPage() {
         eyebrow="Catalog"
         title="Plans"
         description="Every plan across every product line, in one manageable list."
-        actions={role === ROLES.ADMIN && <Button icon={Plus} onClick={() => navigate("/dashboard/plans/new")}>New plan</Button>}
+        actions={
+          <>
+            <Button icon={Download} variant="outline" onClick={handleExport}>Export CSV</Button>
+            {role === ROLES.ADMIN && <Button icon={Plus} onClick={() => navigate("/dashboard/plans/new")}>New plan</Button>}
+          </>
+        }
       />
       <DataTable columns={columns} data={content} isLoading={isLoading} keyField="PolicyPlanId" emptyTitle="No plans yet" />
       <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />

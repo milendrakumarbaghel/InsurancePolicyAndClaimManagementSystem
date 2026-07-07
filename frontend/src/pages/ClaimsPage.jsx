@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
-import { FileWarning, PlusCircle } from "lucide-react";
+import { FileWarning, PlusCircle, Download } from "lucide-react";
 import PageHeader from "../components/common/PageHeader";
 import DataTable from "../components/common/DataTable";
 import Pagination from "../components/common/Pagination";
@@ -17,6 +17,7 @@ import { getErrorMessage } from "../services/api";
 import { usePagedResource } from "../hooks/usePagedResource";
 import { ROLES, CLAIM_STATUSES } from "../utils/constants";
 import { formatCurrency, formatDate } from "../utils/formatters";
+import { exportToCSV } from "../utils/exportCsv";
 
 function CustomerClaims() {
   const [claims, setClaims] = useState([]);
@@ -71,6 +72,25 @@ function PrivilegedClaims() {
     { size: 10, sortBy: "id", sortDir: "desc" }
   );
 
+  const handleExport = () => {
+    if (!content || content.length === 0) {
+      toast.error("No data to export.");
+      return;
+    }
+    exportToCSV("claims", content, [
+      { key: "claimId", header: "Claim ID" },
+      { key: "claimNumber", header: "Claim #" },
+      { key: "customerName", header: "Customer" },
+      { key: "policyNumber", header: "Policy #" },
+      { key: "claimAmount", header: "Amount", format: (v) => formatCurrency(v) },
+      { key: "claimReason", header: "Reason" },
+      { key: "incidentDate", header: "Incident Date", format: (v) => formatDate(v) },
+      { key: "assignedInsuranceOperationsOfficerName", header: "Assigned IOO", format: (v) => v || "Unassigned" },
+      { key: "claimStatus", header: "Status" },
+    ]);
+    toast.success("Claims exported successfully.");
+  };
+
   const columns = [
     { key: "claimNumber", header: "Claim #", render: (r) => <span className="font-mono-data font-medium">{r.claimNumber}</span> },
     { key: "customerName", header: "Customer" },
@@ -91,7 +111,7 @@ function PrivilegedClaims() {
 
   return (
     <div>
-      <div className="mb-4 flex flex-wrap gap-3">
+      <div className="mb-4 flex flex-wrap items-center gap-3">
         <Select
           containerClassName="w-56"
           placeholder="All statuses"
@@ -99,6 +119,7 @@ function PrivilegedClaims() {
           value={filters.status || ""}
           onChange={(e) => setFilter("status", e.target.value)}
         />
+        <Button icon={Download} variant="outline" size="sm" onClick={handleExport}>Export CSV</Button>
       </div>
       <DataTable columns={columns} data={content} isLoading={isLoading} keyField="claimId" emptyTitle="No claims found" />
       <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />

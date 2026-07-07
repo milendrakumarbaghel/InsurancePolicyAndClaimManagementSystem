@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
-import { UserPlus } from "lucide-react";
+import { UserPlus, Download } from "lucide-react";
 import PageHeader from "../../components/common/PageHeader";
 import DataTable from "../../components/common/DataTable";
 import Stamp from "../../components/common/Stamp";
@@ -14,6 +14,7 @@ import { userService } from "../../services/userService";
 import { authService } from "../../services/authService";
 import { getErrorMessage } from "../../services/api";
 import { patterns, required, minLength, maxLength, pattern, email } from "../../utils/validators";
+import { exportToCSV } from "../../utils/exportCsv";
 
 const schema = {
   fullName: [
@@ -60,6 +61,21 @@ export default function InsuranceOperationsOfficersPage() {
 
   useEffect(load, []);
 
+  const handleExport = () => {
+    if (!insuranceOperationsOfficers || insuranceOperationsOfficers.length === 0) {
+      toast.error("No data to export.");
+      return;
+    }
+    exportToCSV("insurance_operations_officers", insuranceOperationsOfficers, [
+      { key: "userId", header: "User ID" },
+      { key: "fullName", header: "Name" },
+      { key: "email", header: "Email" },
+      { key: "mobileNumber", header: "Mobile" },
+      { key: "active", header: "Status", format: (v) => (v ? "Active" : "Inactive") },
+    ]);
+    toast.success("Insurance operations officers exported successfully.");
+  };
+
   const columns = [
     { key: "fullName", header: "Name", render: (r) => <span className="font-medium text-ink-900 dark:text-white">{r.fullName}</span> },
     { key: "email", header: "Email" },
@@ -73,7 +89,12 @@ export default function InsuranceOperationsOfficersPage() {
         eyebrow="Access"
         title="Insurance Operations Officers"
         description="Insurance operations officers review and recommend decisions on assigned claims."
-        actions={<Button icon={UserPlus} onClick={() => setModalOpen(true)}>New insurance operations officer</Button>}
+        actions={
+          <>
+            <Button icon={Download} variant="outline" onClick={handleExport}>Export CSV</Button>
+            <Button icon={UserPlus} onClick={() => setModalOpen(true)}>New insurance operations officer</Button>
+          </>
+        }
       />
 
       {isLoading ? <Spinner label="Loading insurance operations officers..." /> : <DataTable columns={columns} data={insuranceOperationsOfficers} keyField="userId" emptyTitle="No insurance operations officers yet" />}

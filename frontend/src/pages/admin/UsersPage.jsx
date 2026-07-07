@@ -1,6 +1,6 @@
 import { useState } from "react";
 import toast from "react-hot-toast";
-import { Power, PowerOff } from "lucide-react";
+import { Power, PowerOff, Download } from "lucide-react";
 import PageHeader from "../../components/common/PageHeader";
 import DataTable from "../../components/common/DataTable";
 import Pagination from "../../components/common/Pagination";
@@ -10,6 +10,7 @@ import { userService } from "../../services/userService";
 import { getErrorMessage } from "../../services/api";
 import { usePagedResource } from "../../hooks/usePagedResource";
 import { toTitleCase } from "../../utils/formatters";
+import { exportToCSV } from "../../utils/exportCsv";
 
 export default function UsersPage() {
   const [busyId, setBusyId] = useState(null);
@@ -17,6 +18,22 @@ export default function UsersPage() {
     (params) => userService.getAll(params),
     { size: 10 }
   );
+
+  const handleExport = () => {
+    if (!content || content.length === 0) {
+      toast.error("No data to export.");
+      return;
+    }
+    exportToCSV("all_users", content, [
+      { key: "userId", header: "User ID" },
+      { key: "fullName", header: "Name" },
+      { key: "email", header: "Email" },
+      { key: "mobileNumber", header: "Mobile" },
+      { key: "role", header: "Role", format: (v) => toTitleCase(v) },
+      { key: "active", header: "Status", format: (v) => (v ? "Active" : "Inactive") },
+    ]);
+    toast.success("Users exported successfully.");
+  };
 
   const toggleActive = async (u) => {
     setBusyId(u.userId);
@@ -61,7 +78,12 @@ export default function UsersPage() {
 
   return (
     <div>
-      <PageHeader eyebrow="Access" title="All Users" description="Every account in the system, across every role." />
+      <PageHeader
+        eyebrow="Access"
+        title="All Users"
+        description="Every account in the system, across every role."
+        actions={<Button icon={Download} variant="outline" onClick={handleExport}>Export CSV</Button>}
+      />
       <DataTable columns={columns} data={content} isLoading={isLoading} keyField="userId" emptyTitle="No users found" />
       <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
     </div>

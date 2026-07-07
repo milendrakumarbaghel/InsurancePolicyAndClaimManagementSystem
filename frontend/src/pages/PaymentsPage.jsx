@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
-import { PlusCircle } from "lucide-react";
+import toast from "react-hot-toast";
+import { PlusCircle, Download } from "lucide-react";
 import PageHeader from "../components/common/PageHeader";
 import DataTable from "../components/common/DataTable";
 import Pagination from "../components/common/Pagination";
@@ -10,6 +11,7 @@ import { paymentService } from "../services/paymentService";
 import { usePagedResource } from "../hooks/usePagedResource";
 import { ROLES } from "../utils/constants";
 import { formatCurrency, formatDateTime, toTitleCase } from "../utils/formatters";
+import { exportToCSV } from "../utils/exportCsv";
 
 export default function PaymentsPage() {
   const { role } = useAuth();
@@ -17,6 +19,23 @@ export default function PaymentsPage() {
     (params) => paymentService.getAll(params),
     { size: 10, sortBy: "id", sortDir: "desc" }
   );
+
+  const handleExport = () => {
+    if (!content || content.length === 0) {
+      toast.error("No data to export.");
+      return;
+    }
+    exportToCSV("payments", content, [
+      { key: "paymentId", header: "Payment ID" },
+      { key: "transactionReference", header: "Transaction Reference" },
+      { key: "policyNumber", header: "Policy #" },
+      { key: "amount", header: "Amount", format: (v) => formatCurrency(v) },
+      { key: "paymentMode", header: "Payment Mode", format: (v) => toTitleCase(v) },
+      { key: "paymentDate", header: "Payment Date", format: (v) => formatDateTime(v) },
+      { key: "status", header: "Status" },
+    ]);
+    toast.success("Payments exported successfully.");
+  };
 
   const columns = [
     { key: "transactionReference", header: "Reference", render: (r) => <span className="font-mono-data text-xs">{r.transactionReference}</span> },
@@ -38,11 +57,14 @@ export default function PaymentsPage() {
             : "Every premium payment recorded across all policies."
         }
         actions={
-          role === ROLES.CUSTOMER && (
-            <Button as={Link} to="/dashboard/payments/new" icon={PlusCircle}>
-              Pay a premium
-            </Button>
-          )
+          <>
+            <Button icon={Download} variant="outline" onClick={handleExport}>Export CSV</Button>
+            {role === ROLES.CUSTOMER && (
+              <Button as={Link} to="/dashboard/payments/new" icon={PlusCircle}>
+                Pay a premium
+              </Button>
+            )}
+          </>
         }
       />
       <DataTable columns={columns} data={content} isLoading={isLoading} keyField="paymentId" emptyTitle="No payments recorded" emptyDescription="Payments will show up here once made." />
