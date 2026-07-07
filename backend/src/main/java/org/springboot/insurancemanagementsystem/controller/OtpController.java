@@ -12,6 +12,7 @@ import org.springboot.insurancemanagementsystem.repository.UserRepository;
 import org.springboot.insurancemanagementsystem.service.impl.OtpServiceImpl;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import io.github.resilience4j.ratelimiter.annotation.RateLimiter;
 
 @RestController
 @RequestMapping("/api/otp")
@@ -23,6 +24,7 @@ public class OtpController {
     private final OtpServiceImpl otpServiceImpl;
     private final UserRepository userRepository;
 
+    @RateLimiter(name = "otpRateLimiter")
     @PostMapping("/verify")
     public ResponseEntity<OtpResponseDto> verifyOtp(
             @Valid @RequestBody OtpVerifyRequestDto request) {
@@ -47,6 +49,7 @@ public class OtpController {
                 .build());
     }
 
+    @RateLimiter(name = "otpRateLimiter")
     @PostMapping("/resend")
     public ResponseEntity<OtpResponseDto> resendOtp(
             @Valid @RequestBody OtpResendRequestDto request) {

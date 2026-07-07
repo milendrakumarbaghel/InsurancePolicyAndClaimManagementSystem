@@ -177,6 +177,17 @@ public class GlobalExceptionHandler {
                 "You do not have permission to access this resource.");
     }
 
+    @ExceptionHandler(io.github.resilience4j.ratelimiter.RequestNotPermitted.class)
+    public ResponseEntity<Map<String, Object>> handleRateLimiting(
+            io.github.resilience4j.ratelimiter.RequestNotPermitted ex) {
+
+        log.warn("Rate limit exceeded: {}", ex.getMessage());
+
+        return buildResponse(
+                HttpStatus.TOO_MANY_REQUESTS,
+                "Too many requests. Please try again later.");
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Map<String, Object>> handleGeneric(
             Exception ex) {

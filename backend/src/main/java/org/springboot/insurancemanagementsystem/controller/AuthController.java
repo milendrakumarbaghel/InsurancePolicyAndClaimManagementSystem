@@ -17,6 +17,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import io.github.resilience4j.ratelimiter.annotation.RateLimiter;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -27,6 +28,7 @@ public class AuthController {
 
     private final AuthService authService;
 
+    @RateLimiter(name = "authRateLimiter")
     @PostMapping("/register")
     public ResponseEntity<UserResponseDto> register(@Valid @RequestBody RegisterRequestDto request) {
 
@@ -42,6 +44,7 @@ public class AuthController {
         );
     }
 
+    @RateLimiter(name = "authRateLimiter")
     @PostMapping("/login")
     public ResponseEntity<LoginResponseDto> login(
             @Valid @RequestBody LoginRequestDto request) {
@@ -55,6 +58,7 @@ public class AuthController {
         return ResponseEntity.ok(response);
     }
 
+    @RateLimiter(name = "authRateLimiter")
     @PostMapping("/refresh-token")
     public ResponseEntity<LoginResponseDto> refreshToken(
             @Valid @RequestBody RefreshTokenRequestDto request) {
@@ -64,6 +68,7 @@ public class AuthController {
         return ResponseEntity.ok(response);
     }
 
+    @RateLimiter(name = "authRateLimiter")
     @PostMapping("/logout")
     public ResponseEntity<Void> logout(
             @RequestHeader(value = "Authorization", required = false) String authorizationHeader,
@@ -74,6 +79,7 @@ public class AuthController {
         return ResponseEntity.noContent().build();
     }
 
+    @RateLimiter(name = "authRateLimiter")
     @PostMapping("/forgot-password")
     public ResponseEntity<OtpResponseDto> forgotPassword(
             @Valid @RequestBody ForgotPasswordRequestDto request) {
@@ -89,6 +95,7 @@ public class AuthController {
                         .build());
     }
 
+    @RateLimiter(name = "authRateLimiter")
     @PostMapping("/reset-password")
     public ResponseEntity<OtpResponseDto> resetPassword(
             @Valid @RequestBody ResetPasswordRequestDto request) {

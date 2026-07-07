@@ -11,6 +11,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import io.github.resilience4j.ratelimiter.annotation.RateLimiter;
 
 import java.util.List;
 
@@ -23,6 +24,7 @@ public class ClaimDocumentController {
 
     private final ClaimDocumentService claimDocumentService;
 
+    @RateLimiter(name = "uploadRateLimiter")
     @PostMapping("/upload/{claimId}")
     @PreAuthorize("hasRole('CUSTOMER')")
     public ResponseEntity<ClaimDocumentResponse>
