@@ -15,6 +15,7 @@ public class PolicyResponseDto {
     private String policyNumber;
     private String customerName;
     private String planName;
+    private String planPremiumType;
     private LocalDate startDate;
     private LocalDate endDate;
     private String status;

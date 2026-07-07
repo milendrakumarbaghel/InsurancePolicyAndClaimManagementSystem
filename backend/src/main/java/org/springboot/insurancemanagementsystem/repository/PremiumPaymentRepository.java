@@ -6,6 +6,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 public interface PremiumPaymentRepository
@@ -33,5 +34,12 @@ public interface PremiumPaymentRepository
             Long policyId,
             PaymentStatus status,
             Pageable pageable
+    );
+
+    boolean existsByPolicy_IdAndStatusAndPaymentDateBetween(
+            Long policyId,
+            PaymentStatus status,
+            LocalDateTime start,
+            LocalDateTime end
     );
 }

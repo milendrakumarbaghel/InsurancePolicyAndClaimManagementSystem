@@ -206,6 +206,9 @@ public class PolicyServiceImpl implements PolicyService {
         }
         if (policy.getPlan() != null) {
             dto.setPlanName(policy.getPlan().getPlanName());
+            if (policy.getPlan().getPremiumType() != null) {
+                dto.setPlanPremiumType(policy.getPlan().getPremiumType().name());
+            }
             if (policy.getPlan().getProduct() != null) {
                 dto.setProductType(policy.getPlan().getProduct().getProductType().name());
             }

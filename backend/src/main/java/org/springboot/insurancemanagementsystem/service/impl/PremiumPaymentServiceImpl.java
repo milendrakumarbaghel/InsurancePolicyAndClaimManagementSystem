@@ -23,7 +23,9 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.YearMonth;
 import java.util.List;
 import java.util.Optional;
 
@@ -86,6 +88,28 @@ public class PremiumPaymentServiceImpl
             throw new BusinessException(
                     "Payment amount must be equal to Premium Amount: "
                             + premiumAmount);
+        }
+
+        // ── Prevent duplicate payment for the same installment period ──
+        LocalDateTime[] period = computeInstallmentPeriod(
+                plan.getPremiumType(), LocalDate.now());
+
+        boolean alreadyPaid = paymentRepository
+                .existsByPolicy_IdAndStatusAndPaymentDateBetween(
+                        policy.getId(),
+                        PaymentStatus.SUCCESS,
+                        period[0], period[1]);
+
+        if (alreadyPaid) {
+            String cycleName = plan.getPremiumType().name()
+                    .replace("_", " ").toLowerCase();
+            log.warn(
+                    "Duplicate payment blocked for policyNumber={}, cycle={}",
+                    request.getPolicyNumber(), cycleName);
+            throw new BusinessException(
+                    "A premium payment for the current "
+                            + cycleName
+                            + " installment has already been recorded for this policy.");
         }
 
         String transactionRef =
@@ -272,5 +296,46 @@ public class PremiumPaymentServiceImpl
         }
 
         return dto;
+    }
+
+    /**
+     * Returns a two-element array [periodStart, periodEnd] representing
+     * the current installment window for the given premium type.
+     */
+    private LocalDateTime[] computeInstallmentPeriod(
+            org.springboot.insurancemanagementsystem.enums.PremiumType premiumType,
+            LocalDate today) {
+
+        LocalDate start;
+        LocalDate end;
+
+        switch (premiumType) {
+            case MONTHLY:
+                start = today.withDayOfMonth(1);
+                end = YearMonth.from(today).atEndOfMonth();
+                break;
+            case QUARTERLY:
+                int quarterStartMonth = ((today.getMonthValue() - 1) / 3) * 3 + 1;
+                start = LocalDate.of(today.getYear(), quarterStartMonth, 1);
+                end = start.plusMonths(3).minusDays(1);
+                break;
+            case HALF_YEARLY:
+                int halfStartMonth = today.getMonthValue() <= 6 ? 1 : 7;
+                start = LocalDate.of(today.getYear(), halfStartMonth, 1);
+                end = start.plusMonths(6).minusDays(1);
+                break;
+            case ANNUAL:
+                start = LocalDate.of(today.getYear(), 1, 1);
+                end = LocalDate.of(today.getYear(), 12, 31);
+                break;
+            default:
+                throw new IllegalArgumentException(
+                        "Unsupported premium type: " + premiumType);
+        }
+
+        return new LocalDateTime[]{
+                start.atStartOfDay(),
+                end.atTime(23, 59, 59)
+        };
     }
 }
