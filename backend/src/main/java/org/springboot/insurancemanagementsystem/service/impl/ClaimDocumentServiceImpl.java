@@ -39,13 +39,51 @@ public class ClaimDocumentServiceImpl
 
         String documentUrl = uploadFile(file); // use your method
 
-        ClaimDocument document = ClaimDocument.builder()
-                .claim(claim)
-                .documentName(file.getOriginalFilename())
-                .documentType(file.getContentType())
-                .documentReference(documentUrl)
-                .uploadedDate(LocalDateTime.now())
-                .build();
+        // Find if there is an existing ClaimDocument record created during claim submission
+        // that does not have a Cloudinary URL (i.e. documentReference does not start with http/https)
+        List<ClaimDocument> existingDocs = claimDocumentRepository.findByClaimId(claimId);
+        ClaimDocument document = null;
+
+        String originalFilename = file.getOriginalFilename();
+
+        // 1. Try to match by filename first (case-insensitive) among those without a URL
+        if (originalFilename != null) {
+            for (ClaimDocument doc : existingDocs) {
+                String ref = doc.getDocumentReference();
+                boolean hasUrl = ref != null && (ref.startsWith("http://") || ref.startsWith("https://"));
+                if (!hasUrl && doc.getDocumentName() != null && doc.getDocumentName().equalsIgnoreCase(originalFilename)) {
+                    document = doc;
+                    break;
+                }
+            }
+        }
+
+        // 2. If no match by filename, match the first one that does not have a URL
+        if (document == null) {
+            for (ClaimDocument doc : existingDocs) {
+                String ref = doc.getDocumentReference();
+                boolean hasUrl = ref != null && (ref.startsWith("http://") || ref.startsWith("https://"));
+                if (!hasUrl) {
+                    document = doc;
+                    break;
+                }
+            }
+        }
+
+        if (document != null) {
+            // Update the existing document record with the uploaded file URL and timestamp
+            document.setDocumentReference(documentUrl);
+            document.setUploadedDate(LocalDateTime.now());
+        } else {
+            // Create a new document record (fallback, e.g. for uploads from the claim detail page)
+            document = ClaimDocument.builder()
+                    .claim(claim)
+                    .documentName(file.getOriginalFilename())
+                    .documentType(file.getContentType())
+                    .documentReference(documentUrl)
+                    .uploadedDate(LocalDateTime.now())
+                    .build();
+        }
 
         ClaimDocument saved = claimDocumentRepository.save(document);
 
