@@ -98,5 +98,6 @@ export function useForm({ initialValues, schema = {}, onSubmit }) {
     handleSubmit,
     validateAll,
     reset,
+    setErrors,
   };
 }

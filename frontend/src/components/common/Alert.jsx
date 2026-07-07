@@ -24,7 +24,7 @@ export default function Alert({ type = "info", children, className = "" }) {
   return (
     <div className={`flex items-start gap-2.5 rounded-lg border px-4 py-3 text-sm font-medium ${wrap} ${className}`}>
       <Icon className="mt-0.5 h-4 w-4 flex-shrink-0" />
-      <span>{children}</span>
+      <span className="whitespace-pre-line">{children}</span>   
     </div>
   );
 }

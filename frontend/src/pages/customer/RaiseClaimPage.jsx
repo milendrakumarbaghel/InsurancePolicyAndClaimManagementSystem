@@ -41,7 +41,7 @@ export default function RaiseClaimPage() {
   const [documents, setDocuments] = useState([emptyDocument()]);
   const [documentErrors, setDocumentErrors] = useState([]);
 
-  const { values, errors, handleChange, handleBlur, handleSubmit, isSubmitting, submitError } = useForm({
+  const { values, errors, setErrors, handleChange, handleBlur, handleSubmit, isSubmitting, submitError } = useForm({
     initialValues: { policyId: "", claimAmount: "", claimReason: "", incidentDate: "" },
     schema,
     onSubmit: async (formValues) => {
@@ -55,33 +55,43 @@ export default function RaiseClaimPage() {
         if (!doc.file) e.file = "Please upload a file";
         return e;
       });
+
       setDocumentErrors(docErrors);
+
       const hasDocErrors = docErrors.some((e) => Object.keys(e).length > 0);
       if (hasDocErrors) throw new Error("Please fix the highlighted document fields.");
       if (documents.length === 0) throw new Error("At least one supporting document is required.");
 
-      const claim = await claimService.raise({
-        policyId: Number(formValues.policyId),
-        claimAmount: Number(formValues.claimAmount),
-        claimReason: formValues.claimReason,
-        incidentDate: formValues.incidentDate,
-        documents: documents.map(({ documentName, documentType, documentReference }) => ({
-          documentName,
-          documentType,
-          documentReference,
-        })),
-      });
+      try {
+        const claim = await claimService.raise({
+          policyId: Number(formValues.policyId),
+          claimAmount: Number(formValues.claimAmount),
+          claimReason: formValues.claimReason,
+          incidentDate: formValues.incidentDate,
+          documents: documents.map(({ documentName, documentType, documentReference }) => ({
+            documentName,
+            documentType,
+            documentReference,
+          })),
+        });
 
-      const uploadPromises = documents
-        .filter((doc) => doc.file)
-        .map((doc) => claimDocumentService.upload(claim.claimId, doc.file));
+        const uploadPromises = documents
+          .filter((doc) => doc.file)
+          .map((doc) => claimDocumentService.upload(claim.claimId, doc.file));
 
-      if (uploadPromises.length > 0) {
-        await Promise.all(uploadPromises);
+        if (uploadPromises.length > 0) {
+          await Promise.all(uploadPromises);
+        }
+
+        toast.success(`Claim ${claim.claimNumber} submitted.`);
+        navigate(`/dashboard/claims/${claim.claimId}`);
+      } catch (error) {
+        const data = error.response?.data;
+        if (data && data.remainingCoverage !== undefined) {
+          setErrors((prev) => ({ ...prev, claimAmount: "Exceeds remaining coverage" }));
+        }
+        throw error;
       }
-
-      toast.success(`Claim ${claim.claimNumber} submitted.`);
-      navigate(`/dashboard/claims/${claim.claimId}`);
     },
   });
 
@@ -117,7 +127,7 @@ export default function RaiseClaimPage() {
 
       <Card>
         {isLoadingPolicies ? (
-          <Spinner label="Loading your policies…" />
+          <Spinner label="Loading your policies..." />
         ) : policies.length === 0 ? (
           <Alert type="warning">You don't have any active policies to claim against yet.</Alert>
         ) : (

@@ -9,6 +9,7 @@ import org.springboot.insurancemanagementsystem.enums.ClaimStatus;
 import org.springboot.insurancemanagementsystem.enums.PolicyStatus;
 import org.springboot.insurancemanagementsystem.enums.Role;
 import org.springboot.insurancemanagementsystem.exception.BusinessException;
+import org.springboot.insurancemanagementsystem.exception.CoverageExhaustedException;
 import org.springboot.insurancemanagementsystem.exception.ResourceNotFoundException;
 import org.springboot.insurancemanagementsystem.repository.*;
 import org.springboot.insurancemanagementsystem.service.ClaimService;
@@ -23,10 +24,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -44,6 +42,7 @@ public class ClaimServiceImpl implements ClaimService {
     private final EmailService emailService;
 
     @Override
+    @Transactional
     public ClaimResponseDto raiseClaim(
             ClaimRequestDto request,
             String customerEmail) {
@@ -57,10 +56,9 @@ public class ClaimServiceImpl implements ClaimService {
                         .orElseThrow(() ->
                                 new ResourceNotFoundException("Customer not found"));
 
-        Policy policy =
-                policyRepository.findById(request.getPolicyId())
-                        .orElseThrow(() ->
-                                new ResourceNotFoundException("Policy not found"));
+        Policy policy = policyRepository.findByIdWithLock(request.getPolicyId())
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("Policy not found with id : " + request.getPolicyId()));
 
         if (!policy.getCustomer().getId().equals(customer.getId())) {
 
@@ -87,6 +85,22 @@ public class ClaimServiceImpl implements ClaimService {
                     policy.getPlan().getCoverageAmount());
 
             throw new BusinessException("Claim amount exceeds coverage");
+        }
+        List<ClaimStatus> approvedStatuses = Collections.singletonList(ClaimStatus.APPROVED);
+        Double approvedClaimsTotal = claimRepository.getApprovedClaimAmountByPolicyId(policy.getId(), approvedStatuses);
+        Double coverageAmount = policy.getPlan().getCoverageAmount();
+
+        Double remainingCoverage = coverageAmount - approvedClaimsTotal;
+        if (remainingCoverage < 0) remainingCoverage = 0.0;
+
+        if (request.getClaimAmount() > remainingCoverage) {
+            throw new CoverageExhaustedException(
+                    "Requested claim amount exceeds the remaining policy coverage.",
+                    coverageAmount,
+                    approvedClaimsTotal,
+                    remainingCoverage,
+                    request.getClaimAmount()
+            );
         }
 
         Claim claim = new Claim();
@@ -233,6 +247,7 @@ public class ClaimServiceImpl implements ClaimService {
     }
 
     @Override
+    @Transactional
     public ClaimResponseDto approveClaim(
             Long claimId,
             String remarks,
@@ -250,6 +265,26 @@ public class ClaimServiceImpl implements ClaimService {
                 && claim.getClaimStatus() != ClaimStatus.RECOMMENDED_REJECTION) {
             log.warn("Claim {} cannot be approved. Current status={}", claim.getClaimNumber(), claim.getClaimStatus());
             throw new BusinessException("Claim must be reviewed by an agent before admin can approve. Current status: " + claim.getClaimStatus());
+        }
+
+        Policy policy = policyRepository.findByIdWithLock(claim.getPolicy().getId())
+                .orElseThrow(() -> new ResourceNotFoundException("Policy not found"));
+
+        List<ClaimStatus> approvedStatuses = Collections.singletonList(ClaimStatus.APPROVED);
+        Double approvedClaimsTotal = claimRepository.getApprovedClaimAmountByPolicyId(policy.getId(), approvedStatuses);
+        Double coverageAmount = policy.getPlan().getCoverageAmount();
+
+        Double remainingCoverage = coverageAmount - approvedClaimsTotal;
+        if (remainingCoverage < 0) remainingCoverage = 0.0;
+
+        if (claim.getClaimAmount() > remainingCoverage) {
+            throw new CoverageExhaustedException(
+                    "Requested claim amount exceeds the remaining policy coverage.",
+                    coverageAmount,
+                    approvedClaimsTotal,
+                    remainingCoverage,
+                    claim.getClaimAmount()
+            );
         }
 
         ClaimStatus oldStatus = claim.getClaimStatus();
@@ -510,13 +545,24 @@ public class ClaimServiceImpl implements ClaimService {
                 List<Claim> allCustomerClaims = claimRepository.findByPolicyCustomerUserEmail(customer.getUser().getEmail());
 
                 List<ClaimResponseDto.ClaimHistoryDto> history = new ArrayList<>();
-                int previousPlanClaimsCount = 0;
-                double previousPlanClaimAmount = 0.0;
+                int policyClaimsCount = 0;
+                double approvedPolicyClaimAmount = 0.0;
 
                 for (Claim histClaim : allCustomerClaims) {
+                    Policy histPolicy = histClaim.getPolicy();
+
+                    // 1. Calculate Summary ONLY for this specific Policy
+                    if (histPolicy != null && histPolicy.getId().equals(po.getId())) {
+                        policyClaimsCount++;
+                        // Only APPROVED claims reduce the available coverage
+                        if (histClaim.getClaimStatus() == ClaimStatus.APPROVED) {
+                            approvedPolicyClaimAmount += (histClaim.getClaimAmount() != null ? histClaim.getClaimAmount() : 0.0);
+                        }
+                    }
+
+                    // 2. Build History (Skip the current claim so it doesn't show in its own "Previous History" list)
                     if (histClaim.getId().equals(cl.getId())) continue;
 
-                    Policy histPolicy = histClaim.getPolicy();
                     PolicyPlan histPlan = histPolicy != null ? histPolicy.getPlan() : null;
                     String histPlanName = histPlan != null ? histPlan.getPlanName() : "N/A";
                     Double histCoverage = histPlan != null ? histPlan.getCoverageAmount() : 0.0;
@@ -529,15 +575,9 @@ public class ClaimServiceImpl implements ClaimService {
                             .claimStatus(histClaim.getClaimStatus() != null ? histClaim.getClaimStatus().name() : null)
                             .claimDate(histClaim.getCreatedAt() != null ? histClaim.getCreatedAt().toString() : null)
                             .build());
-
-                    if (plan != null && histPlan != null && plan.getId().equals(histPlan.getId())) {
-                        previousPlanClaimsCount++;
-                        if (histClaim.getClaimStatus() == ClaimStatus.APPROVED) {
-                            previousPlanClaimAmount += (histClaim.getClaimAmount() != null ? histClaim.getClaimAmount() : 0.0);
-                        }
-                    }
                 }
 
+                // Sort history by date descending
                 history.sort((a, b) -> {
                     if (a.getClaimDate() == null && b.getClaimDate() == null) return 0;
                     if (a.getClaimDate() == null) return 1;
@@ -547,12 +587,13 @@ public class ClaimServiceImpl implements ClaimService {
 
                 response.setCustomerClaimHistory(history);
 
+                // 3. Finalize Plan Summary calculations
                 if (plan != null) {
-                    double remaining = plan.getCoverageAmount() - previousPlanClaimAmount;
+                    double remaining = plan.getCoverageAmount() - approvedPolicyClaimAmount;
                     response.setPlanSummary(ClaimResponseDto.PlanSummaryDto.builder()
-                            .totalPreviousClaims(previousPlanClaimsCount)
-                            .totalPreviousClaimAmount(previousPlanClaimAmount)
-                            .remainingCoverage(Math.max(remaining, 0.0))
+                            .totalPreviousClaims(policyClaimsCount)
+                            .totalPreviousClaimAmount(approvedPolicyClaimAmount)
+                            .remainingCoverage(Math.max(remaining, 0.0)) // Ensures it never goes below zero
                             .build());
                 }
             }

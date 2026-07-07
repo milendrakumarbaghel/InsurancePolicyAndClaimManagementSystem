@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -197,6 +198,19 @@ public class GlobalExceptionHandler {
         return buildResponse(
                 HttpStatus.INTERNAL_SERVER_ERROR,
                 "Something went wrong. Please try again later.");
+    }
+
+    @ExceptionHandler(CoverageExhaustedException.class)
+    public ResponseEntity<Map<String, Object>> handleCoverageExhaustedException(CoverageExhaustedException ex) {
+        Map<String, Object> response = new HashMap<>();
+        response.put("success", false);
+        response.put("message", ex.getMessage());
+        response.put("coverageAmount", ex.getCoverageAmount());
+        response.put("approvedClaimAmount", ex.getApprovedClaimAmount());
+        response.put("remainingCoverage", ex.getRemainingCoverage());
+        response.put("requestedAmount", ex.getRequestedAmount());
+
+        return ResponseEntity.badRequest().body(response);
     }
 
     private ResponseEntity<Map<String, Object>> buildResponse(HttpStatus status, String message) {

@@ -92,6 +92,16 @@ api.interceptors.response.use(
 export function getErrorMessage(error, fallback = "Something went wrong. Please try again.") {
   const data = error?.response?.data;
   if (!data) return error?.message || fallback;
+
+  if (data.remainingCoverage !== undefined) {
+    if (data.remainingCoverage <= 0) {
+      return "This policy has exhausted its Sum Insured.\nNo further claims can be processed.";
+    }
+    
+    const fmt = (val) => new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 }).format(val);
+    return `${data.message}\n\nCoverage Amount: ${fmt(data.coverageAmount)}\nAlready Approved: ${fmt(data.approvedClaimAmount)}\nRemaining Coverage: ${fmt(data.remainingCoverage)}`;
+  }
+  
   if (typeof data === "string") return data;
   if (data.message) return data.message;
   if (data.error) return data.error;
