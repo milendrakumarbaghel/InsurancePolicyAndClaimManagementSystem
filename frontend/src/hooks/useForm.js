@@ -1,5 +1,6 @@
 import { useCallback, useState } from "react";
 import { validateForm } from "../utils/validators";
+import { getErrorMessage } from "../services/api";
 
 /**
  * A small, dependency-free form hook.
@@ -68,7 +69,7 @@ export function useForm({ initialValues, schema = {}, onSubmit }) {
       try {
         await onSubmit(values);
       } catch (error) {
-        setSubmitError(error?.message || "Something went wrong. Please try again.");
+        setSubmitError(getErrorMessage(error));
       } finally {
         setIsSubmitting(false);
       }

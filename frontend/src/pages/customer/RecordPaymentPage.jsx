@@ -17,6 +17,7 @@ import { getErrorMessage } from "../../services/api";
 import { required } from "../../utils/validators";
 import { PAYMENT_MODES } from "../../utils/constants";
 import { formatCurrency, toTitleCase } from "../../utils/formatters";
+import { hasPaymentInCurrentPeriod } from "../../utils/installmentUtils";
 
 const schema = {
   policyId: [required("Please select a policy")],
@@ -32,6 +33,8 @@ export default function RecordPaymentPage() {
   const [plansById, setPlansById] = useState({});
   const [isLoadingOptions, setIsLoadingOptions] = useState(true);
   const [matchError, setMatchError] = useState("");
+  const [installmentPaid, setInstallmentPaid] = useState(false);
+  const [isCheckingPayments, setIsCheckingPayments] = useState(false);
 
   const { values, errors, handleChange, handleBlur, handleSubmit, isSubmitting, submitError } = useForm({
     initialValues: { policyId: preselectedPolicyId, paymentMode: "" },
@@ -78,6 +81,32 @@ export default function RecordPaymentPage() {
     setMatchError(plansById[values.policyId] ? "" : "We couldn't automatically match this policy's plan. Please contact support to complete this payment.");
   }, [values.policyId, plansById, isLoadingOptions]);
 
+  // Check whether the current installment has already been paid
+  useEffect(() => {
+    if (!values.policyId || isLoadingOptions) {
+      setInstallmentPaid(false);
+      return;
+    }
+    const plan = plansById[values.policyId];
+    if (!plan) {
+      setInstallmentPaid(false);
+      return;
+    }
+    setIsCheckingPayments(true);
+    const policy = policies.find((p) => String(p.policyId) === String(values.policyId));
+    if (!policy) {
+      setIsCheckingPayments(false);
+      return;
+    }
+    paymentService
+      .getByPolicy(policy.policyId)
+      .then((payments) => {
+        setInstallmentPaid(hasPaymentInCurrentPeriod(payments, plan.premiumType));
+      })
+      .catch(() => setInstallmentPaid(false))
+      .finally(() => setIsCheckingPayments(false));
+  }, [values.policyId, plansById, policies, isLoadingOptions]);
+
   const selectedPolicy = policies.find((p) => String(p.policyId) === String(values.policyId));
   const selectedPlan = plansById[values.policyId];
 
@@ -110,7 +139,13 @@ export default function RecordPaymentPage() {
 
             {matchError && <Alert type="warning">{matchError}</Alert>}
 
-            {selectedPlan && (
+            {installmentPaid && (
+              <Alert type="warning">
+                A premium payment for the current {toTitleCase(selectedPlan?.premiumType)} installment has already been recorded for this policy. You cannot pay again until the next billing cycle.
+              </Alert>
+            )}
+
+            {selectedPlan && !installmentPaid && (
               <Alert type="info">
                 Premium due: <strong>{formatCurrency(selectedPlan.premiumAmount)}</strong> ({toTitleCase(selectedPlan.premiumType)})
               </Alert>
@@ -136,7 +171,7 @@ export default function RecordPaymentPage() {
             />
 
             <div className="flex gap-3 pt-2">
-              <Button type="submit" isLoading={isSubmitting} icon={Wallet} disabled={!selectedPolicy || !!matchError}>
+              <Button type="submit" isLoading={isSubmitting || isCheckingPayments} icon={Wallet} disabled={!selectedPolicy || !!matchError || installmentPaid}>
                 Pay now
               </Button>
               <Button type="button" variant="outline" onClick={() => navigate("/dashboard/policies")}>

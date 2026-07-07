@@ -15,6 +15,7 @@ import { paymentService } from "../services/paymentService";
 import { getErrorMessage } from "../services/api";
 import { ROLES } from "../utils/constants";
 import { formatCurrency, formatDate, formatDateTime, toTitleCase } from "../utils/formatters";
+import { hasPaymentInCurrentPeriod } from "../utils/installmentUtils";
 
 export default function PolicyDetailPage() {
   const { policyId } = useParams();
@@ -57,6 +58,11 @@ export default function PolicyDetailPage() {
   if (isLoading) return <Spinner label="Loading policy…" />;
   if (!policy) return null;
 
+  // Determine whether this installment has already been paid
+  const installmentAlreadyPaid = policy.planPremiumType
+    ? hasPaymentInCurrentPeriod(payments, policy.planPremiumType)
+    : false;
+
   const columns = [
     { key: "transactionReference", header: "Reference", render: (r) => <span className="font-mono-data text-xs">{r.transactionReference}</span> },
     { key: "amount", header: "Amount", render: (r) => <span className="font-mono-data">{formatCurrency(r.amount)}</span> },
@@ -80,7 +86,7 @@ export default function PolicyDetailPage() {
         description={`${toTitleCase(policy.productType)} coverage for ${policy.customerName}`}
         actions={
           <div className="flex items-center gap-2">
-            {role === ROLES.CUSTOMER && policy.status === "PENDING_PAYMENT" && (
+            {role === ROLES.CUSTOMER && (policy.status === "PENDING_PAYMENT" || policy.status === "ACTIVE") && !installmentAlreadyPaid && (
               <Button icon={Wallet} onClick={() => navigate(`/dashboard/payments/new?policyId=${policy.policyId}`)}>
                 Pay premium
               </Button>
