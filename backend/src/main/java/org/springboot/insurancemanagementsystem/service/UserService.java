@@ -19,4 +19,6 @@ public interface UserService {
 
     List<UserResponseDto> getInsuranceOperationsOfficers();
 
+    List<UserResponseDto> getAdmins();
+
 }

@@ -56,7 +56,7 @@ export default function Hero() {
         <div className="relative h-[420px] sm:h-[480px] hidden sm:block">
           <div className="absolute inset-0 flex items-center justify-center">
             <div className="relative w-72">
-              <div className="absolute -left-10 top-16 w-64 rotate-[-9deg] rounded-2xl border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-800 shadow-xl p-5 animate-float-slow" style={{ animationDelay: "0.4s" }}>
+              <div className="absolute -left-10 top-16 w-64 rounded-2xl border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-800 shadow-xl p-5 animate-float-slow" style={{ animationDelay: "0.4s" }}>
                 <p className="text-[0.65rem] font-mono-data uppercase tracking-wider text-ink-400">Policy No.</p>
                 <p className="font-mono-data text-sm font-semibold text-ink-800 dark:text-ink-100">POL-2026-0417</p>
                 <div className="mt-4 h-px bg-ink-100 dark:bg-ink-700" />
@@ -64,7 +64,7 @@ export default function Hero() {
                 <span className="stamp mt-2 text-[0.6rem] text-success border-success">Active</span>
               </div>
 
-              <div className="absolute -right-8 top-2 w-64 rotate-[7deg] rounded-2xl border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-800 shadow-xl p-5 animate-float-slow" style={{ animationDelay: "0s" }}>
+              <div className="absolute -right-8 top-2 w-64 rounded-2xl border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-800 shadow-xl p-5 animate-float-slow" style={{ animationDelay: "0s" }}>
                 <p className="text-[0.65rem] font-mono-data uppercase tracking-wider text-ink-400">Claim No.</p>
                 <p className="font-mono-data text-sm font-semibold text-ink-800 dark:text-ink-100">CLM-2026-1182</p>
                 <div className="mt-4 h-px bg-ink-100 dark:bg-ink-700" />
@@ -72,7 +72,7 @@ export default function Hero() {
                 <span className="stamp mt-2 text-[0.6rem] text-gold-600 border-gold-500">Under Review</span>
               </div>
 
-              <div className="relative z-10 w-72 rotate-[-1deg] rounded-2xl border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-800 shadow-2xl p-6 mt-40">
+              <div className="relative z-10 w-72 rounded-2xl border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-800 shadow-2xl p-6 mt-40">
                 <p className="text-[0.65rem] font-mono-data uppercase tracking-wider text-ink-400">Claim No.</p>
                 <p className="font-mono-data text-base font-semibold text-ink-900 dark:text-white">CLM-2026-0965</p>
                 <div className="mt-4 h-px bg-ink-100 dark:bg-ink-700" />

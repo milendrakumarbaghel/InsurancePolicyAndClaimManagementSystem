@@ -139,6 +139,15 @@ public class UserServiceImpl implements UserService {
                 .toList();
     }
 
+    @Override
+    @Transactional(readOnly = true)
+    public List<UserResponseDto> getAdmins() {
+        return userRepository.findByRole(Role.ADMIN)
+                .stream()
+                .map(this::mapToResponse)
+                .toList();
+    }
+
     private UserResponseDto mapToResponse(
             User user) {
 

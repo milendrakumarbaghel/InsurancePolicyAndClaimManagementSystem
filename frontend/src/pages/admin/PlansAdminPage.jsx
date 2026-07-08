@@ -1,10 +1,11 @@
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
-import { Plus, Pencil, Power, PowerOff, Download } from "lucide-react";
+import { Plus, Pencil, Download } from "lucide-react";
 import { useState } from "react";
 import PageHeader from "../../components/common/PageHeader";
 import DataTable from "../../components/common/DataTable";
 import Button from "../../components/common/Button";
+import Switch from "../../components/common/Switch";
 import Pagination from "../../components/common/Pagination";
 import Stamp from "../../components/common/Stamp";
 import { planService } from "../../services/planService";
@@ -70,18 +71,16 @@ export default function PlansAdminPage() {
     { key: "active", header: "Status", render: (r) => <Stamp status={r.active} /> },
     {
       key: "actions",
-      header: "",
+      header: "Actions",
       render: (r) => (
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-3">
           {role === ROLES.ADMIN && (
             <>
               <Button variant="outline" size="sm" icon={Pencil} onClick={() => navigate(`/dashboard/plans/${r.PolicyPlanId}/edit`)} />
-              <Button
-                variant={r.active ? "danger" : "primary"}
-                size="sm"
-                icon={r.active ? PowerOff : Power}
+              <Switch
+                checked={r.active}
                 isLoading={busyId === r.PolicyPlanId}
-                onClick={() => toggleActive(r)}
+                onChange={() => toggleActive(r)}
               />
             </>
           )}

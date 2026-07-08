@@ -25,25 +25,25 @@ export const CLAIM_STATUSES = [
 // Tailwind color classes per status — used by the Stamp/Badge component
 export const STATUS_STYLES = {
   // Claims
-  SUBMITTED: "text-info border-info",
-  ASSIGNED: "text-harbor-500 border-harbor-500",
-  UNDER_REVIEW: "text-gold-500 border-gold-500",
-  RECOMMENDED_APPROVAL: "text-success border-success",
-  RECOMMENDED_REJECTION: "text-danger border-danger",
-  APPROVED: "text-success border-success",
-  REJECTED: "text-danger border-danger",
+  SUBMITTED: "bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950/30 dark:text-blue-300 dark:border-blue-900/50",
+  ASSIGNED: "bg-purple-50 text-purple-700 border-purple-200 dark:bg-purple-950/30 dark:text-purple-300 dark:border-purple-900/50",
+  UNDER_REVIEW: "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/30 dark:text-amber-300 dark:border-amber-900/50",
+  RECOMMENDED_APPROVAL: "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/30 dark:text-emerald-300 dark:border-emerald-900/50",
+  RECOMMENDED_REJECTION: "bg-rose-50 text-rose-700 border-rose-200 dark:bg-rose-950/30 dark:text-rose-300 dark:border-rose-900/50",
+  APPROVED: "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/30 dark:text-emerald-300 dark:border-emerald-900/50",
+  REJECTED: "bg-rose-50 text-rose-700 border-rose-200 dark:bg-rose-950/30 dark:text-rose-300 dark:border-rose-900/50",
   // Policies
-  PENDING_PAYMENT: "text-gold-500 border-gold-500",
-  ACTIVE: "text-success border-success",
-  EXPIRED: "text-ink-400 border-ink-400",
-  CANCELLED: "text-danger border-danger",
+  PENDING_PAYMENT: "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/30 dark:text-amber-300 dark:border-amber-900/50",
+  ACTIVE: "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/30 dark:text-emerald-300 dark:border-emerald-900/50",
+  EXPIRED: "bg-slate-100 text-slate-700 border-slate-200 dark:bg-slate-800/40 dark:text-slate-300 dark:border-slate-700/50",
+  CANCELLED: "bg-rose-50 text-rose-700 border-rose-200 dark:bg-rose-950/30 dark:text-rose-300 dark:border-rose-900/50",
   // Payments
-  SUCCESS: "text-success border-success",
-  FAILED: "text-danger border-danger",
-  PENDING: "text-gold-500 border-gold-500",
+  SUCCESS: "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/30 dark:text-emerald-300 dark:border-emerald-900/50",
+  FAILED: "bg-rose-50 text-rose-700 border-rose-200 dark:bg-rose-950/30 dark:text-rose-300 dark:border-rose-900/50",
+  PENDING: "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/30 dark:text-amber-300 dark:border-amber-900/50",
   // Users / products / plans
-  true: "text-success border-success",
-  false: "text-danger border-danger",
+  true: "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/30 dark:text-emerald-300 dark:border-emerald-900/50",
+  false: "bg-rose-50 text-rose-700 border-rose-200 dark:bg-rose-950/30 dark:text-rose-300 dark:border-rose-900/50",
 };
 
 export const DOCUMENT_TYPE_SUGGESTIONS = [

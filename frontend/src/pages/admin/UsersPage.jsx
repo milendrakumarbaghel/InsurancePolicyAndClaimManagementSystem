@@ -1,11 +1,12 @@
 import { useState } from "react";
 import toast from "react-hot-toast";
-import { Power, PowerOff, Download } from "lucide-react";
+import { Download } from "lucide-react";
 import PageHeader from "../../components/common/PageHeader";
 import DataTable from "../../components/common/DataTable";
 import Pagination from "../../components/common/Pagination";
 import Stamp from "../../components/common/Stamp";
 import Button from "../../components/common/Button";
+import Switch from "../../components/common/Switch";
 import { userService } from "../../services/userService";
 import { getErrorMessage } from "../../services/api";
 import { usePagedResource } from "../../hooks/usePagedResource";
@@ -61,17 +62,13 @@ export default function UsersPage() {
     { key: "active", header: "Status", render: (r) => <Stamp status={r.active} /> },
     {
       key: "actions",
-      header: "",
+      header: "Access Toggle",
       render: (r) => (
-        <Button
-          size="sm"
-          variant={r.active ? "danger" : "primary"}
-          icon={r.active ? PowerOff : Power}
+        <Switch
+          checked={r.active}
           isLoading={busyId === r.userId}
-          onClick={() => toggleActive(r)}
-        >
-          {r.active ? "Deactivate" : "Activate"}
-        </Button>
+          onChange={() => toggleActive(r)}
+        />
       ),
     },
   ];

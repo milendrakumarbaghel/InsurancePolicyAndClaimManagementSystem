@@ -192,12 +192,14 @@ function AdminOverview() {
       userService.getAll({ page: 0, size: 1 }),
       userService.getCustomers(),
       userService.getInsuranceOperationsOfficers(),
+      userService.getAdmins(),
     ])
-      .then(([users, customers, insuranceOperationsOfficers]) => {
+      .then(([users, customers, insuranceOperationsOfficers, admins]) => {
         setStats({
           totalUsers: users.totalElements ?? 0,
           totalCustomers: customers?.length ?? 0,
           totalInsuranceOperationsOfficers: insuranceOperationsOfficers?.length ?? 0,
+          totalAdmins: admins?.length ?? 0,
         });
       })
       .finally(() => setIsLoading(false));
@@ -207,8 +209,9 @@ function AdminOverview() {
 
   return (
     <>
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
         <StatCard icon={UserCog} label="Total users" value={stats.totalUsers} />
+        <StatCard icon={Users} label="Total admins" value={stats.totalAdmins} accent="harbor" />
         <StatCard icon={Users} label="Customers" value={stats.totalCustomers} accent="gold" />
         <StatCard icon={Users} label="Insurance Operations Officers" value={stats.totalInsuranceOperationsOfficers} accent="success" />
       </div>

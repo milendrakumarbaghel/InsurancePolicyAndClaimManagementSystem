@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
-import { Plus, Boxes, Pencil, Power, PowerOff, ArrowRight, Download } from "lucide-react";
+import { Plus, Boxes, Pencil, ArrowRight, Download } from "lucide-react";
 import PageHeader from "../components/common/PageHeader";
 import Card from "../components/common/Card";
 import Button from "../components/common/Button";
+import Switch from "../components/common/Switch";
 import Spinner from "../components/common/Spinner";
 import EmptyState from "../components/common/EmptyState";
 import Stamp from "../components/common/Stamp";
@@ -120,21 +121,19 @@ export default function ProductsPage() {
                   View plans
                 </Button>
                 {isAdmin && (
-                  <>
+                  <div className="flex items-center gap-3 pl-1">
                     <Button
                       variant="outline"
                       size="sm"
                       icon={Pencil}
                       onClick={() => navigate(`/dashboard/products/${product.productId}/edit`)}
                     />
-                    <Button
-                      variant={product.active ? "danger" : "primary"}
-                      size="sm"
-                      icon={product.active ? PowerOff : Power}
+                    <Switch
+                      checked={product.active}
                       isLoading={busyId === product.productId}
-                      onClick={() => toggleActive(product)}
+                      onChange={() => toggleActive(product)}
                     />
-                  </>
+                  </div>
                 )}
               </div>
             </Card>
