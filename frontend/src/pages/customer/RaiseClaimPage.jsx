@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import toast from "react-hot-toast";
-import { ArrowLeft, FilePlus2, Trash2, Send, UploadCloud } from "lucide-react";
+import { ArrowLeft, FilePlus2, Trash2, Send, UploadCloud, ShieldCheck } from "lucide-react";
 import Card from "../../components/common/Card";
 import PageHeader from "../../components/common/PageHeader";
 import Select from "../../components/common/Select";
@@ -19,6 +19,7 @@ import {
   patterns, required, minLength, maxLength, pattern, positive, max, pastOrPresent,
 } from "../../utils/validators";
 import { DOCUMENT_TYPE_SUGGESTIONS } from "../../utils/constants";
+import { formatCurrency } from "../../utils/formatters";
 
 const schema = {
   policyId: [required("Please select a policy")],
@@ -40,6 +41,8 @@ export default function RaiseClaimPage() {
   const [isLoadingPolicies, setIsLoadingPolicies] = useState(true);
   const [documents, setDocuments] = useState([emptyDocument()]);
   const [documentErrors, setDocumentErrors] = useState([]);
+  const [coverageInfo, setCoverageInfo] = useState(null);
+  const [isLoadingCoverage, setIsLoadingCoverage] = useState(false);
 
   const { values, errors, setErrors, handleChange, handleBlur, handleSubmit, isSubmitting, submitError } = useForm({
     initialValues: { policyId: "", claimAmount: "", claimReason: "", incidentDate: "" },
@@ -103,6 +106,43 @@ export default function RaiseClaimPage() {
       .finally(() => setIsLoadingPolicies(false));
   }, []);
 
+  // When a policy is selected, look up its remaining coverage from prior claims
+  useEffect(() => {
+    if (!values.policyId) {
+      setCoverageInfo(null);
+      return;
+    }
+    const selectedPolicy = policies.find((p) => String(p.policyId) === String(values.policyId));
+    if (!selectedPolicy) {
+      setCoverageInfo(null);
+      return;
+    }
+    setIsLoadingCoverage(true);
+    claimService
+      .getMy()
+      .then((allClaims) => {
+        // Find claims that belong to the selected policy (matched by policyNumber)
+        const policyClaims = allClaims.filter(
+          (c) => c.policyNumber === selectedPolicy.policyNumber
+        );
+        if (policyClaims.length === 0) {
+          // No prior claims — we show a "no prior claims" info indicator
+          setCoverageInfo({ noPriorClaims: true });
+          return;
+        }
+        // Use the most recent claim (last in list) to get planSummary
+        const latestClaim = policyClaims[policyClaims.length - 1];
+        return claimService.getById(latestClaim.claimId);
+      })
+      .then((claimDetail) => {
+        if (claimDetail && claimDetail.planSummary) {
+          setCoverageInfo(claimDetail.planSummary);
+        }
+      })
+      .catch(() => setCoverageInfo(null))
+      .finally(() => setIsLoadingCoverage(false));
+  }, [values.policyId, policies]);
+
   const updateDocument = (index, field, value) => {
     setDocuments((prev) => prev.map((d, i) => (i === index ? { ...d, [field]: value } : d)));
   };
@@ -145,6 +185,47 @@ export default function RaiseClaimPage() {
               error={errors.policyId}
               required
             />
+
+            {values.policyId && isLoadingCoverage && (
+              <div className="rounded-xl border border-ink-200 dark:border-ink-700 px-4 py-3 flex items-center gap-2">
+                <span className="text-sm text-ink-500">Loading coverage info…</span>
+              </div>
+            )}
+
+            {values.policyId && !isLoadingCoverage && coverageInfo && !coverageInfo.noPriorClaims && (
+              <div className="rounded-xl border border-success/30 bg-success/5 dark:bg-success/10 px-4 py-3 flex items-center gap-3">
+                <ShieldCheck className="h-5 w-5 text-success flex-shrink-0" />
+                <div className="flex flex-wrap gap-x-6 gap-y-1 text-sm">
+                  <span className="text-ink-500">
+                    Total coverage:{" "}
+                    <span className="font-mono-data font-medium text-ink-800 dark:text-ink-100">
+                      {formatCurrency(coverageInfo.totalCoverage ?? coverageInfo.coverageAmount)}
+                    </span>
+                  </span>
+                  <span className="text-ink-500">
+                    Previously claimed:{" "}
+                    <span className="font-mono-data font-medium text-ink-800 dark:text-ink-100">
+                      {formatCurrency(coverageInfo.totalPreviousClaimAmount)}
+                    </span>
+                  </span>
+                  <span className="text-ink-500">
+                    Remaining coverage:{" "}
+                    <span className="font-mono-data font-semibold text-success">
+                      {formatCurrency(coverageInfo.remainingCoverage)}
+                    </span>
+                  </span>
+                </div>
+              </div>
+            )}
+
+            {values.policyId && !isLoadingCoverage && coverageInfo?.noPriorClaims && (
+              <div className="rounded-xl border border-success/30 bg-success/5 dark:bg-success/10 px-4 py-3 flex items-center gap-2">
+                <ShieldCheck className="h-5 w-5 text-success flex-shrink-0" />
+                <span className="text-sm text-ink-500">
+                  No prior claims on this policy — full coverage is available.
+                </span>
+              </div>
+            )}
 
             <Input
               label="Claim amount (₹)"
