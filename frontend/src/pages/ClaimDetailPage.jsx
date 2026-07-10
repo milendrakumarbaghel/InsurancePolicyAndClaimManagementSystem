@@ -2,8 +2,9 @@ import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import toast from "react-hot-toast";
 import {
-  ArrowLeft, FileText, UploadCloud, CheckCircle2, XCircle, UserPlus, Trash2, History,
+  ArrowLeft, FileText, UploadCloud, CheckCircle2, XCircle, UserPlus, Trash2, History, FileDown,
 } from "lucide-react";
+import { downloadClaimDetailPdf } from "../utils/claimPdfGenerator";
 import PageHeader from "../components/common/PageHeader";
 import Card from "../components/common/Card";
 import Stamp from "../components/common/Stamp";
@@ -189,6 +190,7 @@ export default function ClaimDetailPage() {
   const [documents, setDocuments] = useState([]);
   const [history, setHistory] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isDownloading, setIsDownloading] = useState(false);
 
   const [uploadOpen, setUploadOpen] = useState(false);
   const [uploadFile, setUploadFile] = useState(null);
@@ -238,6 +240,19 @@ export default function ClaimDetailPage() {
     }
   };
 
+  const handleDownloadPdf = async () => {
+    setIsDownloading(true);
+    try {
+      downloadClaimDetailPdf(claim, documents, history);
+      toast.success("PDF downloaded successfully.");
+    } catch (err) {
+      toast.error("Could not generate PDF. Please try again.");
+      console.error(err);
+    } finally {
+      setIsDownloading(false);
+    }
+  };
+
   if (isLoading) return <Spinner label="Loading claim..." />;
   if (!claim) return null;
 
@@ -259,7 +274,21 @@ export default function ClaimDetailPage() {
         eyebrow={claim.claimNumber}
         title={formatCurrency(claim.claimAmount)}
         description={`Filed by ${claim.customerName} against policy ${claim.policyNumber}`}
-        actions={<Stamp status={claim.claimStatus} className="text-sm" />}
+        actions={
+          <div className="flex items-center gap-3">
+            <Stamp status={claim.claimStatus} className="text-sm" />
+            <Button
+              variant="outline"
+              size="sm"
+              icon={FileDown}
+              isLoading={isDownloading}
+              onClick={handleDownloadPdf}
+              title="Download claim report as PDF"
+            >
+              Download PDF
+            </Button>
+          </div>
+        }
       />
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

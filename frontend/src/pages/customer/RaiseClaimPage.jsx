@@ -305,8 +305,8 @@ export default function RaiseClaimPage() {
                       {DOCUMENT_TYPE_SUGGESTIONS.map((s) => <option key={s} value={s} />)}
                     </datalist>
                     <Input
-                      label="Original document"
-                      placeholder="Invoice #4521 from City Hospital dated 12 June 2026"
+                      label="Document summary"
+                      placeholder="Enter a description of this document"
                       value={doc.documentReference}
                       onChange={(e) => updateDocument(index, "documentReference", e.target.value)}
                       error={documentErrors[index]?.documentReference}
