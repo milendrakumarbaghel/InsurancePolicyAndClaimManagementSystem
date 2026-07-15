@@ -113,6 +113,19 @@ export const futureOrPresent =
     return null;
   };
 
+  export const withinLastDays = (days = 15, message = `Incident date must be within the last ${days} days.`) => (value) => {
+  if (!value) return null;
+  const d = new Date(value);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const limit = new Date();
+  limit.setDate(today.getDate() - days);
+  limit.setHours(0, 0, 0, 0);
+  
+  if (d < limit || d > today) return message;
+  return null;
+};
+
 export const pastDate18Years =
   (message = "You must be at least 18 years old") =>
   (value) => {

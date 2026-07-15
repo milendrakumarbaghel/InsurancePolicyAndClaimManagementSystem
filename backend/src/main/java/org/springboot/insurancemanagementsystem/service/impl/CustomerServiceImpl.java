@@ -5,8 +5,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springboot.insurancemanagementsystem.dto.CustomerRequestDto;
 import org.springboot.insurancemanagementsystem.dto.CustomerResponseDto;
+import org.springboot.insurancemanagementsystem.dto.NomineeDto;
 import org.springboot.insurancemanagementsystem.entitie.Customer;
+import org.springboot.insurancemanagementsystem.entitie.Nominee;
 import org.springboot.insurancemanagementsystem.entitie.User;
+import org.springboot.insurancemanagementsystem.enums.AllowedRelation;
 import org.springboot.insurancemanagementsystem.exception.BusinessException;
 import org.springboot.insurancemanagementsystem.exception.ResourceNotFoundException;
 import org.springboot.insurancemanagementsystem.repository.CustomerRepository;
@@ -31,32 +34,22 @@ public class CustomerServiceImpl implements CustomerService {
     private final ModelMapper modelMapper;
 
     @Override
-    public CustomerResponseDto createProfile(
-            CustomerRequestDto request,
-            String email) {
+    public CustomerResponseDto createProfile(CustomerRequestDto request, String email) {
 
         log.info("Customer profile creation requested by user: {}", email);
 
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> {
                     log.warn("User not found while creating customer profile: {}", email);
-                    return new ResourceNotFoundException(
-                            "User not found");
+                    return new ResourceNotFoundException("User not found");
                 });
 
         if (customerRepository.existsByUserId(user.getId())) {
-
-            log.warn(
-                    "Customer profile already exists for userId={}, email={}",
-                    user.getId(),
-                    email);
-
-            throw new BusinessException(
-                    "Customer profile already exists");
+            log.warn("Customer profile already exists for userId={}, email={}", user.getId(), email);
+            throw new BusinessException("Customer profile already exists");
         }
 
         Customer customer = new Customer();
-
         customer.setUser(user);
         customer.setDateOfBirth(request.getDateOfBirth());
         customer.setAddress(request.getAddress());
@@ -64,16 +57,37 @@ public class CustomerServiceImpl implements CustomerService {
         customer.setState(request.getState());
         customer.setPinCode(request.getPinCode());
         customer.setCreatedAt(LocalDateTime.now());
-        customer.setNomineeName(request.getNomineeName());
-        customer.setNomineeRelation(request.getNomineeRelation());
 
-        Customer savedCustomer =
-                customerRepository.save(customer);
+        // Initialize list if it wasn't pre-initialized in the Customer entity constructor
+        if (customer.getNominees() == null) {
+            customer.setNominees(new java.util.ArrayList<>());
+        }
 
-        log.info(
-                "Customer profile created successfully. CustomerId={}, UserId={}",
-                savedCustomer.getId(),
-                user.getId());
+        // Process and validate the nominee collection
+        if (request.getNominees() != null) {
+            if (request.getNominees().size() > 3) {
+                throw new BusinessException("A maximum of 3 nominees is allowed.");
+            }
+
+            for (NomineeDto dto : request.getNominees()) {
+                if (dto.getRelation() == null || !AllowedRelation.isValid(dto.getRelation().name())) {
+                    throw new BusinessException("Invalid relation values selected.");
+                }
+
+                Nominee nominee = new Nominee();
+                nominee.setName(dto.getName());
+                nominee.setRelation(dto.getRelation());
+                nominee.setCustomer(customer);
+
+                // Establishes the bi-directional relationship so Hibernate cascades the save correctly
+                customer.getNominees().add(nominee);
+            }
+        }
+
+        Customer savedCustomer = customerRepository.save(customer);
+
+        log.info("Customer profile created successfully. CustomerId={}, UserId={}",
+                savedCustomer.getId(), user.getId());
 
         return mapToResponseDto(savedCustomer);
     }
@@ -110,14 +124,32 @@ public class CustomerServiceImpl implements CustomerService {
                     "You are not allowed to update another customer's profile");
         }
 
-        customer.setDateOfBirth(request.getDateOfBirth());
         customer.setAddress(request.getAddress());
         customer.setCity(request.getCity());
         customer.setState(request.getState());
         customer.setPinCode(request.getPinCode());
         customer.setUpdatedAt(LocalDateTime.now());
-        customer.setNomineeName(request.getNomineeName());
-        customer.setNomineeRelation(request.getNomineeRelation());
+
+        if (request.getNominees() != null) {
+            if (request.getNominees().size() > 3) {
+                throw new BusinessException("A maximum of 3 nominees is allowed.");
+            }
+
+            // Clear the existing nominee references to cleanly handle updates/deletions seamlessly
+            customer.getNominees().clear();
+
+            for (NomineeDto dto : request.getNominees()) {
+                if (dto.getRelation() == null || !AllowedRelation.isValid(dto.getRelation().name())) {
+                    throw new BusinessException("Invalid relation values selected.");
+                }
+
+                Nominee nominee = new Nominee();
+                nominee.setName(dto.getName());
+                nominee.setRelation(dto.getRelation());
+                nominee.setCustomer(customer);
+                customer.getNominees().add(nominee);
+            }
+        }
 
         Customer updatedCustomer =
                 customerRepository.save(customer);
@@ -217,20 +249,25 @@ public class CustomerServiceImpl implements CustomerService {
     }
 
     private CustomerResponseDto mapToResponseDto(Customer customer) {
+        CustomerResponseDto dto = modelMapper.map(customer, CustomerResponseDto.class);
 
-        CustomerResponseDto dto =
-                modelMapper.map(
-                        customer,
-                        CustomerResponseDto.class);
         dto.setCustomerId(customer.getId());
         dto.setEmail(customer.getUser().getEmail());
         dto.setMobileNumber(customer.getUser().getMobileNumber());
+        dto.setUserId(customer.getUser().getId());
+        dto.setFullName(customer.getUser().getFullName());
 
-        dto.setUserId(
-                customer.getUser().getId());
-
-        dto.setFullName(
-                customer.getUser().getFullName());
+        // Map the collection of nominees to NomineeDto list
+        if (customer.getNominees() != null) {
+            dto.setNominees(customer.getNominees().stream()
+                    .map(nominee -> NomineeDto.builder()
+                            .name(nominee.getName())
+                            .relation(nominee.getRelation())
+                            .build())
+                    .collect(java.util.stream.Collectors.toList()));
+        } else {
+            dto.setNominees(new java.util.ArrayList<>());
+        }
 
         return dto;
     }

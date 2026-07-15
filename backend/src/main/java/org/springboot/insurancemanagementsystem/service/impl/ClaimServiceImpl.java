@@ -23,6 +23,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -55,6 +56,10 @@ public class ClaimServiceImpl implements ClaimService {
                 customerRepository.findByUserEmail(customerEmail)
                         .orElseThrow(() ->
                                 new ResourceNotFoundException("Customer not found"));
+
+        if (request.getIncidentDate().isBefore(LocalDate.now().minusDays(15))) {
+            throw new BusinessException("Incident date must be within the last 15 days.");
+        }
 
         Policy policy = policyRepository.findByIdWithLock(request.getPolicyId())
                 .orElseThrow(() ->

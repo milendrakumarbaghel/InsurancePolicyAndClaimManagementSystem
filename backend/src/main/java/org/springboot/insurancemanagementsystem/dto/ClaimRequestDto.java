@@ -3,6 +3,7 @@ package org.springboot.insurancemanagementsystem.dto;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.*;
 import lombok.*;
+import org.springboot.insurancemanagementsystem.validator.WithinLastDays;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -33,6 +34,7 @@ public class ClaimRequestDto {
 
     @NotNull(message = "Incident date is required")
     @PastOrPresent(message = "Incident date cannot be a future date")
+    @WithinLastDays(days = 15, message = "Incident date must be within the last 15 days.")
     private LocalDate incidentDate;
 
     @NotNull(message = "Documents list must not be null")

@@ -1,9 +1,11 @@
 package org.springboot.insurancemanagementsystem.dto;
 
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.*;
 import lombok.*;
 
 import java.time.LocalDate;
+import java.util.List;
 
 @Getter
 @Setter
@@ -12,20 +14,9 @@ import java.time.LocalDate;
 @Builder
 public class CustomerRequestDto {
 
-    @NotBlank(message = "Nominee name is required")
-    @Size(min = 2, max = 50, message = "Nominee name must be between 2 and 50 characters")
-    @Pattern(
-            regexp = "^[a-zA-Z\\s]+$",
-            message = "Nominee name must contain only letters and spaces only"
-    )
-    private String nomineeName;
-
-    @NotBlank(message = "Nominee relation is required")
-    @Pattern(
-            regexp = "^[a-zA-Z\\s]+$",
-            message = "Nominee relation must contain letters and spaces only"
-    )
-    private String nomineeRelation;
+    @Valid
+    @Size(max = 3, message = "A maximum of 3 nominees is allowed.")
+    private List<NomineeDto> nominees = new java.util.ArrayList<>();
 
     @NotNull(message = "Date of birth is required")
     @Past(message = "Date of birth must be a past date")

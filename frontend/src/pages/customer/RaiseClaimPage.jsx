@@ -20,6 +20,7 @@ import {
 } from "../../utils/validators";
 import { DOCUMENT_TYPE_SUGGESTIONS } from "../../utils/constants";
 import { formatCurrency } from "../../utils/formatters";
+import { withinLastDays } from "../../utils/validators";
 
 const schema = {
   policyId: [required("Please select a policy")],
@@ -30,7 +31,11 @@ const schema = {
     maxLength(1000, "Must be between 10 and 1000 characters"),
     pattern(patterns.noAngleBrackets, "Cannot contain < or >"),
   ],
-  incidentDate: [required("Incident date is required"), pastOrPresent("Cannot be a future date")],
+  incidentDate: [
+    required("Incident date is required"), 
+    pastOrPresent("Cannot be a future date"),
+    withinLastDays(15, "Incident date must be within the last 15 days.")
+  ],
 };
 
 const emptyDocument = () => ({ documentName: "", documentType: "", documentReference: "", file: null });
@@ -243,6 +248,7 @@ export default function RaiseClaimPage() {
               label="Incident date"
               name="incidentDate"
               type="date"
+              min={new Date(Date.now() - 15 * 24 * 60 * 60 * 1000).toISOString().split("T")[0]}
               max={new Date().toISOString().split("T")[0]}
               value={values.incidentDate}
               onChange={handleChange}

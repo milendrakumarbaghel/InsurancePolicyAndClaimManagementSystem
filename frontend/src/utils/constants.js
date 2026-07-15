@@ -56,3 +56,14 @@ export const DOCUMENT_TYPE_SUGGESTIONS = [
   "Invoice",
   "Other",
 ];
+
+export const ALLOWED_RELATIONS = [
+  { value: "FATHER", label: "Father" },
+  { value: "MOTHER", label: "Mother" },
+  { value: "SPOUSE", label: "Spouse" },
+  { value: "SON", label: "Son" },
+  { value: "DAUGHTER", label: "Daughter" },
+  { value: "BROTHER", label: "Brother" },
+  { value: "SISTER", label: "Sister" },
+  { value: "OTHER", label: "Other" }
+];

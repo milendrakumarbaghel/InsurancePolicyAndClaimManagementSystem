@@ -68,8 +68,8 @@ export default function CustomerDetailPage() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 mb-8">
         <Card>
           <p className="text-xs uppercase tracking-wider text-ink-400 font-semibold mb-3">Contact</p>
-          <p className="text-sm text-ink-800 dark:text-ink-100">{customer.mobileNumber}</p>
-          <p className="text-sm text-ink-800 dark:text-ink-100">{customer.email}</p>
+          <p className="text-sm text-ink-800 dark:text-ink-100"> PHONE:{customer.mobileNumber}</p>
+          <p className="text-sm text-ink-800 dark:text-ink-100"> EMAIL:{customer.email}</p>
         </Card>
         <Card>
           <p className="text-xs uppercase tracking-wider text-ink-400 font-semibold mb-3">Address</p>
@@ -77,9 +77,26 @@ export default function CustomerDetailPage() {
           <p className="text-sm text-ink-800 dark:text-ink-100">{customer.city}, {customer.state} — {customer.pinCode}</p>
         </Card>
         <Card>
-          <p className="text-xs uppercase tracking-wider text-ink-400 font-semibold mb-3">Nominee</p>
-          <p className="text-sm text-ink-800 dark:text-ink-100">{customer.nomineeName} ({toTitleCase(customer.nomineeRelation)})</p>
-          <p className="text-sm text-ink-500 mt-1">Date of birth: {formatDate(customer.dateOfBirth)}</p>
+          <p className="text-xs uppercase tracking-wider text-ink-400 font-semibold mb-3">
+            Nominee Directory ({customer.nominees?.length || 0})
+          </p>
+          {!customer.nominees || customer.nominees.length === 0 ? (
+            <p className="text-sm text-ink-500 italic">No nominees assigned.</p>
+          ) : (
+            <div className="space-y-2.5">
+              {customer.nominees.map((nom, idx) => (
+                <div key={idx} className="text-sm border-b border-ink-100 dark:border-ink-800 last:border-none pb-2 last:pb-0">
+                  <p className="font-medium text-ink-800 dark:text-ink-100">{nom.name}</p>
+                  <p className="text-xs text-harbor-600 dark:text-harbor-400 font-semibold mt-0.5">
+                    {toTitleCase(nom.relation)}
+                  </p>
+                </div>
+              ))}
+            </div>
+          )}
+          <p className="text-xs text-ink-400 mt-3 pt-2 border-t border-ink-100 dark:border-ink-800">
+            Customer DOB: {formatDate(customer.dateOfBirth)}
+          </p>
         </Card>
       </div>
 

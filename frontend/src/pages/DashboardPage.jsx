@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import {
-  ShieldCheck, FileWarning, Wallet, ArrowRight, Boxes, ClipboardList, Users, UserCog, FileStack,
+  ShieldCheck, FileWarning, Wallet, ArrowRight, Boxes, ClipboardList, Users, UserCog, FileStack, UserCircle, UserPlus,
 } from "lucide-react";
 import Card from "../components/common/Card";
 import Spinner from "../components/common/Spinner";
@@ -14,6 +14,7 @@ import { claimService } from "../services/claimService";
 import { userService } from "../services/userService";
 import { formatCurrency, formatDate } from "../utils/formatters";
 import { ROLES } from "../utils/constants";
+import { customerService } from "../services/customerService";
 
 const ACCENT_CLASSES = {
   harbor: "bg-harbor-50 dark:bg-ink-800 text-harbor-600",
@@ -39,14 +40,29 @@ function CustomerOverview() {
   const [policies, setPolicies] = useState([]);
   const [claims, setClaims] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [hasProfile, setHasProfile] = useState(false);
+  const [checkingProfile, setCheckingProfile] = useState(true);
 
   useEffect(() => {
-    Promise.all([policyService.getMy(), claimService.getMy()])
-      .then(([p, c]) => {
+    // Fetch dashboard overview statistics alongside the customer ledger profile status
+    Promise.all([
+      policyService.getMy(), 
+      claimService.getMy(),
+      customerService.getMyProfile().then(() => true).catch(err => err?.response?.status !== 404)
+    ])
+      .then(([p, c, profileExists]) => {
         setPolicies(p);
         setClaims(c);
+        setHasProfile(profileExists);
       })
-      .finally(() => setIsLoading(false));
+      .catch(() => {
+        // Fallback state context for general mapping failures
+        setHasProfile(false);
+      })
+      .finally(() => {
+        setIsLoading(false);
+        setCheckingProfile(false);
+      });
   }, []);
 
   if (isLoading) return <Spinner label="Loading your overview..." />;
@@ -122,6 +138,18 @@ function CustomerOverview() {
       </div>
 
       <div className="mt-6 flex flex-wrap gap-3">
+        {/* Dynamic button mapping checks based on whether customer profile directory entry exists */}
+        {checkingProfile ? (
+          <span className="text-sm text-ink-400">Verifying profile status…</span>
+        ) : hasProfile ? (
+          <Button as={Link} to="/dashboard/profile" variant="outline" icon={UserCircle}>
+            Update Profile
+          </Button>
+        ) : (
+          <Button as={Link} to="/dashboard/profile" variant="primary" icon={UserPlus}>
+            Create Customer Profile
+          </Button>
+        )}
         <Button as={Link} to="/dashboard/products">Browse plans</Button>
         <Button as={Link} to="/dashboard/claims/new" variant="outline">Raise a claim</Button>
       </div>
