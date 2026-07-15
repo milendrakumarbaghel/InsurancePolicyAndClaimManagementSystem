@@ -13,6 +13,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
 
 import java.time.LocalDateTime;
 import java.util.HashMap;
@@ -189,15 +190,15 @@ public class GlobalExceptionHandler {
                 "Too many requests. Please try again later.");
     }
 
-    @ExceptionHandler(Exception.class)
-    public ResponseEntity<Map<String, Object>> handleGeneric(
-            Exception ex) {
+    @ExceptionHandler(MaxUploadSizeExceededException.class)
+    public ResponseEntity<Map<String, Object>> handleMaxUploadSizeExceeded(MaxUploadSizeExceededException ex) {
+        Map<String, Object> body = new HashMap<>();
+        body.put("success", false);
+        body.put("status", HttpStatus.PAYLOAD_TOO_LARGE.value());
+        body.put("message", "File size exceeds the maximum allowed limit of 1 MB.");
+        body.put("timestamp", LocalDateTime.now().toString());
 
-        log.error("Unexpected error occurred", ex);
-
-        return buildResponse(
-                HttpStatus.INTERNAL_SERVER_ERROR,
-                "Something went wrong. Please try again later.");
+        return ResponseEntity.status(HttpStatus.PAYLOAD_TOO_LARGE).body(body);
     }
 
     @ExceptionHandler(CoverageExhaustedException.class)
@@ -211,6 +212,17 @@ public class GlobalExceptionHandler {
         response.put("requestedAmount", ex.getRequestedAmount());
 
         return ResponseEntity.badRequest().body(response);
+    }
+
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<Map<String, Object>> handleGeneric(
+            Exception ex) {
+
+        log.error("Unexpected error occurred", ex);
+
+        return buildResponse(
+                HttpStatus.INTERNAL_SERVER_ERROR,
+                "Something went wrong. Please try again later.");
     }
 
     private ResponseEntity<Map<String, Object>> buildResponse(HttpStatus status, String message) {

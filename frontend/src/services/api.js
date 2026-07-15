@@ -93,6 +93,11 @@ export function getErrorMessage(error, fallback = "Something went wrong. Please 
   const data = error?.response?.data;
   if (!data) return error?.message || fallback;
 
+  // 1. Check for standard structured backend exception fields first (e.g., HTTP 413, BusinessException)
+  if (data.message && typeof data.message === "string") return data.message;
+  if (data.error && typeof data.error === "string") return data.error;
+
+  // 2. Handle specific policy sum insured coverage exhaustions
   if (data.remainingCoverage !== undefined) {
     if (data.remainingCoverage <= 0) {
       return "This policy has exhausted its Sum Insured.\nNo further claims can be processed.";
@@ -102,13 +107,15 @@ export function getErrorMessage(error, fallback = "Something went wrong. Please 
     return `${data.message}\n\nCoverage Amount: ${fmt(data.coverageAmount)}\nAlready Approved: ${fmt(data.approvedClaimAmount)}\nRemaining Coverage: ${fmt(data.remainingCoverage)}`;
   }
   
+  // 3. Handle loose strings returned by endpoints
   if (typeof data === "string") return data;
-  if (data.message) return data.message;
-  if (data.error) return data.error;
+
+  // 4. Handle Spring validation MethodArgumentNotValidException map tracking nested attributes (e.g., nominee fields, city, state)
   if (data.errors && typeof data.errors === "object") {
     const firstKey = Object.keys(data.errors)[0];
     return data.errors[firstKey] || fallback;
   }
+
   return fallback;
 }
 

@@ -6,9 +6,17 @@ export default function FileUpload({ onFileSelected, accept = ".pdf,.jpg,.jpeg,.
   const [dragOver, setDragOver] = useState(false);
   const [fileName, setFileName] = useState("");
 
+  const MAX_FILE_SIZE = 1 * 1024 * 1024;
+
   const handleFiles = (files) => {
     const file = files?.[0];
     if (!file) return;
+
+    if (file.size > MAX_FILE_SIZE) {
+      toast.error("The selected file is larger than the maximum allowed size (1 MB). Please choose a smaller file.");
+      if (inputRef.current) inputRef.current.value = ""; // Reset file description element slot
+      return;
+    }
     setFileName(file.name);
     onFileSelected(file);
   };
@@ -52,6 +60,7 @@ export default function FileUpload({ onFileSelected, accept = ".pdf,.jpg,.jpeg,.
             Drop a file here, or <span className="text-harbor-500">browse</span>
           </p>
           <p className="text-xs text-ink-400">PDF, JPG or PNG</p>
+          <p className="text-xs font-semibold text-ink-500 dark:text-ink-400">Maximum file size: 1 MB</p>
         </>
       )}
     </div>

@@ -11,6 +11,6 @@ import java.lang.annotation.*;
 public @interface WithinLastDays {
     String message() default "Incident date must be within the last 15 days.";
     Class<?>[] groups() default {};
-    Class<? extends Payload>[] channels() default {};
+    Class<? extends Payload>[] payload() default {};
     int days() default 15;
 }

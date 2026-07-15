@@ -1,7 +1,14 @@
 import { useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import toast from "react-hot-toast";
-import { ArrowLeft, FilePlus2, Trash2, Send, UploadCloud, ShieldCheck } from "lucide-react";
+import {
+  ArrowLeft,
+  FilePlus2,
+  Trash2,
+  Send,
+  UploadCloud,
+  ShieldCheck,
+} from "lucide-react";
 import Card from "../../components/common/Card";
 import PageHeader from "../../components/common/PageHeader";
 import Select from "../../components/common/Select";
@@ -16,7 +23,14 @@ import { claimService } from "../../services/claimService";
 import { claimDocumentService } from "../../services/claimDocumentService";
 import { getErrorMessage } from "../../services/api";
 import {
-  patterns, required, minLength, maxLength, pattern, positive, max, pastOrPresent,
+  patterns,
+  required,
+  minLength,
+  maxLength,
+  pattern,
+  positive,
+  max,
+  pastOrPresent,
 } from "../../utils/validators";
 import { DOCUMENT_TYPE_SUGGESTIONS } from "../../utils/constants";
 import { formatCurrency } from "../../utils/formatters";
@@ -24,7 +38,11 @@ import { withinLastDays } from "../../utils/validators";
 
 const schema = {
   policyId: [required("Please select a policy")],
-  claimAmount: [required("Claim amount is required"), positive(), max(99999999, "Exceeds the maximum allowable limit")],
+  claimAmount: [
+    required("Claim amount is required"),
+    positive(),
+    max(99999999, "Exceeds the maximum allowable limit"),
+  ],
   claimReason: [
     required("Please describe the reason for your claim"),
     minLength(10, "Must be between 10 and 1000 characters"),
@@ -32,13 +50,18 @@ const schema = {
     pattern(patterns.noAngleBrackets, "Cannot contain < or >"),
   ],
   incidentDate: [
-    required("Incident date is required"), 
+    required("Incident date is required"),
     pastOrPresent("Cannot be a future date"),
-    withinLastDays(15, "Incident date must be within the last 15 days.")
+    withinLastDays(15, "Incident date must be within the last 15 days."),
   ],
 };
 
-const emptyDocument = () => ({ documentName: "", documentType: "", documentReference: "", file: null });
+const emptyDocument = () => ({
+  documentName: "",
+  documentType: "",
+  documentReference: "",
+  file: null,
+});
 
 export default function RaiseClaimPage() {
   const navigate = useNavigate();
@@ -49,17 +72,36 @@ export default function RaiseClaimPage() {
   const [coverageInfo, setCoverageInfo] = useState(null);
   const [isLoadingCoverage, setIsLoadingCoverage] = useState(false);
 
-  const { values, errors, setErrors, handleChange, handleBlur, handleSubmit, isSubmitting, submitError } = useForm({
-    initialValues: { policyId: "", claimAmount: "", claimReason: "", incidentDate: "" },
+  const {
+    values,
+    errors,
+    setErrors,
+    handleChange,
+    handleBlur,
+    handleSubmit,
+    isSubmitting,
+    submitError,
+  } = useForm({
+    initialValues: {
+      policyId: "",
+      claimAmount: "",
+      claimReason: "",
+      incidentDate: "",
+    },
     schema,
     onSubmit: async (formValues) => {
       const docErrors = documents.map((doc) => {
         const e = {};
-        if (!doc.documentName || doc.documentName.length < 3) e.documentName = "Min 3 characters";
-        else if (!patterns.documentName.test(doc.documentName)) e.documentName = "Invalid characters";
-        if (!doc.documentType || doc.documentType.length < 2) e.documentType = "Min 2 characters";
-        else if (!patterns.documentType.test(doc.documentType)) e.documentType = "Letters, spaces, / or - only";
-        if (!doc.documentReference || doc.documentReference.length < 5) e.documentReference = "Min 5 characters";
+        if (!doc.documentName || doc.documentName.length < 3)
+          e.documentName = "Min 3 characters";
+        else if (!patterns.documentName.test(doc.documentName))
+          e.documentName = "Invalid characters";
+        if (!doc.documentType || doc.documentType.length < 2)
+          e.documentType = "Min 2 characters";
+        else if (!patterns.documentType.test(doc.documentType))
+          e.documentType = "Letters, spaces, / or - only";
+        if (!doc.documentReference || doc.documentReference.length < 5)
+          e.documentReference = "Min 5 characters";
         if (!doc.file) e.file = "Please upload a file";
         return e;
       });
@@ -67,8 +109,10 @@ export default function RaiseClaimPage() {
       setDocumentErrors(docErrors);
 
       const hasDocErrors = docErrors.some((e) => Object.keys(e).length > 0);
-      if (hasDocErrors) throw new Error("Please fix the highlighted document fields.");
-      if (documents.length === 0) throw new Error("At least one supporting document is required.");
+      if (hasDocErrors)
+        throw new Error("Please fix the highlighted document fields.");
+      if (documents.length === 0)
+        throw new Error("At least one supporting document is required.");
 
       try {
         const claim = await claimService.raise({
@@ -76,11 +120,13 @@ export default function RaiseClaimPage() {
           claimAmount: Number(formValues.claimAmount),
           claimReason: formValues.claimReason,
           incidentDate: formValues.incidentDate,
-          documents: documents.map(({ documentName, documentType, documentReference }) => ({
-            documentName,
-            documentType,
-            documentReference,
-          })),
+          documents: documents.map(
+            ({ documentName, documentType, documentReference }) => ({
+              documentName,
+              documentType,
+              documentReference,
+            }),
+          ),
         });
 
         const uploadPromises = documents
@@ -96,7 +142,10 @@ export default function RaiseClaimPage() {
       } catch (error) {
         const data = error.response?.data;
         if (data && data.remainingCoverage !== undefined) {
-          setErrors((prev) => ({ ...prev, claimAmount: "Exceeds remaining coverage" }));
+          setErrors((prev) => ({
+            ...prev,
+            claimAmount: "Exceeds remaining coverage",
+          }));
         }
         throw error;
       }
@@ -107,7 +156,9 @@ export default function RaiseClaimPage() {
     policyService
       .getMy()
       .then((data) => setPolicies(data.filter((p) => p.status === "ACTIVE")))
-      .catch((err) => toast.error(getErrorMessage(err, "Could not load your policies.")))
+      .catch((err) =>
+        toast.error(getErrorMessage(err, "Could not load your policies.")),
+      )
       .finally(() => setIsLoadingPolicies(false));
   }, []);
 
@@ -117,7 +168,9 @@ export default function RaiseClaimPage() {
       setCoverageInfo(null);
       return;
     }
-    const selectedPolicy = policies.find((p) => String(p.policyId) === String(values.policyId));
+    const selectedPolicy = policies.find(
+      (p) => String(p.policyId) === String(values.policyId),
+    );
     if (!selectedPolicy) {
       setCoverageInfo(null);
       return;
@@ -128,7 +181,7 @@ export default function RaiseClaimPage() {
       .then((allClaims) => {
         // Find claims that belong to the selected policy (matched by policyNumber)
         const policyClaims = allClaims.filter(
-          (c) => c.policyNumber === selectedPolicy.policyNumber
+          (c) => c.policyNumber === selectedPolicy.policyNumber,
         );
         if (policyClaims.length === 0) {
           // No prior claims — we show a "no prior claims" info indicator
@@ -149,7 +202,9 @@ export default function RaiseClaimPage() {
   }, [values.policyId, policies]);
 
   const updateDocument = (index, field, value) => {
-    setDocuments((prev) => prev.map((d, i) => (i === index ? { ...d, [field]: value } : d)));
+    setDocuments((prev) =>
+      prev.map((d, i) => (i === index ? { ...d, [field]: value } : d)),
+    );
   };
 
   const addDocument = () => {
@@ -164,17 +219,26 @@ export default function RaiseClaimPage() {
 
   return (
     <div className="max-w-2xl">
-      <Link to="/dashboard/claims" className="mb-4 flex items-center gap-1.5 text-sm font-medium text-ink-500 hover:text-harbor-600 dark:hover:text-harbor-400 w-fit">
+      <Link
+        to="/dashboard/claims"
+        className="mb-4 flex items-center gap-1.5 text-sm font-medium text-ink-500 hover:text-harbor-600 dark:hover:text-harbor-400 w-fit"
+      >
         <ArrowLeft className="h-4 w-4" /> Back to claims
       </Link>
 
-      <PageHeader eyebrow="Claims" title="Raise a Claim" description="Provide the incident details and supporting documents for your claim." />
+      <PageHeader
+        eyebrow="Claims"
+        title="Raise a Claim"
+        description="Provide the incident details and supporting documents for your claim."
+      />
 
       <Card>
         {isLoadingPolicies ? (
           <Spinner label="Loading your policies..." />
         ) : policies.length === 0 ? (
-          <Alert type="warning">You don't have any active policies to claim against yet.</Alert>
+          <Alert type="warning">
+            You don't have any active policies to claim against yet.
+          </Alert>
         ) : (
           <form onSubmit={handleSubmit} className="space-y-5" noValidate>
             {submitError && <Alert type="error">{submitError}</Alert>}
@@ -183,7 +247,10 @@ export default function RaiseClaimPage() {
               label="Policy"
               name="policyId"
               placeholder="Select an active policy"
-              options={policies.map((p) => ({ value: p.policyId, label: `${p.policyNumber} — ${p.planName}` }))}
+              options={policies.map((p) => ({
+                value: p.policyId,
+                label: `${p.policyNumber} — ${p.planName}`,
+              }))}
               value={values.policyId}
               onChange={handleChange}
               onBlur={handleBlur}
@@ -193,44 +260,54 @@ export default function RaiseClaimPage() {
 
             {values.policyId && isLoadingCoverage && (
               <div className="rounded-xl border border-ink-200 dark:border-ink-700 px-4 py-3 flex items-center gap-2">
-                <span className="text-sm text-ink-500">Loading coverage info…</span>
-              </div>
-            )}
-
-            {values.policyId && !isLoadingCoverage && coverageInfo && !coverageInfo.noPriorClaims && (
-              <div className="rounded-xl border border-success/30 bg-success/5 dark:bg-success/10 px-4 py-3 flex items-center gap-3">
-                <ShieldCheck className="h-5 w-5 text-success shrink-0" />
-                <div className="flex flex-wrap gap-x-6 gap-y-1 text-sm">
-                  <span className="text-ink-500">
-                    Total coverage:{" "}
-                    <span className="font-mono-data font-medium text-ink-800 dark:text-ink-100">
-                      {formatCurrency(coverageInfo.totalCoverage ?? coverageInfo.coverageAmount)}
-                    </span>
-                  </span>
-                  <span className="text-ink-500">
-                    Previously claimed:{" "}
-                    <span className="font-mono-data font-medium text-ink-800 dark:text-ink-100">
-                      {formatCurrency(coverageInfo.totalPreviousClaimAmount)}
-                    </span>
-                  </span>
-                  <span className="text-ink-500">
-                    Remaining coverage:{" "}
-                    <span className="font-mono-data font-semibold text-success">
-                      {formatCurrency(coverageInfo.remainingCoverage)}
-                    </span>
-                  </span>
-                </div>
-              </div>
-            )}
-
-            {values.policyId && !isLoadingCoverage && coverageInfo?.noPriorClaims && (
-              <div className="rounded-xl border border-success/30 bg-success/5 dark:bg-success/10 px-4 py-3 flex items-center gap-2">
-                <ShieldCheck className="h-5 w-5 text-success shrink-0" />
                 <span className="text-sm text-ink-500">
-                  No prior claims on this policy — full coverage is available.
+                  Loading coverage info…
                 </span>
               </div>
             )}
+
+            {values.policyId &&
+              !isLoadingCoverage &&
+              coverageInfo &&
+              !coverageInfo.noPriorClaims && (
+                <div className="rounded-xl border border-success/30 bg-success/5 dark:bg-success/10 px-4 py-3 flex items-center gap-3">
+                  <ShieldCheck className="h-5 w-5 text-success shrink-0" />
+                  <div className="flex flex-wrap gap-x-6 gap-y-1 text-sm">
+                    <span className="text-ink-500">
+                      Total coverage:{" "}
+                      <span className="font-mono-data font-medium text-ink-800 dark:text-ink-100">
+                        {formatCurrency(
+                          coverageInfo.totalCoverage ??
+                            coverageInfo.coverageAmount,
+                        )}
+                      </span>
+                    </span>
+                    <span className="text-ink-500">
+                      Previously claimed:{" "}
+                      <span className="font-mono-data font-medium text-ink-800 dark:text-ink-100">
+                        {formatCurrency(coverageInfo.totalPreviousClaimAmount)}
+                      </span>
+                    </span>
+                    <span className="text-ink-500">
+                      Remaining coverage:{" "}
+                      <span className="font-mono-data font-semibold text-success">
+                        {formatCurrency(coverageInfo.remainingCoverage)}
+                      </span>
+                    </span>
+                  </div>
+                </div>
+              )}
+
+            {values.policyId &&
+              !isLoadingCoverage &&
+              coverageInfo?.noPriorClaims && (
+                <div className="rounded-xl border border-success/30 bg-success/5 dark:bg-success/10 px-4 py-3 flex items-center gap-2">
+                  <ShieldCheck className="h-5 w-5 text-success shrink-0" />
+                  <span className="text-sm text-ink-500">
+                    No prior claims on this policy — full coverage is available.
+                  </span>
+                </div>
+              )}
 
             <Input
               label="Claim amount (₹)"
@@ -248,7 +325,11 @@ export default function RaiseClaimPage() {
               label="Incident date"
               name="incidentDate"
               type="date"
-              min={new Date(Date.now() - 15 * 24 * 60 * 60 * 1000).toISOString().split("T")[0]}
+              min={
+                new Date(Date.now() - 15 * 24 * 60 * 60 * 1000)
+                  .toISOString()
+                  .split("T")[0]
+              }
               max={new Date().toISOString().split("T")[0]}
               value={values.incidentDate}
               onChange={handleChange}
@@ -274,14 +355,24 @@ export default function RaiseClaimPage() {
                 <label className="text-sm font-medium text-ink-700 dark:text-ink-200">
                   Supporting documents <span className="text-danger">*</span>
                 </label>
-                <Button type="button" size="sm" variant="outline" icon={FilePlus2} onClick={addDocument} disabled={documents.length >= 10}>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  icon={FilePlus2}
+                  onClick={addDocument}
+                  disabled={documents.length >= 10}
+                >
                   Add document
                 </Button>
               </div>
 
               <div className="space-y-4">
                 {documents.map((doc, index) => (
-                  <div key={index} className="rounded-xl border border-ink-200 dark:border-ink-700 p-4 space-y-3 relative">
+                  <div
+                    key={index}
+                    className="rounded-xl border border-ink-200 dark:border-ink-700 p-4 space-y-3 relative"
+                  >
                     {documents.length > 1 && (
                       <button
                         type="button"
@@ -296,7 +387,9 @@ export default function RaiseClaimPage() {
                       label="Document name"
                       placeholder="Hospital Bill.pdf"
                       value={doc.documentName}
-                      onChange={(e) => updateDocument(index, "documentName", e.target.value)}
+                      onChange={(e) =>
+                        updateDocument(index, "documentName", e.target.value)
+                      }
                       error={documentErrors[index]?.documentName}
                     />
                     <Input
@@ -304,17 +397,27 @@ export default function RaiseClaimPage() {
                       placeholder="Medical Bill"
                       list={`doc-type-suggestions-${index}`}
                       value={doc.documentType}
-                      onChange={(e) => updateDocument(index, "documentType", e.target.value)}
+                      onChange={(e) =>
+                        updateDocument(index, "documentType", e.target.value)
+                      }
                       error={documentErrors[index]?.documentType}
                     />
                     <datalist id={`doc-type-suggestions-${index}`}>
-                      {DOCUMENT_TYPE_SUGGESTIONS.map((s) => <option key={s} value={s} />)}
+                      {DOCUMENT_TYPE_SUGGESTIONS.map((s) => (
+                        <option key={s} value={s} />
+                      ))}
                     </datalist>
                     <Input
                       label="Document summary"
                       placeholder="Enter a description of this document"
                       value={doc.documentReference}
-                      onChange={(e) => updateDocument(index, "documentReference", e.target.value)}
+                      onChange={(e) =>
+                        updateDocument(
+                          index,
+                          "documentReference",
+                          e.target.value,
+                        )
+                      }
                       error={documentErrors[index]?.documentReference}
                     />
 
@@ -325,7 +428,9 @@ export default function RaiseClaimPage() {
                       <div className="flex items-center gap-3">
                         <label className="flex items-center gap-2 cursor-pointer rounded-lg border border-ink-300 dark:border-ink-700 bg-white dark:bg-ink-900 px-4 py-2 text-sm font-medium text-ink-700 dark:text-ink-200 hover:bg-ink-50 dark:hover:bg-ink-800 transition-colors">
                           <UploadCloud className="h-4 w-4 text-ink-400" />
-                          <span>{doc.file ? "Change File" : "Choose File"}</span>
+                          <span>
+                            {doc.file ? "Change File" : "Choose File"}
+                          </span>
                           <input
                             type="file"
                             accept=".pdf,.jpg,.jpeg,.png"
@@ -333,24 +438,42 @@ export default function RaiseClaimPage() {
                             onChange={(e) => {
                               const file = e.target.files?.[0];
                               if (file) {
+                                if (file.size > 1 * 1024 * 1024) {
+                                  toast.error(
+                                    "The selected file is larger than the maximum allowed size (1 MB). Please choose a smaller file.",
+                                  );
+                                  e.target.value = ""; // Clear selected memory slot references
+                                  return;
+                                }
                                 updateDocument(index, "file", file);
-                                updateDocument(index, "documentName", file.name);
+                                updateDocument(
+                                  index,
+                                  "documentName",
+                                  file.name,
+                                );
                                 let docType = "Medical Bill";
-                                if (file.type.includes("pdf")) docType = "PDF Document";
-                                else if (file.type.includes("image")) docType = "Image Scan";
+                                if (file.type.includes("pdf"))
+                                  docType = "PDF Document";
+                                else if (file.type.includes("image"))
+                                  docType = "Image Scan";
                                 updateDocument(index, "documentType", docType);
                               }
                             }}
                           />
                         </label>
                         {doc.file && (
-                          <span className="text-xs text-ink-500 font-mono-data truncate max-w-50" title={doc.file.name}>
+                          <span
+                            className="text-xs text-ink-500 font-mono-data truncate max-w-50"
+                            title={doc.file.name}
+                          >
                             {doc.file.name}
                           </span>
                         )}
                       </div>
                       {documentErrors[index]?.file && (
-                        <p className="text-xs font-medium text-danger mt-1">{documentErrors[index].file}</p>
+                        <p className="text-xs font-medium text-danger mt-1">
+                          {documentErrors[index].file}
+                        </p>
                       )}
                     </div>
                   </div>
@@ -362,7 +485,11 @@ export default function RaiseClaimPage() {
               <Button type="submit" isLoading={isSubmitting} icon={Send}>
                 Submit claim
               </Button>
-              <Button type="button" variant="outline" onClick={() => navigate("/dashboard/claims")}>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => navigate("/dashboard/claims")}
+              >
                 Cancel
               </Button>
             </div>
