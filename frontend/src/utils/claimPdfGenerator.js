@@ -102,7 +102,7 @@ function drawHeader(doc) {
   doc.setFont("helvetica", "bold");
   doc.setFontSize(16);
   doc.setTextColor(255, 255, 255);
-  doc.text("InsureVault", 14, 13);
+  doc.text("Assurly", 14, 13);
 
   // Sub-tagline
   doc.setFont("helvetica", "normal");
@@ -294,7 +294,7 @@ export function downloadClaimDetailPdf(claim, documents = [], history = []) {
     const planRows = [];
     if (claim.planDetails) {
       planRows.push(["Plan Name",       safe(claim.planDetails.planName)]);
-      planRows.push(["Coverage Amount", fmtCurrency(claim.planDetails.coverageAmount)]);
+      planRows.push(["Maximum Coverage", fmtCurrency(claim.planDetails.coverageAmount)]);
     }
     if (claim.planSummary) {
       planRows.push(["Previous Claims",    safe(claim.planSummary.totalPreviousClaims)]);

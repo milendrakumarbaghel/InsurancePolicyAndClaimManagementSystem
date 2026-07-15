@@ -123,6 +123,7 @@ export default function MyProfilePage() {
             label="Date of birth"
             name="dateOfBirth"
             type="date"
+            max={new Date().toISOString().split("T")[0]}
             value={values.dateOfBirth}
             onChange={handleChange}
             onBlur={handleBlur}

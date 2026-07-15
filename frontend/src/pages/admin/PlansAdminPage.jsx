@@ -52,10 +52,10 @@ export default function PlansAdminPage() {
       { key: "PolicyPlanId", header: "Plan ID" },
       { key: "planName", header: "Plan Name" },
       { key: "productName", header: "Product" },
-      { key: "coverageAmount", header: "Coverage Amount", format: (v) => formatCurrency(v) },
+      { key: "coverageAmount", header: "Maximum Coverage Amount", format: (v) => formatCurrency(v) },
       { key: "premiumAmount", header: "Premium Amount", format: (v) => formatCurrency(v) },
       { key: "premiumType", header: "Premium Cycle", format: (v) => toTitleCase(v) },
-      { key: "duration", header: "Duration (months)" },
+      { key: "duration", header: "Maximum Duration (Months)" },
       { key: "active", header: "Status", format: (v) => (v ? "Active" : "Inactive") },
     ]);
     toast.success("Plans exported successfully.");

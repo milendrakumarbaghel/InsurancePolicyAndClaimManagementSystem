@@ -118,6 +118,9 @@ export const pastDate18Years =
   (value) => {
     if (!value) return null;
     const dob = new Date(value);
+    const today = new Date();
+    today.setHours(23, 59, 59, 999);
+    if (dob > today) return "Date of birth cannot be in the future";
     const cutoff = new Date();
     cutoff.setFullYear(cutoff.getFullYear() - 18);
     if (dob > cutoff) return message;

@@ -94,17 +94,17 @@ export default function PlansByProductPage() {
               </div>
               <div className="mt-4 space-y-2 text-sm flex-1">
                 <div className="flex justify-between">
-                  <span className="text-ink-500">Coverage</span>
+                  <span className="text-ink-500">Maximum Coverage Amount</span>
                   <span className="font-mono-data font-semibold text-ink-800 dark:text-ink-100">{formatCurrency(plan.coverageAmount)}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-ink-500">Premium</span>
+                  <span className="text-ink-500">Premium Amount</span>
                   <span className="font-mono-data font-semibold text-ink-800 dark:text-ink-100">
                     {formatCurrency(plan.premiumAmount)} / {toTitleCase(plan.premiumType)}
                   </span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-ink-500">Duration</span>
+                  <span className="text-ink-500">Maximum Duration (Months)</span>
                   <span className="font-mono-data font-semibold text-ink-800 dark:text-ink-100">{plan.duration} months</span>
                 </div>
               </div>
