@@ -6,7 +6,7 @@ export default function Switch({ checked, onChange, disabled = false, isLoading 
       type="button"
       disabled={disabled || isLoading}
       onClick={onChange}
-      className={`relative inline-flex h-5 w-9 flex-shrink-0 cursor-pointer rounded-full border border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-harbor-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed ${
+      className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-harbor-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed ${
         checked ? "bg-emerald-500 dark:bg-emerald-600" : "bg-slate-300 dark:bg-slate-700"
       } ${className}`}
     >

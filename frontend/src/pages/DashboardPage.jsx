@@ -24,7 +24,7 @@ const ACCENT_CLASSES = {
 function StatCard({ icon: Icon, label, value, accent = "harbor" }) {
   return (
     <Card className="flex items-center gap-4">
-      <div className={`flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-xl ${ACCENT_CLASSES[accent]}`}>
+      <div className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-xl ${ACCENT_CLASSES[accent]}`}>
         <Icon className="h-6 w-6" />
       </div>
       <div>

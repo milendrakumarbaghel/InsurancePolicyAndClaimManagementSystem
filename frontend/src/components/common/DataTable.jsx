@@ -15,7 +15,7 @@ export default function DataTable({ columns, data, isLoading, emptyTitle = "Noth
 
   return (
     <div className="overflow-x-auto rounded-xl border border-ink-200/70 dark:border-ink-800">
-      <table className="w-full min-w-[640px] text-left text-sm">
+      <table className="w-full min-w-160 text-left text-sm">
         <thead>
           <tr className="border-b border-ink-200/70 dark:border-ink-800 bg-ink-50/70 dark:bg-ink-800/40">
             {columns.map((col) => (

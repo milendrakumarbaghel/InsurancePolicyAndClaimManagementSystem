@@ -194,7 +194,7 @@ export default function RaiseClaimPage() {
 
             {values.policyId && !isLoadingCoverage && coverageInfo && !coverageInfo.noPriorClaims && (
               <div className="rounded-xl border border-success/30 bg-success/5 dark:bg-success/10 px-4 py-3 flex items-center gap-3">
-                <ShieldCheck className="h-5 w-5 text-success flex-shrink-0" />
+                <ShieldCheck className="h-5 w-5 text-success shrink-0" />
                 <div className="flex flex-wrap gap-x-6 gap-y-1 text-sm">
                   <span className="text-ink-500">
                     Total coverage:{" "}
@@ -220,7 +220,7 @@ export default function RaiseClaimPage() {
 
             {values.policyId && !isLoadingCoverage && coverageInfo?.noPriorClaims && (
               <div className="rounded-xl border border-success/30 bg-success/5 dark:bg-success/10 px-4 py-3 flex items-center gap-2">
-                <ShieldCheck className="h-5 w-5 text-success flex-shrink-0" />
+                <ShieldCheck className="h-5 w-5 text-success shrink-0" />
                 <span className="text-sm text-ink-500">
                   No prior claims on this policy — full coverage is available.
                 </span>
@@ -338,7 +338,7 @@ export default function RaiseClaimPage() {
                           />
                         </label>
                         {doc.file && (
-                          <span className="text-xs text-ink-500 font-mono-data truncate max-w-[200px]" title={doc.file.name}>
+                          <span className="text-xs text-ink-500 font-mono-data truncate max-w-50" title={doc.file.name}>
                             {doc.file.name}
                           </span>
                         )}

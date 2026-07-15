@@ -77,7 +77,7 @@ export default function DashboardSidebar({ role, open, onClose }) {
                 }`
               }
             >
-              <Icon className="h-4 w-4 flex-shrink-0" />
+              <Icon className="h-4 w-4 shrink-0" />
               {label}
             </NavLink>
           ))}

@@ -23,7 +23,7 @@ export default function Alert({ type = "info", children, className = "" }) {
   const { wrap, Icon } = styles[type] || styles.info;
   return (
     <div className={`flex items-start gap-2.5 rounded-lg border px-4 py-3 text-sm font-medium ${wrap} ${className}`}>
-      <Icon className="mt-0.5 h-4 w-4 flex-shrink-0" />
+      <Icon className="mt-0.5 h-4 w-4 shrink-0" />
       <span className="whitespace-pre-line">{children}</span>   
     </div>
   );

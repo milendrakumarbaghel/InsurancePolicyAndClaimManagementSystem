@@ -34,7 +34,7 @@ export default function Button({
     <Component
       disabled={disabled || isLoading}
       className={`inline-flex items-center justify-center rounded-lg font-semibold transition-all duration-200
-        focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2
+        focus-visible:outline-2 focus-visible:outline-offset-2
         disabled:opacity-50 disabled:cursor-not-allowed active:scale-[0.98]
         ${variants[variant]} ${sizes[size]} ${className}`}
       {...props}

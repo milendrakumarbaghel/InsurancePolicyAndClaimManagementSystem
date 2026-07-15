@@ -5,7 +5,7 @@ import Button from "../common/Button";
 export default function Hero() {
   return (
     <section className="relative overflow-hidden">
-      <div className="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_15%_10%,theme(colors.harbor.100),transparent_45%)] dark:bg-[radial-gradient(circle_at_15%_10%,theme(colors.harbor.900),transparent_45%)]" />
+      <div className="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_15%_10%,var(--color-harbor-100),transparent_45%)] dark:bg-[radial-gradient(circle_at_15%_10%,var(--color-harbor-900),transparent_45%)]" />
 
       <div className="mx-auto grid max-w-7xl grid-cols-1 items-center gap-14 px-5 sm:px-8 py-16 sm:py-24 lg:grid-cols-2">
         <div className="animate-fade-in-up">
@@ -53,7 +53,7 @@ export default function Hero() {
           </div>
         </div>
 
-        <div className="relative h-[420px] sm:h-[480px] hidden sm:block">
+        <div className="relative h-105 sm:h-120 hidden sm:block">
           <div className="absolute inset-0 flex items-center justify-center">
             <div className="relative w-72">
               <div className="absolute -left-10 top-16 w-64 rounded-2xl border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-800 shadow-xl p-5 animate-float-slow" style={{ animationDelay: "0.4s" }}>

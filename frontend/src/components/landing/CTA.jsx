@@ -6,7 +6,7 @@ export default function CTA() {
   return (
     <section className="mx-auto max-w-7xl px-5 sm:px-8 pb-20 sm:pb-28">
       <div className="relative overflow-hidden rounded-3xl bg-ink-950 px-8 sm:px-16 py-16 text-center">
-        <div className="absolute inset-0 opacity-30 bg-[radial-gradient(circle_at_80%_0%,theme(colors.harbor.700),transparent_50%)]" />
+        <div className="absolute inset-0 opacity-30 bg-[radial-gradient(circle_at_80%_0%,var(--color-harbor-700),transparent_50%)]" />
         <div className="relative z-10">
           <h2 className="font-display text-3xl sm:text-4xl font-semibold text-white max-w-xl mx-auto">
             Bring your policies into one honest ledger
