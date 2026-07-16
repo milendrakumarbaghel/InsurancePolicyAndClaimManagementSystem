@@ -11,7 +11,7 @@ import Button from "../components/common/Button";
 import { customerService } from "../services/customerService";
 import { policyService } from "../services/policyService";
 import { getErrorMessage } from "../services/api";
-import { formatCurrency, formatDate, toTitleCase } from "../utils/formatters";
+import { formatCurrency, formatDate, toTitleCase, getFullName } from "../utils/formatters";
 
 export default function CustomerDetailPage() {
   const { customerId } = useParams();
@@ -63,7 +63,7 @@ export default function CustomerDetailPage() {
         <ArrowLeft className="h-4 w-4" /> Back to customers
       </button>
 
-      <PageHeader eyebrow="Customer" title={customer.fullName} description={customer.email} />
+      <PageHeader eyebrow="Customer" title={getFullName(customer)} description={customer.email} />
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 mb-8">
         <Card>

@@ -14,7 +14,9 @@ import java.util.List;
 public class CustomerResponseDto {
     private Long customerId;
     private Long userId;
-    private String fullName;
+    private String firstName;
+    private String middleName;
+    private String lastName;
     private LocalDate dateOfBirth;
     private String city;
     private String state;

@@ -9,11 +9,21 @@ import { patterns, required, minLength, maxLength, pattern, email } from "../../
 import toast from "react-hot-toast";
 
 const schema = {
-  fullName: [
-    required("Full name is required"),
-    minLength(3, "Full name must be between 3 and 100 characters"),
-    maxLength(100, "Full name must be between 3 and 100 characters"),
-    pattern(patterns.fullName, "Full name must contain only letters and spaces"),
+  firstName: [
+    required("First name is required"),
+    minLength(2, "First name must be between 2 and 50 characters"),
+    maxLength(50, "First name must be between 2 and 50 characters"),
+    pattern(patterns.nameField, "First name must contain only letters"),
+  ],
+  middleName: [
+    maxLength(50, "Middle name must not exceed 50 characters"),
+    pattern(patterns.nameField, "Middle name must contain only letters"),
+  ],
+  lastName: [
+    required("Last name is required"),
+    minLength(2, "Last name must be between 2 and 50 characters"),
+    maxLength(50, "Last name must be between 2 and 50 characters"),
+    pattern(patterns.nameField, "Last name must contain only letters"),
   ],
   email: [required("Email is required"), email("Invalid email format")],
   mobileNumber: [
@@ -36,7 +46,7 @@ export default function RegisterPage() {
   const navigate = useNavigate();
 
   const { values, errors, handleChange, handleBlur, handleSubmit, isSubmitting, submitError } = useForm({
-    initialValues: { fullName: "", email: "", mobileNumber: "", password: "" },
+    initialValues: { firstName: "", middleName: "", lastName: "", email: "", mobileNumber: "", password: "" },
     schema,
     onSubmit: async (formValues) => {
       const result = await register(formValues);
@@ -56,17 +66,40 @@ export default function RegisterPage() {
       <form onSubmit={handleSubmit} className="mt-8 space-y-4" noValidate>
         {submitError && <Alert type="error">{submitError}</Alert>}
 
-        <Input
-          label="Full name"
-          name="fullName"
-          icon={User}
-          placeholder="Aditi Sharma"
-          value={values.fullName}
-          onChange={handleChange}
-          onBlur={handleBlur}
-          error={errors.fullName}
-          required
-        />
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <Input
+            label="First name"
+            name="firstName"
+            icon={User}
+            placeholder="Aditi"
+            value={values.firstName}
+            onChange={handleChange}
+            onBlur={handleBlur}
+            error={errors.firstName}
+            required
+          />
+          <Input
+            label="Middle name"
+            name="middleName"
+            icon={User}
+            placeholder="Kumar"
+            value={values.middleName}
+            onChange={handleChange}
+            onBlur={handleBlur}
+            error={errors.middleName}
+          />
+          <Input
+            label="Last name"
+            name="lastName"
+            icon={User}
+            placeholder="Sharma"
+            value={values.lastName}
+            onChange={handleChange}
+            onBlur={handleBlur}
+            error={errors.lastName}
+            required
+          />
+        </div>
         <Input
           label="Email"
           name="email"

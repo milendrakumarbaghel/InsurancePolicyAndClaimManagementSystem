@@ -41,7 +41,13 @@ export function toTitleCase(value) {
     .join(" ");
 }
 
-export function initialsFromName(name) {
+export function getFullName(obj) {
+  if (!obj) return "";
+  return [obj.firstName, obj.middleName, obj.lastName].filter(Boolean).join(" ");
+}
+
+export function initialsFromName(nameOrObj) {
+  const name = typeof nameOrObj === "string" ? nameOrObj : getFullName(nameOrObj);
   if (!name) return "?";
   const parts = name.trim().split(/\s+/);
   return parts

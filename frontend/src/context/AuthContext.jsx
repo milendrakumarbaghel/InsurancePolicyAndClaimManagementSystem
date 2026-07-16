@@ -30,7 +30,9 @@ export function AuthProvider({ children }) {
       tokenStorage.setTokens(data.accessToken, data.refreshToken);
       const nextUser = {
         email: data.email,
-        name: data.name,
+        firstName: data.firstName,
+        middleName: data.middleName,
+        lastName: data.lastName,
         role: data.role,
       };
       userStorage.setUser(nextUser);

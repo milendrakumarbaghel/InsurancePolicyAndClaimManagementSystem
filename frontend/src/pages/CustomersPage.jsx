@@ -9,7 +9,7 @@ import Button from "../components/common/Button";
 import { Search, Download } from "lucide-react";
 import { customerService } from "../services/customerService";
 import { usePagedResource } from "../hooks/usePagedResource";
-import { formatDate } from "../utils/formatters";
+import { formatDate, getFullName } from "../utils/formatters";
 import { exportToCSV } from "../utils/exportCsv";
 
 export default function CustomersPage() {
@@ -27,7 +27,9 @@ export default function CustomersPage() {
     }
     exportToCSV("customers", content, [
       { key: "customerId", header: "Customer ID" },
-      { key: "fullName", header: "Name" },
+      { key: "firstName", header: "First Name" },
+      { key: "middleName", header: "Middle Name" },
+      { key: "lastName", header: "Last Name" },
       { key: "email", header: "Email" },
       { key: "mobileNumber", header: "Mobile" },
       { key: "city", header: "City" },
@@ -37,7 +39,7 @@ export default function CustomersPage() {
   };
 
   const columns = [
-    { key: "fullName", header: "Name", render: (r) => <span className="font-medium text-ink-900 dark:text-white">{r.fullName}</span> },
+    { key: "firstName", header: "Name", render: (r) => <span className="font-medium text-ink-900 dark:text-white">{getFullName(r)}</span> },
     { key: "email", header: "Email" },
     { key: "mobileNumber", header: "Mobile" },
     { key: "city", header: "City" },

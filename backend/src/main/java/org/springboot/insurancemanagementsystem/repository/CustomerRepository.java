@@ -28,7 +28,9 @@ public interface CustomerRepository
                                Pageable pageable);
 
     @Query("SELECT c FROM Customer c WHERE " +
-            "LOWER(c.user.fullName) LIKE LOWER(CONCAT('%', :search, '%')) OR " +
+            "LOWER(c.user.firstName) LIKE LOWER(CONCAT('%', :search, '%')) OR " +
+            "LOWER(c.user.middleName) LIKE LOWER(CONCAT('%', :search, '%')) OR " +
+            "LOWER(c.user.lastName) LIKE LOWER(CONCAT('%', :search, '%')) OR " +
             "LOWER(c.user.email) LIKE LOWER(CONCAT('%', :search, '%'))")
     Page<Customer> searchCustomers(@Param("search") String search, Pageable pageable);
 

@@ -255,7 +255,9 @@ public class CustomerServiceImpl implements CustomerService {
         dto.setEmail(customer.getUser().getEmail());
         dto.setMobileNumber(customer.getUser().getMobileNumber());
         dto.setUserId(customer.getUser().getId());
-        dto.setFullName(customer.getUser().getFullName());
+        dto.setFirstName(customer.getUser().getFirstName());
+        dto.setMiddleName(customer.getUser().getMiddleName());
+        dto.setLastName(customer.getUser().getLastName());
 
         // Map the collection of nominees to NomineeDto list
         if (customer.getNominees() != null) {

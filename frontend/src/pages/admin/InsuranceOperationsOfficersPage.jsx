@@ -15,13 +15,24 @@ import { authService } from "../../services/authService";
 import { getErrorMessage } from "../../services/api";
 import { patterns, required, minLength, maxLength, pattern, email } from "../../utils/validators";
 import { exportToCSV } from "../../utils/exportCsv";
+import { getFullName } from "../../utils/formatters";
 
 const schema = {
-  fullName: [
-    required("Full name is required"),
-    minLength(3, "Must be between 3 and 100 characters"),
-    maxLength(100, "Must be between 3 and 100 characters"),
-    pattern(patterns.fullName, "Letters and spaces only"),
+  firstName: [
+    required("First name is required"),
+    minLength(2, "Must be between 2 and 50 characters"),
+    maxLength(50, "Must be between 2 and 50 characters"),
+    pattern(patterns.nameField, "Letters only"),
+  ],
+  middleName: [
+    maxLength(50, "Must not exceed 50 characters"),
+    pattern(patterns.nameField, "Letters only"),
+  ],
+  lastName: [
+    required("Last name is required"),
+    minLength(2, "Must be between 2 and 50 characters"),
+    maxLength(50, "Must be between 2 and 50 characters"),
+    pattern(patterns.nameField, "Letters only"),
   ],
   email: [required("Email is required"), email("Invalid email format")],
   mobileNumber: [required("Mobile number is required"), pattern(patterns.mobileNumber, "10-digit number starting 6-9")],
@@ -39,7 +50,7 @@ export default function InsuranceOperationsOfficersPage() {
   const [modalOpen, setModalOpen] = useState(false);
 
   const { values, errors, handleChange, handleBlur, handleSubmit, isSubmitting, submitError, reset } = useForm({
-    initialValues: { fullName: "", email: "", mobileNumber: "", password: "" },
+    initialValues: { firstName: "", middleName: "", lastName: "", email: "", mobileNumber: "", password: "" },
     schema,
     onSubmit: async (formValues) => {
       await authService.createInsuranceOperationsOfficer(formValues);
@@ -68,7 +79,9 @@ export default function InsuranceOperationsOfficersPage() {
     }
     exportToCSV("insurance_operations_officers", insuranceOperationsOfficers, [
       { key: "userId", header: "User ID" },
-      { key: "fullName", header: "Name" },
+      { key: "firstName", header: "First Name" },
+      { key: "middleName", header: "Middle Name" },
+      { key: "lastName", header: "Last Name" },
       { key: "email", header: "Email" },
       { key: "mobileNumber", header: "Mobile" },
       { key: "active", header: "Status", format: (v) => (v ? "Active" : "Inactive") },
@@ -77,7 +90,7 @@ export default function InsuranceOperationsOfficersPage() {
   };
 
   const columns = [
-    { key: "fullName", header: "Name", render: (r) => <span className="font-medium text-ink-900 dark:text-white">{r.fullName}</span> },
+    { key: "firstName", header: "Name", render: (r) => <span className="font-medium text-ink-900 dark:text-white">{getFullName(r)}</span> },
     { key: "email", header: "Email" },
     { key: "mobileNumber", header: "Mobile" },
     { key: "active", header: "Status", render: (r) => <Stamp status={r.active} /> },
@@ -113,7 +126,11 @@ export default function InsuranceOperationsOfficersPage() {
         <form className="space-y-4" onSubmit={handleSubmit} noValidate>
           {submitError && <Alert type="error">{submitError}</Alert>}
 
-          <Input label="Full name" name="fullName" value={values.fullName} onChange={handleChange} onBlur={handleBlur} error={errors.fullName} required />
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <Input label="First name" name="firstName" value={values.firstName} onChange={handleChange} onBlur={handleBlur} error={errors.firstName} required />
+            <Input label="Middle name" name="middleName" value={values.middleName} onChange={handleChange} onBlur={handleBlur} error={errors.middleName} />
+            <Input label="Last name" name="lastName" value={values.lastName} onChange={handleChange} onBlur={handleBlur} error={errors.lastName} required />
+          </div>
           <Input label="Email" name="email" type="email" value={values.email} onChange={handleChange} onBlur={handleBlur} error={errors.email} required />
           <Input label="Mobile number" name="mobileNumber" value={values.mobileNumber} onChange={handleChange} onBlur={handleBlur} error={errors.mobileNumber} required />
           <Input label="Temporary password" name="password" type="password" value={values.password} onChange={handleChange} onBlur={handleBlur} error={errors.password} required />

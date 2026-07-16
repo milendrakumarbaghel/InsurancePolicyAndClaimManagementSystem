@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Menu, LogOut, ChevronDown } from "lucide-react";
 import ThemeToggle from "../common/ThemeToggle";
 import { useAuth } from "../../context/AuthContext";
-import { initialsFromName, toTitleCase } from "../../utils/formatters";
+import { initialsFromName, toTitleCase, getFullName } from "../../utils/formatters";
 import { useNavigate } from "react-router-dom";
 
 export default function DashboardTopbar({ onMenuClick }) {
@@ -29,10 +29,10 @@ export default function DashboardTopbar({ onMenuClick }) {
             className="flex items-center gap-2 rounded-full pl-1 pr-2.5 py-1 border border-ink-200 dark:border-ink-700 hover:bg-ink-50 dark:hover:bg-ink-800 transition-colors"
           >
             <span className="flex h-7 w-7 items-center justify-center rounded-full bg-gold-500 text-xs font-bold text-ink-950">
-              {initialsFromName(user?.name)}
+              {initialsFromName(user)}
             </span>
             <span className="hidden sm:block text-sm font-medium text-ink-700 dark:text-ink-200">
-              {user?.name}
+              {getFullName(user)}
             </span>
             <ChevronDown className="h-3.5 w-3.5 text-ink-400" />
           </button>

@@ -2,7 +2,8 @@
 // so the person sees the same rules on the client before hitting the API.
 
 export const patterns = {
-  fullName: /^[a-zA-Z\s]+$/,
+  name: /^[a-zA-Z\s]+$/,
+  nameField: /^[a-zA-Z]+$/,
   mobileNumber: /^[6-9]\d{9}$/,
   password: /^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[@#$%^&+=!]).*$/,
   email: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,

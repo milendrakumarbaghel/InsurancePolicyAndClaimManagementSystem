@@ -12,6 +12,7 @@ import { useForm } from "../../hooks/useForm";
 import { useAuth } from "../../context/AuthContext";
 import { customerService } from "../../services/customerService";
 import { getErrorMessage } from "../../services/api";
+import { getFullName } from "../../utils/formatters";
 import {
   required,
   maxLength,
@@ -154,7 +155,7 @@ export default function MyProfilePage() {
         </span>
         <div>
           <p className="font-medium text-ink-900 dark:text-white">
-            {user?.name}
+            {getFullName(user)}
           </p>
           <p className="text-sm text-ink-500">{user?.email}</p>
         </div>

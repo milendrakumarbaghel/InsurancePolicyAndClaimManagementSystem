@@ -73,7 +73,7 @@ export default function IssuePolicyPage() {
             label="Customer"
             name="customerId"
             placeholder={isLoadingOptions ? "Loading customers…" : "Select a customer"}
-            options={customers.map((c) => ({ value: c.customerId, label: `${c.fullName} — ${c.email}` }))}
+            options={customers.map((c) => ({ value: c.customerId, label: `${[c.firstName, c.middleName, c.lastName].filter(Boolean).join(" ")} — ${c.email}` }))}
             value={values.customerId}
             onChange={handleChange}
             onBlur={handleBlur}

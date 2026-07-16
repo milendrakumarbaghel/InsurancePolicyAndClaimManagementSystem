@@ -15,5 +15,7 @@ public class LoginResponseDto {
     private String email;
     private Long expiresInMin;
     private Long refreshExpiresInMin;
-    private String name;
+    private String firstName;
+    private String middleName;
+    private String lastName;
 }

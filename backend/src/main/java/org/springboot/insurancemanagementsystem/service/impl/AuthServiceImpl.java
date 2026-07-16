@@ -64,7 +64,9 @@ public class AuthServiceImpl implements AuthService {
         }
 
         User user = User.builder()
-                .fullName(request.getFullName())
+                .firstName(request.getFirstName())
+                .middleName(request.getMiddleName())
+                .lastName(request.getLastName())
                 .email(request.getEmail())
                 .mobileNumber(request.getMobileNumber())
                 .password(passwordEncoder.encode(request.getPassword()))
@@ -143,7 +145,9 @@ public class AuthServiceImpl implements AuthService {
                 .tokenType("Bearer")
                 .email(user.getEmail())
                 .role(user.getRole().name())
-                .name(user.getFullName())
+                .firstName(user.getFirstName())
+                .middleName(user.getMiddleName())
+                .lastName(user.getLastName())
                 .expiresInMin(jwtUtil.getJwtExpiration() / 1000 / 60)
                 .refreshExpiresInMin(jwtUtil.getRefreshExpirationMillis() / 1000 / 60)
                 .build();
@@ -191,7 +195,9 @@ public class AuthServiceImpl implements AuthService {
                 .tokenType("Bearer")
                 .email(user.getEmail())
                 .role(user.getRole().name())
-                .name(user.getFullName())
+                .firstName(user.getFirstName())
+                .middleName(user.getMiddleName())
+                .lastName(user.getLastName())
                 .expiresInMin(jwtUtil.getJwtExpiration() / 1000 / 60)
                 .refreshExpiresInMin(jwtUtil.getRefreshExpirationMillis() / 1000 / 60)
                 .build();
@@ -281,7 +287,9 @@ public class AuthServiceImpl implements AuthService {
         }
 
         User user = User.builder()
-                .fullName(request.getFullName())
+                .firstName(request.getFirstName())
+                .middleName(request.getMiddleName())
+                .lastName(request.getLastName())
                 .email(request.getEmail())
                 .mobileNumber(request.getMobileNumber())
                 .password(passwordEncoder.encode(request.getPassword()))

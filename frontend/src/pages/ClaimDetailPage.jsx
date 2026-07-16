@@ -23,7 +23,7 @@ import { claimHistoryService } from "../services/claimHistoryService";
 import { userService } from "../services/userService";
 import { getErrorMessage } from "../services/api";
 import { ROLES } from "../utils/constants";
-import { formatCurrency, formatDate, formatDateTime, toTitleCase } from "../utils/formatters";
+import { formatCurrency, formatDate, formatDateTime, toTitleCase, getFullName } from "../utils/formatters";
 
 function ReviewForm({ claim, onDone }) {
   const [recommended, setRecommended] = useState(null);
@@ -121,7 +121,7 @@ function AssignForm({ claim, onDone }) {
 
       <Select
         placeholder="Select an insurance operations officer"
-        options={insuranceOperationsOfficers.map((a) => ({ value: a.userId, label: `${a.fullName} - ${a.email}` }))}
+        options={insuranceOperationsOfficers.map((a) => ({ value: a.userId, label: `${[a.firstName, a.middleName, a.lastName].filter(Boolean).join(" ")} - ${a.email}` }))}
         value={insuranceOperationsOfficerId}
         onChange={(e) => setInsuranceOperationsOfficerId(e.target.value)}
       />
@@ -256,7 +256,7 @@ export default function ClaimDetailPage() {
   if (isLoading) return <Spinner label="Loading claim..." />;
   if (!claim) return null;
 
-  const isOwnAssignedInsuranceOperationsOfficer = role === ROLES.INSURANCE_OPERATIONS_OFFICER && claim.assignedInsuranceOperationsOfficerName === user?.name;
+  const isOwnAssignedInsuranceOperationsOfficer = role === ROLES.INSURANCE_OPERATIONS_OFFICER && claim.assignedInsuranceOperationsOfficerName === getFullName(user);
   const canReview = isOwnAssignedInsuranceOperationsOfficer && ["ASSIGNED", "UNDER_REVIEW"].includes(claim.claimStatus);
   const canAssign = role === ROLES.ADMIN && claim.claimStatus === "SUBMITTED";
   const canDecide = role === ROLES.ADMIN && ["RECOMMENDED_APPROVAL", "RECOMMENDED_REJECTION", "UNDER_REVIEW"].includes(claim.claimStatus);

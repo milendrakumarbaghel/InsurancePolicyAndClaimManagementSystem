@@ -15,13 +15,28 @@ import lombok.NoArgsConstructor;
 @Builder
 public class RegisterRequestDto {
 
-    @NotBlank(message = "Full name is required")
-    @Size(min = 3, max = 100, message = "Full name must be between 3 and 100 characters")
+    @NotBlank(message = "First name is required")
+    @Size(min = 2, max = 50, message = "First name must be between 2 and 50 characters")
     @Pattern(
-            regexp = "^[a-zA-Z\\s]+$",
-            message = "Full name must contain only alphabetic letters and spaces only"
+            regexp = "^[a-zA-Z]+$",
+            message = "First name must contain only alphabetic letters"
     )
-    private String fullName;
+    private String firstName;
+
+    @Size(max = 50, message = "Middle name must not exceed 50 characters")
+    @Pattern(
+            regexp = "^[a-zA-Z]*$",
+            message = "Middle name must contain only alphabetic letters"
+    )
+    private String middleName;
+
+    @NotBlank(message = "Last name is required")
+    @Size(min = 2, max = 50, message = "Last name must be between 2 and 50 characters")
+    @Pattern(
+            regexp = "^[a-zA-Z]+$",
+            message = "Last name must contain only alphabetic letters"
+    )
+    private String lastName;
 
     @NotBlank(message = "Email is required")
     @Email(message = "Invalid email format")

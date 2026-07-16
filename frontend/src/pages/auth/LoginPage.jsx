@@ -24,7 +24,7 @@ export default function LoginPage() {
     onSubmit: async (formValues) => {
       const result = await login(formValues);
       if (!result.success) throw new Error(result.message);
-      toast.success(`Welcome back, ${result.user.name?.split(" ")[0] || "there"}!`);
+      toast.success(`Welcome back, ${result.user.firstName || "there"}!`);
       const redirectTo = location.state?.from?.pathname || "/dashboard";
       navigate(redirectTo, { replace: true });
     },

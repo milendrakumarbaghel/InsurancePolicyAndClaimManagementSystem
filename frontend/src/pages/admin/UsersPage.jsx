@@ -10,7 +10,7 @@ import Switch from "../../components/common/Switch";
 import { userService } from "../../services/userService";
 import { getErrorMessage } from "../../services/api";
 import { usePagedResource } from "../../hooks/usePagedResource";
-import { toTitleCase } from "../../utils/formatters";
+import { toTitleCase, getFullName } from "../../utils/formatters";
 import { exportToCSV } from "../../utils/exportCsv";
 
 export default function UsersPage() {
@@ -27,7 +27,9 @@ export default function UsersPage() {
     }
     exportToCSV("all_users", content, [
       { key: "userId", header: "User ID" },
-      { key: "fullName", header: "Name" },
+      { key: "firstName", header: "First Name" },
+      { key: "middleName", header: "Middle Name" },
+      { key: "lastName", header: "Last Name" },
       { key: "email", header: "Email" },
       { key: "mobileNumber", header: "Mobile" },
       { key: "role", header: "Role", format: (v) => toTitleCase(v) },
@@ -41,10 +43,10 @@ export default function UsersPage() {
     try {
       if (u.active) {
         await userService.deactivate(u.userId);
-        toast.success(`${u.fullName} deactivated.`);
+        toast.success(`${getFullName(u)} deactivated.`);
       } else {
         await userService.activate(u.userId);
-        toast.success(`${u.fullName} activated.`);
+        toast.success(`${getFullName(u)} activated.`);
       }
       refresh();
     } catch (error) {
@@ -55,7 +57,7 @@ export default function UsersPage() {
   };
 
   const columns = [
-    { key: "fullName", header: "Name", render: (r) => <span className="font-medium text-ink-900 dark:text-white">{r.fullName}</span> },
+    { key: "firstName", header: "Name", render: (r) => <span className="font-medium text-ink-900 dark:text-white">{getFullName(r)}</span> },
     { key: "email", header: "Email" },
     { key: "mobileNumber", header: "Mobile" },
     { key: "role", header: "Role", render: (r) => toTitleCase(r.role) },

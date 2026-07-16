@@ -5,6 +5,8 @@ import lombok.*;
 import org.springboot.insurancemanagementsystem.enums.Role;
 
 import java.time.LocalDateTime;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Entity
 @Table(name = "users")
@@ -19,7 +21,11 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private String fullName;
+    private String firstName;
+
+    private String middleName;
+
+    private String lastName;
 
     @Column(unique = true, nullable = false)
     private String email;
@@ -39,4 +45,11 @@ public class User {
 
     private boolean emailVerified;
     private boolean mobileVerified;
+
+    @Transient
+    public String getFullName() {
+        return Stream.of(firstName, middleName, lastName)
+                .filter(s -> s != null && !s.isBlank())
+                .collect(Collectors.joining(" "));
+    }
 }
