@@ -5,10 +5,16 @@ import Button from "../../components/common/Button";
 import Alert from "../../components/common/Alert";
 import { authService } from "../../services/authService";
 import { useForm } from "../../hooks/useForm";
-import { required, email } from "../../utils/validators";
+import { required, email, maxLength } from "../../utils/validators";
 import toast from "react-hot-toast";
 
-const schema = { email: [required("Email is required"), email("Invalid email format")] };
+const schema = {
+  email: [
+    required("Email is required"),
+    email("Invalid email format"),
+    maxLength(255, "Email length cannot exceed 255 characters"),
+  ],
+};
 
 export default function ForgotPasswordPage() {
   const navigate = useNavigate();

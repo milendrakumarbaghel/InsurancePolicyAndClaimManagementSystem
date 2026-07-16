@@ -54,7 +54,7 @@ public class PolicyController {
     }
 
     @PostMapping("/issue")
-    @PreAuthorize("hasAnyRole('ADMIN', 'INSURANCE_OPERATIONS_OFFICER')")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<PolicyResponseDto> issuePolicy(
             @Valid @RequestBody PolicyRequestDto request) {
 
@@ -194,7 +194,7 @@ public class PolicyController {
     }
 
     @PatchMapping("/{policyId}/cancel")
-    @PreAuthorize("hasAnyRole('ADMIN','INSURANCE_OPERATIONS_OFFICER')")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<PolicyResponseDto> cancelPolicy(
             @PathVariable Long policyId) {
 

@@ -91,7 +91,7 @@ export default function PolicyDetailPage() {
                 Pay premium
               </Button>
             )}
-            {(role === ROLES.ADMIN || role === ROLES.AGENT) && policy.status !== "CANCELLED" && (
+            {role === ROLES.ADMIN && policy.status !== "CANCELLED" && (
               <Button variant="danger" icon={Ban} onClick={() => setShowCancelModal(true)}>
                 Cancel policy
               </Button>

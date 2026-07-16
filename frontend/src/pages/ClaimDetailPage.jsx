@@ -34,7 +34,8 @@ function ReviewForm({ claim, onDone }) {
   const submit = async () => {
     setError("");
     if (recommended === null) return setError("Choose whether you recommend approval or rejection.");
-    if (remarks.trim().length < 5) return setError("Remarks must be at least 5 characters.");
+    if (remarks.trim().length < 5 || remarks.length > 2000) return setError("Remarks must be between 5 and 2000 characters.");
+    if (/[<>]/.test(remarks)) return setError("Remarks cannot contain < or >.");
 
     setIsSubmitting(true);
     try {
@@ -140,7 +141,8 @@ function DecisionForm({ claim, onDone }) {
 
   const submit = async (action) => {
     setError("");
-    if (remarks.trim().length < 5) return setError("Remarks must be at least 5 characters.");
+    if (remarks.trim().length < 5 || remarks.length > 2000) return setError("Remarks must be between 5 and 2000 characters.");
+    if (/[<>]/.test(remarks)) return setError("Remarks cannot contain < or >.");
 
     setPendingAction(action);
     try {

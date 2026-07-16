@@ -6,7 +6,7 @@ import Button from "../../components/common/Button";
 import Alert from "../../components/common/Alert";
 import { authService } from "../../services/authService";
 import { useForm } from "../../hooks/useForm";
-import { patterns, required, minLength, maxLength, pattern } from "../../utils/validators";
+import { patterns, required, minLength, maxLength, pattern, email } from "../../utils/validators";
 import toast from "react-hot-toast";
 
 export default function ResetPasswordPage() {
@@ -15,6 +15,11 @@ export default function ResetPasswordPage() {
   const [email, setEmail] = useState(location.state?.email || "");
 
   const schema = {
+    email: [
+      required("Email is required"),
+      email("Invalid email format"),
+      maxLength(255, "Email length cannot exceed 255 characters"),
+    ],
     otp: [required("OTP is required"), pattern(patterns.otp6, "OTP must be a 6-digit number")],
     newPassword: [
       required("New password is required"),
@@ -29,14 +34,14 @@ export default function ResetPasswordPage() {
   };
 
   const { values, errors, handleChange, handleBlur, handleSubmit, isSubmitting, submitError } = useForm({
-    initialValues: { otp: "", newPassword: "", confirmPassword: "" },
+    initialValues: { email: location.state?.email || "", otp: "", newPassword: "", confirmPassword: "" },
     schema,
     onSubmit: async (formValues) => {
-      if (!email) throw new Error("Enter the email tied to your account.");
+      if (!values.email) throw new Error("Enter the email tied to your account.");
       if (formValues.newPassword !== formValues.confirmPassword) {
         throw new Error("Passwords do not match.");
       }
-      await authService.resetPassword({ email, ...formValues });
+      await authService.resetPassword({ ...formValues });
       toast.success("Password reset — sign in with your new password.");
       navigate("/login");
     },
@@ -55,7 +60,16 @@ export default function ResetPasswordPage() {
       <form onSubmit={handleSubmit} className="mt-8 space-y-4" noValidate>
         {submitError && <Alert type="error">{submitError}</Alert>}
 
-        <Input label="Email" name="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
+        <Input
+          label="Email"
+          name="email"
+          type="email"
+          value={values.email}
+          onChange={handleChange}
+          onBlur={handleBlur}
+          error={errors.email}
+          required
+        />
         <Input
           label="OTP"
           name="otp"

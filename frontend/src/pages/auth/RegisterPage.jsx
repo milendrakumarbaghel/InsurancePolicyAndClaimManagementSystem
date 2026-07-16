@@ -25,7 +25,11 @@ const schema = {
     maxLength(50, "Last name must be between 2 and 50 characters"),
     pattern(patterns.nameField, "Last name must contain only letters"),
   ],
-  email: [required("Email is required"), email("Invalid email format")],
+  email: [
+    required("Email is required"),
+    email("Invalid email format"),
+    maxLength(255, "Email length cannot exceed 255 characters"),
+  ],
   mobileNumber: [
     required("Mobile number is required"),
     pattern(patterns.mobileNumber, "Must be a 10-digit number starting with 6, 7, 8, or 9"),

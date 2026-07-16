@@ -97,7 +97,7 @@ export default function App() {
             <Route path="/dashboard/policies" element={<PoliciesPage />} />
             <Route path="/dashboard/policies/:policyId" element={<PolicyDetailPage />} />
 
-            <Route element={<ProtectedRoute allowedRoles={[ROLES.ADMIN, ROLES.INSURANCE_OPERATIONS_OFFICER]} />}>
+            <Route element={<ProtectedRoute allowedRoles={[ROLES.ADMIN]} />}>
               <Route path="/dashboard/policies-issue" element={<IssuePolicyPage />} />
             </Route>
 

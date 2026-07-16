@@ -5,12 +5,20 @@ import Button from "../../components/common/Button";
 import Alert from "../../components/common/Alert";
 import { useForm } from "../../hooks/useForm";
 import { useAuth } from "../../context/AuthContext";
-import { required, email } from "../../utils/validators";
+import { required, email, maxLength, minLength } from "../../utils/validators";
 import toast from "react-hot-toast";
 
 const schema = {
-  email: [required("Email is required"), email("Invalid email format")],
-  password: [required("Password is required")],
+  email: [
+    required("Email is required"),
+    email("Invalid email format"),
+    maxLength(255, "Email length cannot exceed 255 characters"),
+  ],
+  password: [
+    required("Password is required"),
+    minLength(8, "Password must be between 8 and 20 characters"),
+    maxLength(20, "Password must be between 8 and 20 characters"),
+  ],
 };
 
 export default function LoginPage() {

@@ -61,7 +61,7 @@ export default function PlansAdminPage() {
     toast.success("Plans exported successfully.");
   };
 
-  const columns = [
+  const baseColumns = [
     { key: "planName", header: "Plan", render: (r) => <span className="font-medium text-ink-900 dark:text-white">{r.planName}</span> },
     { key: "productName", header: "Product" },
     { key: "coverageAmount", header: "Coverage", render: (r) => <span className="font-mono-data">{formatCurrency(r.coverageAmount)}</span> },
@@ -69,25 +69,27 @@ export default function PlansAdminPage() {
     { key: "premiumType", header: "Cycle", render: (r) => toTitleCase(r.premiumType) },
     { key: "duration", header: "Duration", render: (r) => `${r.duration} mo` },
     { key: "active", header: "Status", render: (r) => <Stamp status={r.active} /> },
-    {
-      key: "actions",
-      header: "Actions",
-      render: (r) => (
-        <div className="flex items-center gap-3">
-          {role === ROLES.ADMIN && (
-            <>
+  ];
+
+  const columns = role === ROLES.ADMIN
+    ? [
+        ...baseColumns,
+        {
+          key: "actions",
+          header: "Actions",
+          render: (r) => (
+            <div className="flex items-center gap-3">
               <Button variant="outline" size="sm" icon={Pencil} onClick={() => navigate(`/dashboard/plans/${r.PolicyPlanId}/edit`)} />
               <Switch
                 checked={r.active}
                 isLoading={busyId === r.PolicyPlanId}
                 onChange={() => toggleActive(r)}
               />
-            </>
-          )}
-        </div>
-      ),
-    },
-  ];
+            </div>
+          ),
+        },
+      ]
+    : baseColumns;
 
   return (
     <div>

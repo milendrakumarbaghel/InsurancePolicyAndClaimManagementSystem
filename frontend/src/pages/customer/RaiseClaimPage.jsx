@@ -92,16 +92,20 @@ export default function RaiseClaimPage() {
     onSubmit: async (formValues) => {
       const docErrors = documents.map((doc) => {
         const e = {};
-        if (!doc.documentName || doc.documentName.length < 3)
-          e.documentName = "Min 3 characters";
+        if (!doc.documentName || doc.documentName.length < 3 || doc.documentName.length > 150)
+          e.documentName = "Must be between 3 and 150 characters";
         else if (!patterns.documentName.test(doc.documentName))
           e.documentName = "Invalid characters";
-        if (!doc.documentType || doc.documentType.length < 2)
-          e.documentType = "Min 2 characters";
+          
+        if (!doc.documentType || doc.documentType.length < 2 || doc.documentType.length > 80)
+          e.documentType = "Must be between 2 and 80 characters";
         else if (!patterns.documentType.test(doc.documentType))
           e.documentType = "Letters, spaces, / or - only";
-        if (!doc.documentReference || doc.documentReference.length < 5)
-          e.documentReference = "Min 5 characters";
+          
+        if (!doc.documentReference || doc.documentReference.length < 5 || doc.documentReference.length > 500)
+          e.documentReference = "Must be between 5 and 500 characters";
+        else if (!patterns.noAngleBrackets.test(doc.documentReference))
+          e.documentReference = "Cannot contain < or >";
         if (!doc.file) e.file = "Please upload a file";
         return e;
       });

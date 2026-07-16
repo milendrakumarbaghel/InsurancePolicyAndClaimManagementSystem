@@ -30,10 +30,12 @@ const schema = {
   ],
   city: [
     required("City is required"),
+    maxLength(50, "Cannot exceed 50 characters"),
     pattern(patterns.lettersSpaces, "Letters and spaces only"),
   ],
   state: [
     required("State is required"),
+    maxLength(50, "Cannot exceed 50 characters"),
     pattern(patterns.lettersSpaces, "Letters and spaces only"),
   ],
   pinCode: [
@@ -71,11 +73,16 @@ export default function MyProfilePage() {
     onSubmit: async (formValues) => {
       // Form structure checks before dispatching payload definitions
       const invalidNominee = formValues.nominees.some(
-        (n) => !n.name.trim() || !n.relation,
+        (n) =>
+          !n.name.trim() ||
+          n.name.length < 2 ||
+          n.name.length > 50 ||
+          !/^[a-zA-Z\s]+$/.test(n.name) ||
+          !n.relation
       );
       if (invalidNominee) {
         toast.error(
-          "Please provide both name and relation fields for all listed nominees.",
+          "Please provide a valid name (2-50 letters) and relation for all nominees.",
         );
         return;
       }
