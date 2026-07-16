@@ -1,6 +1,10 @@
 package org.springboot.insurancemanagementsystem.controller;
 
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springboot.insurancemanagementsystem.dto.PolicyRequestDto;
@@ -13,6 +17,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -21,36 +26,49 @@ import java.util.List;
 @RequestMapping("/api/policies")
 @RequiredArgsConstructor
 @Slf4j
+@Validated
 @CrossOrigin(origins = "http://localhost:5173")
 public class PolicyController {
 
     private final PolicyService policyService;
 
+    /**
+     * Customer self-service: purchase a policy by choosing coverage and duration.
+     *
+     * POST /api/policies/purchase/{planId}?coverage=300000&duration=12
+     */
     @PostMapping("/purchase/{planId}")
     @PreAuthorize("hasRole('CUSTOMER')")
     public ResponseEntity<PolicyResponseDto> purchasePolicy(
             @PathVariable Long planId,
+
+            @RequestParam
+            @NotNull(message = "Selected coverage amount is required")
+            @Positive(message = "Coverage amount must be greater than zero")
+            @Max(value = 999999999, message = "Coverage amount exceeds the allowable limit")
+            Double coverage,
+
+            @RequestParam
+            @NotNull(message = "Selected duration is required")
+            @Min(value = 1, message = "Duration must be at least 1 month")
+            @Max(value = 120, message = "Duration cannot exceed 120 months")
+            Integer duration,
+
+            @RequestParam
+            @jakarta.validation.constraints.NotBlank(message = "Premium cycle is required")
+            String premiumType,
+
             Authentication authentication) {
 
-        log.info(
-                "Policy purchase request received from customer: {} for planId: {}",
-                authentication.getName(),
-                planId
-        );
+        log.info("Policy purchase request. planId={}, coverage={}, duration={}, premiumType={}, customer={}",
+                planId, coverage, duration, premiumType, authentication.getName());
 
-        PolicyResponseDto response =
-                policyService.purchasePolicy(
-                        planId,
-                        authentication.getName());
+        PolicyResponseDto response = policyService.purchasePolicy(
+                planId, authentication.getName(), coverage, duration, premiumType);
 
-        log.info(
-                "Policy purchased successfully. Policy Number: {}",
-                response.getPolicyNumber()
-        );
+        log.info("Policy purchased successfully. PolicyNumber={}", response.getPolicyNumber());
 
-        return new ResponseEntity<>(
-                response,
-                HttpStatus.CREATED);
+        return new ResponseEntity<>(response, HttpStatus.CREATED);
     }
 
     @PostMapping("/issue")
@@ -58,23 +76,14 @@ public class PolicyController {
     public ResponseEntity<PolicyResponseDto> issuePolicy(
             @Valid @RequestBody PolicyRequestDto request) {
 
-        log.info(
-                "Policy issuance request received for customerId: {} and planId: {}",
-                request.getCustomerId(),
-                request.getPlanId()
-        );
+        log.info("Policy issuance request received for customerId: {} and planId: {}",
+                request.getCustomerId(), request.getPlanId());
 
-        PolicyResponseDto response =
-                policyService.issuePolicy(request);
+        PolicyResponseDto response = policyService.issuePolicy(request);
 
-        log.info(
-                "Policy issued successfully. Policy Number: {}",
-                response.getPolicyNumber()
-        );
+        log.info("Policy issued successfully. Policy Number: {}", response.getPolicyNumber());
 
-        return new ResponseEntity<>(
-                response,
-                HttpStatus.CREATED);
+        return new ResponseEntity<>(response, HttpStatus.CREATED);
     }
 
     @GetMapping("/{policyId}")
@@ -82,20 +91,14 @@ public class PolicyController {
     public ResponseEntity<PolicyResponseDto> getPolicyById(
             @PathVariable Long policyId, Authentication authentication) {
 
-        log.info(
-                "Fetching policy details for policyId: {}",
-                policyId
-        );
+        log.info("Fetching policy details for policyId: {}", policyId);
 
         String email = authentication.getName();
         String role = SecurityUtil.extractRoleFromAuthentication(authentication);
 
         PolicyResponseDto response = policyService.getPolicyById(policyId, email, role);
 
-        log.info(
-                "Policy details retrieved successfully for policyId: {}",
-                policyId
-        );
+        log.info("Policy details retrieved successfully for policyId: {}", policyId);
 
         return ResponseEntity.ok(response);
     }
@@ -105,18 +108,11 @@ public class PolicyController {
     public ResponseEntity<PolicyResponseDto> getPolicyByNumber(
             @PathVariable String policyNumber) {
 
-        log.info(
-                "Fetching policy details for policyNumber: {}",
-                policyNumber
-        );
+        log.info("Fetching policy details for policyNumber: {}", policyNumber);
 
-        PolicyResponseDto response =
-                policyService.getPolicyByNumber(policyNumber);
+        PolicyResponseDto response = policyService.getPolicyByNumber(policyNumber);
 
-        log.info(
-                "Policy retrieved successfully for policyNumber: {}",
-                policyNumber
-        );
+        log.info("Policy retrieved successfully for policyNumber: {}", policyNumber);
 
         return ResponseEntity.ok(response);
     }
@@ -126,20 +122,11 @@ public class PolicyController {
     public ResponseEntity<List<PolicyResponseDto>> getMyPolicies(
             Authentication authentication) {
 
-        log.info(
-                "Fetching policies for customer: {}",
-                authentication.getName()
-        );
+        log.info("Fetching policies for customer: {}", authentication.getName());
 
-        List<PolicyResponseDto> policies =
-                policyService.getMyPolicies(
-                        authentication.getName());
+        List<PolicyResponseDto> policies = policyService.getMyPolicies(authentication.getName());
 
-        log.info(
-                "Retrieved {} policies for customer: {}",
-                policies.size(),
-                authentication.getName()
-        );
+        log.info("Retrieved {} policies for customer: {}", policies.size(), authentication.getName());
 
         return ResponseEntity.ok(policies);
     }
@@ -148,47 +135,20 @@ public class PolicyController {
     @PreAuthorize("hasAnyRole('ADMIN','INSURANCE_OPERATIONS_OFFICER')")
     public ResponseEntity<Page<PolicyResponseDto>> getAllPolicies(
 
-            @RequestParam(defaultValue = "0")
-            int page,
+            @RequestParam(defaultValue = "0")   int page,
+            @RequestParam(defaultValue = "10")  int size,
+            @RequestParam(defaultValue = "id")  String sortBy,
+            @RequestParam(defaultValue = "desc") String sortDir,
+            @RequestParam(required = false)     PolicyStatus status,
+            @RequestParam(required = false)     Long customerId) {
 
-            @RequestParam(defaultValue = "10")
-            int size,
+        log.info("Fetching all policies | page: {}, size: {}, sortBy: {}, sortDir: {}, status: {}, customerId: {}",
+                page, size, sortBy, sortDir, status, customerId);
 
-            @RequestParam(defaultValue = "id")
-            String sortBy,
+        Page<PolicyResponseDto> policies = policyService.getAllPolicies(
+                page, size, sortBy, sortDir, status, customerId);
 
-            @RequestParam(defaultValue = "desc")
-            String sortDir,
-
-            @RequestParam(required = false)
-            PolicyStatus status,
-
-            @RequestParam(required = false)
-                    Long customerId) {
-
-        log.info(
-                "Fetching all policies | page: {}, size: {}, sortBy: {}, sortDir: {}, status: {}, customerId: {}",
-                page,
-                size,
-                sortBy,
-                sortDir,
-                status,
-                customerId
-        );
-
-        Page<PolicyResponseDto> policies =
-                policyService.getAllPolicies(
-                        page,
-                        size,
-                        sortBy,
-                        sortDir,
-                        status,
-                        customerId);
-
-        log.info(
-                "Retrieved {} policy records",
-                policies.getNumberOfElements()
-        );
+        log.info("Retrieved {} policy records", policies.getNumberOfElements());
 
         return ResponseEntity.ok(policies);
     }
@@ -198,18 +158,11 @@ public class PolicyController {
     public ResponseEntity<PolicyResponseDto> cancelPolicy(
             @PathVariable Long policyId) {
 
-        log.info(
-                "Policy cancellation request received for policyId: {}",
-                policyId
-        );
+        log.info("Policy cancellation request received for policyId: {}", policyId);
 
-        PolicyResponseDto response =
-                policyService.cancelPolicy(policyId);
+        PolicyResponseDto response = policyService.cancelPolicy(policyId);
 
-        log.info(
-                "Policy cancelled successfully. Policy Number: {}",
-                response.getPolicyNumber()
-        );
+        log.info("Policy cancelled successfully. Policy Number: {}", response.getPolicyNumber());
 
         return ResponseEntity.ok(response);
     }

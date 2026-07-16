@@ -11,7 +11,6 @@ import Alert from "../../components/common/Alert";
 import Spinner from "../../components/common/Spinner";
 import { useForm } from "../../hooks/useForm";
 import { policyService } from "../../services/policyService";
-import { planService } from "../../services/planService";
 import { paymentService } from "../../services/paymentService";
 import { getErrorMessage } from "../../services/api";
 import { required } from "../../utils/validators";
@@ -30,9 +29,7 @@ export default function RecordPaymentPage() {
   const preselectedPolicyId = searchParams.get("policyId") || "";
 
   const [policies, setPolicies] = useState([]);
-  const [plansById, setPlansById] = useState({});
   const [isLoadingOptions, setIsLoadingOptions] = useState(true);
-  const [matchError, setMatchError] = useState("");
   const [installmentPaid, setInstallmentPaid] = useState(false);
   const [isCheckingPayments, setIsCheckingPayments] = useState(false);
 
@@ -41,13 +38,16 @@ export default function RecordPaymentPage() {
     schema,
     onSubmit: async (formValues) => {
       const policy = policies.find((p) => String(p.policyId) === String(formValues.policyId));
-      const plan = plansById[formValues.policyId];
-      if (!policy || !plan) {
-        throw new Error("Could not determine the premium amount for this policy. Please contact support.");
+      if (!policy) {
+        throw new Error("Could not find the selected policy. Please refresh and try again.");
+      }
+      if (!policy.calculatedPremiumAmount) {
+        throw new Error(
+          "This policy does not have a calculated premium. Please contact support."
+        );
       }
       await paymentService.record({
-        policyPlanId: plan.PolicyPlanId,
-        amount: plan.premiumAmount,
+        amount: policy.calculatedPremiumAmount,
         policyNumber: policy.policyNumber,
         paymentMode: formValues.paymentMode,
       });
@@ -56,30 +56,19 @@ export default function RecordPaymentPage() {
     },
   });
 
+  // Load only payable policies (no need to fetch all plans anymore)
   useEffect(() => {
-    Promise.all([policyService.getMy(), planService.getAll({ page: 0, size: 300 })])
-      .then(([myPolicies, planPage]) => {
-        const payable = myPolicies.filter((p) => p.status === "PENDING_PAYMENT" || p.status === "ACTIVE");
+    policyService
+      .getMy()
+      .then((myPolicies) => {
+        const payable = myPolicies.filter(
+          (p) => p.status === "PENDING_PAYMENT" || p.status === "ACTIVE"
+        );
         setPolicies(payable);
-
-        // The policy response doesn't expose its plan id directly, so we correlate
-        // by plan name (unique per product in practice) to recover the premium amount.
-        const allPlans = planPage?.content ?? [];
-        const map = {};
-        payable.forEach((policy) => {
-          const match = allPlans.find((plan) => plan.planName === policy.planName);
-          if (match) map[policy.policyId] = match;
-        });
-        setPlansById(map);
       })
       .catch((err) => toast.error(getErrorMessage(err, "Could not load your policies.")))
       .finally(() => setIsLoadingOptions(false));
   }, []);
-
-  useEffect(() => {
-    if (!values.policyId || isLoadingOptions) return;
-    setMatchError(plansById[values.policyId] ? "" : "We couldn't automatically match this policy's plan. Please contact support to complete this payment.");
-  }, [values.policyId, plansById, isLoadingOptions]);
 
   // Check whether the current installment has already been paid
   useEffect(() => {
@@ -87,36 +76,37 @@ export default function RecordPaymentPage() {
       setInstallmentPaid(false);
       return;
     }
-    const plan = plansById[values.policyId];
-    if (!plan) {
+    const policy = policies.find((p) => String(p.policyId) === String(values.policyId));
+    if (!policy) {
       setInstallmentPaid(false);
       return;
     }
     setIsCheckingPayments(true);
-    const policy = policies.find((p) => String(p.policyId) === String(values.policyId));
-    if (!policy) {
-      setIsCheckingPayments(false);
-      return;
-    }
     paymentService
       .getByPolicy(policy.policyId)
       .then((payments) => {
-        setInstallmentPaid(hasPaymentInCurrentPeriod(payments, plan.premiumType));
+        setInstallmentPaid(hasPaymentInCurrentPeriod(payments, policy.planPremiumType));
       })
       .catch(() => setInstallmentPaid(false))
       .finally(() => setIsCheckingPayments(false));
-  }, [values.policyId, plansById, policies, isLoadingOptions]);
+  }, [values.policyId, policies, isLoadingOptions]);
 
   const selectedPolicy = policies.find((p) => String(p.policyId) === String(values.policyId));
-  const selectedPlan = plansById[values.policyId];
 
   return (
     <div className="max-w-2xl">
-      <Link to="/dashboard/policies" className="mb-4 flex items-center gap-1.5 text-sm font-medium text-ink-500 hover:text-harbor-600 dark:hover:text-harbor-400 w-fit">
+      <Link
+        to="/dashboard/policies"
+        className="mb-4 flex items-center gap-1.5 text-sm font-medium text-ink-500 hover:text-harbor-600 dark:hover:text-harbor-400 w-fit"
+      >
         <ArrowLeft className="h-4 w-4" /> Back to policies
       </Link>
 
-      <PageHeader eyebrow="Payments" title="Pay a Premium" description="Settle a premium payment against one of your policies." />
+      <PageHeader
+        eyebrow="Payments"
+        title="Pay a Premium"
+        description="Settle a premium payment against one of your policies."
+      />
 
       <Card>
         {isLoadingOptions ? (
@@ -129,7 +119,10 @@ export default function RecordPaymentPage() {
               label="Policy"
               name="policyId"
               placeholder="Select a policy"
-              options={policies.map((p) => ({ value: p.policyId, label: `${p.policyNumber} — ${p.planName}` }))}
+              options={policies.map((p) => ({
+                value: p.policyId,
+                label: `${p.policyNumber} — ${p.planName}`,
+              }))}
               value={values.policyId}
               onChange={handleChange}
               onBlur={handleBlur}
@@ -137,18 +130,47 @@ export default function RecordPaymentPage() {
               required
             />
 
-            {matchError && <Alert type="warning">{matchError}</Alert>}
-
             {installmentPaid && (
               <Alert type="warning">
-                A premium payment for the current {toTitleCase(selectedPlan?.premiumType)} installment has already been recorded for this policy. You cannot pay again until the next billing cycle.
+                A premium payment for the current{" "}
+                {toTitleCase(selectedPolicy?.planPremiumType)} installment has already been
+                recorded for this policy. You cannot pay again until the next billing cycle.
               </Alert>
             )}
 
-            {selectedPlan && !installmentPaid && (
-              <Alert type="info">
-                Premium due: <strong>{formatCurrency(selectedPlan.premiumAmount)}</strong> ({toTitleCase(selectedPlan.premiumType)})
-              </Alert>
+            {selectedPolicy && !installmentPaid && (
+              <>
+                {/* Coverage & duration summary */}
+                <div className="rounded-lg border border-ink-200 dark:border-ink-700 p-4 text-sm space-y-1.5 bg-ink-50 dark:bg-ink-800/40">
+                  <p className="font-semibold text-ink-700 dark:text-ink-200 mb-2">
+                    Your Policy Details
+                  </p>
+                  <div className="flex justify-between">
+                    <span className="text-ink-500">Coverage amount</span>
+                    <span className="font-mono-data font-semibold text-ink-800 dark:text-ink-100">
+                      {formatCurrency(selectedPolicy.selectedCoverageAmount)}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-ink-500">Duration</span>
+                    <span className="font-mono-data font-semibold text-ink-800 dark:text-ink-100">
+                      {selectedPolicy.selectedDuration} months
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-ink-500">Premium cycle</span>
+                    <span className="font-mono-data font-semibold text-ink-800 dark:text-ink-100">
+                      {toTitleCase(selectedPolicy.planPremiumType)}
+                    </span>
+                  </div>
+                </div>
+
+                <Alert type="info">
+                  Premium due:{" "}
+                  <strong>{formatCurrency(selectedPolicy.calculatedPremiumAmount)}</strong> (
+                  {toTitleCase(selectedPolicy.planPremiumType)})
+                </Alert>
+              </>
             )}
 
             <Select
@@ -165,16 +187,29 @@ export default function RecordPaymentPage() {
 
             <Input
               label="Amount"
-              value={selectedPlan ? formatCurrency(selectedPlan.premiumAmount) : ""}
+              value={
+                selectedPolicy?.calculatedPremiumAmount
+                  ? formatCurrency(selectedPolicy.calculatedPremiumAmount)
+                  : ""
+              }
               disabled
-              hint="Amount is fixed to the plan's premium and cannot be edited."
+              hint="Amount is calculated based on your selected coverage and duration."
             />
 
             <div className="flex gap-3 pt-2">
-              <Button type="submit" isLoading={isSubmitting || isCheckingPayments} icon={Wallet} disabled={!selectedPolicy || !!matchError || installmentPaid}>
+              <Button
+                type="submit"
+                isLoading={isSubmitting || isCheckingPayments}
+                icon={Wallet}
+                disabled={!selectedPolicy || installmentPaid}
+              >
                 Pay now
               </Button>
-              <Button type="button" variant="outline" onClick={() => navigate("/dashboard/policies")}>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => navigate("/dashboard/policies")}
+              >
                 Cancel
               </Button>
             </div>

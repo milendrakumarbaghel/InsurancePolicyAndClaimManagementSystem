@@ -28,27 +28,40 @@ public class PolicyPlanRequestDto {
     )
     private String planName;
 
-    @NotNull(message = "Coverage amount is required")
-    @Positive(message = "Coverage amount must be greater than zero")
-    @Max(value = 999999999, message = "Coverage amount exceeds maximum allowable limit")
-    private Double coverageAmount;
+    // ── Coverage range ──────────────────────────────────────────────────────────
 
-    @NotNull(message = "Premium amount is required")
-    @Positive(message = "Premium amount must be greater than zero")
-    @Max(value = 9999999, message = "Premium amount exceeds maximum allowable limit")
-    private Double premiumAmount;
+    @NotNull(message = "Maximum coverage amount is required")
+    @Positive(message = "Maximum coverage amount must be greater than zero")
+    @Max(value = 999999999, message = "Maximum coverage amount exceeds the allowable limit")
+    private Double maxCoverageAmount;
+
+    @NotNull(message = "Minimum coverage amount is required")
+    @Positive(message = "Minimum coverage amount must be greater than zero")
+    @Max(value = 999999999, message = "Minimum coverage amount exceeds the allowable limit")
+    private Double minCoverageAmount;
+
+    // ── Premium cycle ────────────────────────────────────────────────────────────
 
     @NotBlank(message = "Premium type is required")
     @Pattern(
             regexp = "^[A-Z_]+$",
-            message = "Premium type must contain only uppercase alphabetic letters or underscores (e.g., MONTHLY, QUARTERLY, HALF_YEARLY, ANNUAL)"
+            message = "Premium type must contain only uppercase letters or underscores (e.g., MONTHLY, QUARTERLY, HALF_YEARLY, ANNUAL)"
     )
     private String premiumType;
 
-    @NotNull(message = "Duration is required")
-    @Min(value = 1, message = "Duration must be at least 1 month/year")
-    @Max(value = 120, message = "Duration cannot exceed 120 periods")
-    private Integer duration;
+    // ── Duration range ───────────────────────────────────────────────────────────
+
+    @NotNull(message = "Maximum duration is required")
+    @Min(value = 1, message = "Maximum duration must be at least 1 month")
+    @Max(value = 120, message = "Maximum duration cannot exceed 120 months")
+    private Integer maxDuration;
+
+    @NotNull(message = "Minimum duration is required")
+    @Min(value = 1, message = "Minimum duration must be at least 1 month")
+    @Max(value = 120, message = "Minimum duration cannot exceed 120 months")
+    private Integer minDuration;
+
+    // ── Other ────────────────────────────────────────────────────────────────────
 
     @NotBlank(message = "Terms and conditions are required")
     @Size(min = 10, max = 2000, message = "Terms and conditions must be between 10 and 2000 characters")

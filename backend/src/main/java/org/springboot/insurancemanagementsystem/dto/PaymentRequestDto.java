@@ -1,7 +1,6 @@
 package org.springboot.insurancemanagementsystem.dto;
 
 import jakarta.validation.constraints.Max;
-import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
@@ -15,10 +14,6 @@ import lombok.*;
 @AllArgsConstructor
 @Builder
 public class PaymentRequestDto {
-
-    @NotNull(message = "Policy Plan id is required")
-    @Min(value = 1, message = "Policy Plan id must be a positive number greater than 0")
-    private Long policyPlanId;
 
     @NotNull(message = "Amount is required")
     @Positive(message = "Amount must be greater than zero")

@@ -21,4 +21,16 @@ public class PolicyResponseDto {
     private String status;
     private Double totalPremiumPaid;
     private String productType;
+
+    // Plan limits – needed by the payment page to show the plan context
+    private Double planMaxCoverageAmount;
+    private Double planMinCoverageAmount;
+    private Integer planMaxDuration;
+    private Integer planMinDuration;
+
+    // Customer's selections and the resulting per-period premium
+    private Double selectedCoverageAmount;
+    private Integer selectedDuration;
+    private String selectedPremiumType;
+    private Double calculatedPremiumAmount;
 }

@@ -52,10 +52,11 @@ export default function PlansAdminPage() {
       { key: "PolicyPlanId", header: "Plan ID" },
       { key: "planName", header: "Plan Name" },
       { key: "productName", header: "Product" },
-      { key: "coverageAmount", header: "Maximum Coverage Amount", format: (v) => formatCurrency(v) },
-      { key: "premiumAmount", header: "Premium Amount", format: (v) => formatCurrency(v) },
+      { key: "minCoverageAmount", header: "Min Coverage (\u20b9)", format: (v) => formatCurrency(v) },
+      { key: "maxCoverageAmount", header: "Max Coverage (\u20b9)", format: (v) => formatCurrency(v) },
       { key: "premiumType", header: "Premium Cycle", format: (v) => toTitleCase(v) },
-      { key: "duration", header: "Maximum Duration (Months)" },
+      { key: "minDuration", header: "Min Duration (mo)" },
+      { key: "maxDuration", header: "Max Duration (mo)" },
       { key: "active", header: "Status", format: (v) => (v ? "Active" : "Inactive") },
     ]);
     toast.success("Plans exported successfully.");
@@ -64,10 +65,21 @@ export default function PlansAdminPage() {
   const baseColumns = [
     { key: "planName", header: "Plan", render: (r) => <span className="font-medium text-ink-900 dark:text-white">{r.planName}</span> },
     { key: "productName", header: "Product" },
-    { key: "coverageAmount", header: "Coverage", render: (r) => <span className="font-mono-data">{formatCurrency(r.coverageAmount)}</span> },
-    { key: "premiumAmount", header: "Premium", render: (r) => <span className="font-mono-data">{formatCurrency(r.premiumAmount)}</span> },
+    {
+      key: "coverageRange",
+      header: "Coverage Range",
+      render: (r) => (
+        <span className="font-mono-data">
+          {formatCurrency(r.minCoverageAmount)} – {formatCurrency(r.maxCoverageAmount)}
+        </span>
+      ),
+    },
     { key: "premiumType", header: "Cycle", render: (r) => toTitleCase(r.premiumType) },
-    { key: "duration", header: "Duration", render: (r) => `${r.duration} mo` },
+    {
+      key: "durationRange",
+      header: "Duration Range",
+      render: (r) => `${r.minDuration} – ${r.maxDuration} mo`,
+    },
     { key: "active", header: "Status", render: (r) => <Stamp status={r.active} /> },
   ];
 

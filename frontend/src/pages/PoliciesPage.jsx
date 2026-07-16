@@ -105,7 +105,7 @@ function AdminInsuranceOperationsOfficerPolicies() {
     { key: "customerName", header: "Customer" },
     { key: "planName", header: "Plan" },
     { key: "productType", header: "Type", render: (r) => toTitleCase(r.productType) },
-    { key: "dates", header: "Coverage", render: (r) => `${formatDate(r.startDate)} - ${formatDate(r.endDate)}` },
+    { key: "dates", header: "Coverage Period", render: (r) => `${formatDate(r.startDate)} - ${formatDate(r.endDate)}` },
     { key: "totalPremiumPaid", header: "Paid", render: (r) => <span className="font-mono-data">{formatCurrency(r.totalPremiumPaid)}</span> },
     { key: "status", header: "Status", render: (r) => <Stamp status={r.status} /> },
     {

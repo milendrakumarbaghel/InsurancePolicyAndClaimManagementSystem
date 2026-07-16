@@ -11,7 +11,10 @@ public interface PolicyService {
 
     PolicyResponseDto purchasePolicy(
             Long planId,
-            String customerEmail);
+            String customerEmail,
+            Double selectedCoverageAmount,
+            Integer selectedDuration,
+            String selectedPremiumType);
 
     PolicyResponseDto issuePolicy(
             PolicyRequestDto request);

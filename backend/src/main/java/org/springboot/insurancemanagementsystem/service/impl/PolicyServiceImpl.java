@@ -9,6 +9,7 @@ import org.springboot.insurancemanagementsystem.entitie.Customer;
 import org.springboot.insurancemanagementsystem.entitie.Policy;
 import org.springboot.insurancemanagementsystem.entitie.PolicyPlan;
 import org.springboot.insurancemanagementsystem.enums.PolicyStatus;
+import org.springboot.insurancemanagementsystem.enums.PremiumType;
 import org.springboot.insurancemanagementsystem.enums.ProductType;
 import org.springboot.insurancemanagementsystem.exception.BusinessException;
 import org.springboot.insurancemanagementsystem.exception.ResourceNotFoundException;
@@ -16,6 +17,7 @@ import org.springboot.insurancemanagementsystem.repository.CustomerRepository;
 import org.springboot.insurancemanagementsystem.repository.PolicyPlanRepository;
 import org.springboot.insurancemanagementsystem.repository.PolicyRepository;
 import org.springboot.insurancemanagementsystem.service.PolicyService;
+import org.springboot.insurancemanagementsystem.service.PremiumCalculator;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -36,11 +38,19 @@ public class PolicyServiceImpl implements PolicyService {
     private final PolicyRepository policyRepository;
     private final CustomerRepository customerRepository;
     private final PolicyPlanRepository planRepository;
+    private final PremiumCalculator premiumCalculator;
     private final ModelMapper modelMapper;
+
+    // ── Purchase (customer self-service) ─────────────────────────────────────────
 
     @Override
     @Transactional
-    public PolicyResponseDto purchasePolicy(Long planId, String customerEmail) {
+    public PolicyResponseDto purchasePolicy(Long planId,
+                                            String customerEmail,
+                                            Double selectedCoverageAmount,
+                                            Integer selectedDuration,
+                                            String selectedPremiumType) {
+
         log.info("Processing policy purchase. planId={}, customerEmail={}", planId, customerEmail);
 
         Customer customer = customerRepository.findByUserEmail(customerEmail)
@@ -53,29 +63,44 @@ public class PolicyServiceImpl implements PolicyService {
             throw new BusinessException("Selected plan is currently inactive.");
         }
 
+        validateSelections(plan, selectedCoverageAmount, selectedDuration);
         validatePurchaseLimits(customer, plan);
+
+        PremiumType premType = parsePremiumType(selectedPremiumType);
+
+        double calculatedPremium = premiumCalculator.calculate(
+                selectedCoverageAmount, selectedDuration, premType);
 
         Policy policy = Policy.builder()
                 .policyNumber(generatePolicyNumber())
                 .customer(customer)
                 .plan(plan)
                 .startDate(LocalDate.now())
-                .endDate(LocalDate.now().plusMonths(plan.getDuration()))
+                .endDate(LocalDate.now().plusMonths(selectedDuration))
+                .selectedCoverageAmount(selectedCoverageAmount)
+                .selectedDuration(selectedDuration)
+                .selectedPremiumType(premType)
+                .calculatedPremiumAmount(calculatedPremium)
                 .totalPremiumPaid(0.0)
                 .status(PolicyStatus.PENDING_PAYMENT)
                 .createdAt(LocalDateTime.now())
                 .build();
 
         Policy savedPolicy = policyRepository.save(policy);
-        log.info("Policy {} created successfully for {}", savedPolicy.getPolicyNumber(), customerEmail);
+        log.info("Policy {} created successfully for {}. PremiumType={}, Premium={}",
+                savedPolicy.getPolicyNumber(), customerEmail, premType, calculatedPremium);
 
         return mapToResponseDto(savedPolicy);
     }
 
+    // ── Issue (admin / officer) ───────────────────────────────────────────────────
+
     @Override
     @Transactional
     public PolicyResponseDto issuePolicy(PolicyRequestDto request) {
-        log.info("Manual issuance requested. customerId={}, planId={}", request.getCustomerId(), request.getPlanId());
+
+        log.info("Manual issuance requested. customerId={}, planId={}",
+                request.getCustomerId(), request.getPlanId());
 
         Customer customer = customerRepository.findById(request.getCustomerId())
                 .orElseThrow(() -> new ResourceNotFoundException("Customer not found"));
@@ -83,12 +108,25 @@ public class PolicyServiceImpl implements PolicyService {
         PolicyPlan plan = planRepository.findById(request.getPlanId())
                 .orElseThrow(() -> new ResourceNotFoundException("Plan not found"));
 
+        validateSelections(plan, request.getSelectedCoverageAmount(), request.getSelectedDuration());
+
+        PremiumType premType = parsePremiumType(request.getSelectedPremiumType());
+
+        double calculatedPremium = premiumCalculator.calculate(
+                request.getSelectedCoverageAmount(),
+                request.getSelectedDuration(),
+                premType);
+
         Policy policy = Policy.builder()
                 .policyNumber(generatePolicyNumber())
                 .customer(customer)
                 .plan(plan)
                 .startDate(request.getStartDate())
-                .endDate(request.getStartDate().plusMonths(plan.getDuration()))
+                .endDate(request.getStartDate().plusMonths(request.getSelectedDuration()))
+                .selectedCoverageAmount(request.getSelectedCoverageAmount())
+                .selectedDuration(request.getSelectedDuration())
+                .selectedPremiumType(premType)
+                .calculatedPremiumAmount(calculatedPremium)
                 .totalPremiumPaid(0.0)
                 .status(PolicyStatus.PENDING_PAYMENT)
                 .createdAt(LocalDateTime.now())
@@ -96,10 +134,13 @@ public class PolicyServiceImpl implements PolicyService {
                 .build();
 
         Policy savedPolicy = policyRepository.save(policy);
-        log.info("Policy {} issued manually.", savedPolicy.getPolicyNumber());
+        log.info("Policy {} issued manually. PremiumType={}, Premium={}",
+                savedPolicy.getPolicyNumber(), premType, calculatedPremium);
 
         return mapToResponseDto(savedPolicy);
     }
+
+    // ── Read operations ───────────────────────────────────────────────────────────
 
     @Override
     @Transactional(readOnly = true)
@@ -129,12 +170,12 @@ public class PolicyServiceImpl implements PolicyService {
 
     @Override
     @Transactional(readOnly = true)
-    public Page<PolicyResponseDto> getAllPolicies(int page, int size, String sortBy, String sortDir, PolicyStatus status, Long customerId) {
-        Sort sort = sortDir.equalsIgnoreCase("asc") ? Sort.by(sortBy).ascending() : Sort.by(sortBy).descending();
+    public Page<PolicyResponseDto> getAllPolicies(int page, int size, String sortBy, String sortDir,
+                                                  PolicyStatus status, Long customerId) {
+        Sort sort = sortDir.equalsIgnoreCase("asc")
+                ? Sort.by(sortBy).ascending() : Sort.by(sortBy).descending();
         PageRequest pageable = PageRequest.of(page, size, sort);
 
-        // REQUIREMENT: These repository methods MUST use @EntityGraph(attributePaths = {"customer.user", "plan.product"})
-        // in PolicyRepository.java to prevent severe N+1 database queries.
         Page<Policy> policyPage;
         if (customerId != null && status != null) {
             policyPage = policyRepository.findByCustomerIdAndStatus(customerId, status, pageable);
@@ -166,7 +207,43 @@ public class PolicyServiceImpl implements PolicyService {
         return mapToResponseDto(policyRepository.save(policy));
     }
 
-    // --- Helper Methods ---
+    // ── Helper methods ────────────────────────────────────────────────────────────
+
+    /**
+     * Validates that the customer's chosen coverage and duration are within the plan's allowed ranges.
+     */
+    private void validateSelections(PolicyPlan plan,
+                                    Double selectedCoverage,
+                                    Integer selectedDuration) {
+
+        if (selectedCoverage == null || selectedCoverage <= 0) {
+            throw new BusinessException("Selected coverage amount must be greater than zero.");
+        }
+        if (plan.getMinCoverageAmount() != null && selectedCoverage < plan.getMinCoverageAmount()) {
+            throw new BusinessException(
+                    "Selected coverage amount (" + selectedCoverage +
+                    ") is below the plan minimum (" + plan.getMinCoverageAmount() + ").");
+        }
+        if (selectedCoverage > plan.getMaxCoverageAmount()) {
+            throw new BusinessException(
+                    "Selected coverage amount (" + selectedCoverage +
+                    ") exceeds the plan maximum (" + plan.getMaxCoverageAmount() + ").");
+        }
+
+        if (selectedDuration == null || selectedDuration <= 0) {
+            throw new BusinessException("Selected duration must be greater than zero.");
+        }
+        if (plan.getMinDuration() != null && selectedDuration < plan.getMinDuration()) {
+            throw new BusinessException(
+                    "Selected duration (" + selectedDuration +
+                    ") is below the plan minimum (" + plan.getMinDuration() + " months).");
+        }
+        if (selectedDuration > plan.getMaxDuration()) {
+            throw new BusinessException(
+                    "Selected duration (" + selectedDuration +
+                    ") exceeds the plan maximum (" + plan.getMaxDuration() + " months).");
+        }
+    }
 
     private void validatePurchaseLimits(Customer customer, PolicyPlan plan) {
         ProductType type = plan.getProduct().getProductType();
@@ -175,8 +252,8 @@ public class PolicyServiceImpl implements PolicyService {
 
         boolean canPurchase = switch (type) {
             case HEALTH -> activeCount < 2;
-            case MOTOR -> activeCount < 1;
-            case LIFE -> activeCount < 5;
+            case MOTOR  -> activeCount < 1;
+            case LIFE   -> activeCount < 5;
             case TRAVEL -> activeCount == 0;
         };
 
@@ -197,23 +274,61 @@ public class PolicyServiceImpl implements PolicyService {
     }
 
     private PolicyResponseDto mapToResponseDto(Policy policy) {
-        PolicyResponseDto dto = modelMapper.map(policy, PolicyResponseDto.class);
+        PolicyResponseDto dto = new PolicyResponseDto();
         dto.setPolicyId(policy.getId());
+        dto.setPolicyNumber(policy.getPolicyNumber());
+        dto.setStartDate(policy.getStartDate());
+        dto.setEndDate(policy.getEndDate());
+        dto.setTotalPremiumPaid(policy.getTotalPremiumPaid());
+        dto.setSelectedCoverageAmount(policy.getSelectedCoverageAmount());
+        dto.setSelectedDuration(policy.getSelectedDuration());
+        dto.setCalculatedPremiumAmount(policy.getCalculatedPremiumAmount());
 
-        // Null checks added for safety against bad data mapping
+        if (policy.getStatus() != null) {
+            dto.setStatus(policy.getStatus().name());
+        }
+
         if (policy.getCustomer() != null && policy.getCustomer().getUser() != null) {
             dto.setCustomerName(policy.getCustomer().getUser().getFullName());
         }
+
         if (policy.getPlan() != null) {
-            dto.setPlanName(policy.getPlan().getPlanName());
-            if (policy.getPlan().getPremiumType() != null) {
-                dto.setPlanPremiumType(policy.getPlan().getPremiumType().name());
+            PolicyPlan plan = policy.getPlan();
+            dto.setPlanName(plan.getPlanName());
+            dto.setPlanMaxCoverageAmount(plan.getMaxCoverageAmount());
+            dto.setPlanMinCoverageAmount(plan.getMinCoverageAmount());
+            dto.setPlanMaxDuration(plan.getMaxDuration());
+            dto.setPlanMinDuration(plan.getMinDuration());
+
+            // Use the customer's selected premium type; fall back to plan default
+            PremiumType effectivePremType = policy.getSelectedPremiumType() != null
+                    ? policy.getSelectedPremiumType()
+                    : plan.getPremiumType();
+
+            if (effectivePremType != null) {
+                dto.setSelectedPremiumType(effectivePremType.name());
+                dto.setPlanPremiumType(effectivePremType.name()); // keeps RecordPaymentPage working
             }
-            if (policy.getPlan().getProduct() != null) {
-                dto.setProductType(policy.getPlan().getProduct().getProductType().name());
+
+            if (plan.getProduct() != null) {
+                dto.setProductType(plan.getProduct().getProductType().name());
             }
         }
-        dto.setStatus(policy.getStatus().name());
+
         return dto;
+    }
+
+    // ── Private helpers ───────────────────────────────────────────────────────────
+
+    private PremiumType parsePremiumType(String value) {
+        if (value == null || value.isBlank()) {
+            throw new BusinessException("Premium cycle is required");
+        }
+        try {
+            return PremiumType.valueOf(value.trim().toUpperCase());
+        } catch (IllegalArgumentException e) {
+            throw new BusinessException(
+                    "Invalid premium cycle '" + value + "'. Allowed: MONTHLY, QUARTERLY, HALF_YEARLY, ANNUAL");
+        }
     }
 }

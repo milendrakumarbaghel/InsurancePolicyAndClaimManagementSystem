@@ -39,6 +39,20 @@ public class Policy {
 
     private Double totalPremiumPaid;
 
+    /** Customer-chosen coverage amount (within plan's min–max range). */
+    private Double selectedCoverageAmount;
+
+    /** Customer-chosen duration in months (within plan's min–max range). */
+    private Integer selectedDuration;
+
+    /** Customer-chosen premium payment cycle. */
+    @Enumerated(EnumType.STRING)
+    @Column(length = 15)
+    private org.springboot.insurancemanagementsystem.enums.PremiumType selectedPremiumType;
+
+    /** Per-period premium calculated at purchase time using PremiumCalculator. */
+    private Double calculatedPremiumAmount;
+
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 }

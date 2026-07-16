@@ -12,7 +12,6 @@ import org.springboot.insurancemanagementsystem.enums.PolicyStatus;
 import org.springboot.insurancemanagementsystem.exception.BusinessException;
 import org.springboot.insurancemanagementsystem.exception.ResourceNotFoundException;
 import org.springboot.insurancemanagementsystem.repository.CustomerRepository;
-import org.springboot.insurancemanagementsystem.repository.PolicyPlanRepository;
 import org.springboot.insurancemanagementsystem.repository.PolicyRepository;
 import org.springboot.insurancemanagementsystem.repository.PremiumPaymentRepository;
 import org.springboot.insurancemanagementsystem.service.PremiumPaymentService;
@@ -27,7 +26,6 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.YearMonth;
 import java.util.List;
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -37,7 +35,6 @@ public class PremiumPaymentServiceImpl
 
     private final PremiumPaymentRepository paymentRepository;
     private final PolicyRepository policyRepository;
-    private final PolicyPlanRepository policyPlanRepository;
     private final CustomerRepository customerRepository;
     private final ModelMapper modelMapper;
 
@@ -59,24 +56,16 @@ public class PremiumPaymentServiceImpl
                                     "Policy not found");
                         });
 
-        Optional<PolicyPlan> planOptional =
-                policyPlanRepository.findById(
-                        request.getPolicyPlanId());
+        // Use the premium that was calculated and stored when this policy was purchased.
+        // This is always consistent with what the customer agreed to.
+        Double premiumAmount = policy.getCalculatedPremiumAmount();
 
-        if (planOptional.isEmpty()) {
-
-            log.warn("Policy plan not found with id={}",
-                    request.getPolicyPlanId());
-
-            throw new ResourceNotFoundException(
-                    "Policy plan not found with Id: "
-                            + request.getPolicyPlanId());
+        if (premiumAmount == null) {
+            log.error("Policy {} has no calculatedPremiumAmount – data integrity issue.",
+                    policy.getPolicyNumber());
+            throw new BusinessException(
+                    "Cannot determine the premium for this policy. Please contact support.");
         }
-
-        PolicyPlan plan = planOptional.get();
-
-        Double premiumAmount =
-                plan.getPremiumAmount();
 
         if (!premiumAmount.equals(request.getAmount())) {
 
@@ -91,8 +80,12 @@ public class PremiumPaymentServiceImpl
         }
 
         // ── Prevent duplicate payment for the same installment period ──
-        LocalDateTime[] period = computeInstallmentPeriod(
-                plan.getPremiumType(), LocalDate.now());
+        // Use the customer's chosen cycle (not the plan default)
+        var effectivePremiumType = policy.getSelectedPremiumType() != null
+                ? policy.getSelectedPremiumType()
+                : policy.getPlan().getPremiumType();
+
+        LocalDateTime[] period = computeInstallmentPeriod(effectivePremiumType, LocalDate.now());
 
         boolean alreadyPaid = paymentRepository
                 .existsByPolicy_IdAndStatusAndPaymentDateBetween(
@@ -101,7 +94,7 @@ public class PremiumPaymentServiceImpl
                         period[0], period[1]);
 
         if (alreadyPaid) {
-            String cycleName = plan.getPremiumType().name()
+            String cycleName = effectivePremiumType.name()
                     .replace("_", " ").toLowerCase();
             log.warn(
                     "Duplicate payment blocked for policyNumber={}, cycle={}",

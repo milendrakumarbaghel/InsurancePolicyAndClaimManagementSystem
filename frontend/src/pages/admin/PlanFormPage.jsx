@@ -15,7 +15,7 @@ import { planService } from "../../services/planService";
 import { productService } from "../../services/productService";
 import { getErrorMessage } from "../../services/api";
 import {
-  patterns, required, minLength, maxLength, pattern, positive, max,
+  patterns, required, minLength, maxLength, pattern, positive, max, min,
 } from "../../utils/validators";
 import { PREMIUM_TYPES } from "../../utils/constants";
 import { toTitleCase } from "../../utils/formatters";
@@ -28,10 +28,27 @@ const schema = {
     maxLength(100, "Must be between 3 and 100 characters"),
     pattern(patterns.planName, "Contains invalid special characters"),
   ],
-  coverageAmount: [required("Coverage amount is required"), positive(), max(999999999, "Exceeds maximum allowable limit")],
-  premiumAmount: [required("Premium amount is required"), positive(), max(9999999, "Exceeds maximum allowable limit")],
-  premiumType: [required("Premium type is required")],
-  duration: [required("Duration is required"), positive(), max(120, "Cannot exceed 120 periods")],
+  maxCoverageAmount: [
+    required("Maximum coverage amount is required"),
+    positive(),
+    max(999999999, "Exceeds maximum allowable limit"),
+  ],
+  minCoverageAmount: [
+    required("Minimum coverage amount is required"),
+    positive(),
+    max(999999999, "Exceeds maximum allowable limit"),
+  ],
+  premiumType: [required("Premium cycle is required")],
+  maxDuration: [
+    required("Maximum duration is required"),
+    positive(),
+    max(120, "Cannot exceed 120 months"),
+  ],
+  minDuration: [
+    required("Minimum duration is required"),
+    positive(),
+    max(120, "Cannot exceed 120 months"),
+  ],
   termsAndConditions: [
     required("Terms and conditions are required"),
     minLength(10, "Must be between 10 and 2000 characters"),
@@ -52,21 +69,31 @@ export default function PlanFormPage() {
     initialValues: {
       productId: searchParams.get("productId") || "",
       planName: "",
-      coverageAmount: "",
-      premiumAmount: "",
+      maxCoverageAmount: "",
+      minCoverageAmount: "",
       premiumType: "",
-      duration: "",
+      maxDuration: "",
+      minDuration: "",
       termsAndConditions: "",
       active: true,
     },
     schema,
     onSubmit: async (formValues) => {
+      // Cross-field validation
+      if (Number(formValues.minCoverageAmount) >= Number(formValues.maxCoverageAmount)) {
+        throw new Error("Minimum coverage must be less than maximum coverage.");
+      }
+      if (Number(formValues.minDuration) >= Number(formValues.maxDuration)) {
+        throw new Error("Minimum duration must be less than maximum duration.");
+      }
+
       const payload = {
         ...formValues,
         productId: Number(formValues.productId),
-        coverageAmount: Number(formValues.coverageAmount),
-        premiumAmount: Number(formValues.premiumAmount),
-        duration: Number(formValues.duration),
+        maxCoverageAmount: Number(formValues.maxCoverageAmount),
+        minCoverageAmount: Number(formValues.minCoverageAmount),
+        maxDuration: Number(formValues.maxDuration),
+        minDuration: Number(formValues.minDuration),
         active: !!formValues.active,
       };
       if (isEdit) {
@@ -92,10 +119,11 @@ export default function PlanFormPage() {
         setValues((prev) => ({
           ...prev,
           planName: data.planName,
-          coverageAmount: data.coverageAmount,
-          premiumAmount: data.premiumAmount,
+          maxCoverageAmount: data.maxCoverageAmount,
+          minCoverageAmount: data.minCoverageAmount,
           premiumType: data.premiumType,
-          duration: data.duration,
+          maxDuration: data.maxDuration,
+          minDuration: data.minDuration,
           active: data.active,
         }))
       )
@@ -110,7 +138,7 @@ export default function PlanFormPage() {
       <PageHeader
         eyebrow="Catalog"
         title={isEdit ? "Edit Plan" : "New Plan"}
-        description="Plans define the coverage, premium, and duration a customer purchases."
+        description="Plans define the coverage range and duration range. Customers choose their exact values; the premium is calculated dynamically at purchase."
       />
 
       <Card>
@@ -141,55 +169,79 @@ export default function PlanFormPage() {
             required
           />
 
-          <div className="grid grid-cols-2 gap-4">
-            <Input
-              label="Maximum coverage amount (₹)"
-              name="coverageAmount"
-              type="number"
-              min="1"
-              value={values.coverageAmount}
-              onChange={handleChange}
-              onBlur={handleBlur}
-              error={errors.coverageAmount}
-              required
-            />
-            <Input
-              label="Premium amount (₹)"
-              name="premiumAmount"
-              type="number"
-              min="1"
-              value={values.premiumAmount}
-              onChange={handleChange}
-              onBlur={handleBlur}
-              error={errors.premiumAmount}
-              required
-            />
+          {/* Coverage Range */}
+          <div>
+            <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-ink-400">
+              Coverage Amount Range (₹)
+            </p>
+            <div className="grid grid-cols-2 gap-4">
+              <Input
+                label="Minimum coverage (₹)"
+                name="minCoverageAmount"
+                type="number"
+                min="1"
+                value={values.minCoverageAmount}
+                onChange={handleChange}
+                onBlur={handleBlur}
+                error={errors.minCoverageAmount}
+                required
+              />
+              <Input
+                label="Maximum coverage (₹)"
+                name="maxCoverageAmount"
+                type="number"
+                min="1"
+                value={values.maxCoverageAmount}
+                onChange={handleChange}
+                onBlur={handleBlur}
+                error={errors.maxCoverageAmount}
+                required
+              />
+            </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <Select
-              label="Premium cycle"
-              name="premiumType"
-              placeholder="Select cycle"
-              options={PREMIUM_TYPES.map((t) => ({ value: t, label: toTitleCase(t) }))}
-              value={values.premiumType}
-              onChange={handleChange}
-              onBlur={handleBlur}
-              error={errors.premiumType}
-              required
-            />
-            <Input
-              label="Maximum duration (months)"
-              name="duration"
-              type="number"
-              min="1"
-              max="120"
-              value={values.duration}
-              onChange={handleChange}
-              onBlur={handleBlur}
-              error={errors.duration}
-              required
-            />
+          {/* Premium Cycle + Duration Range */}
+          <div>
+            <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-ink-400">
+              Policy Duration Range (Months)
+            </p>
+            <div className="grid grid-cols-3 gap-4">
+              <Select
+                label="Premium cycle"
+                name="premiumType"
+                placeholder="Select cycle"
+                options={PREMIUM_TYPES.map((t) => ({ value: t, label: toTitleCase(t) }))}
+                value={values.premiumType}
+                onChange={handleChange}
+                onBlur={handleBlur}
+                error={errors.premiumType}
+                required
+              />
+              <Input
+                label="Min duration (months)"
+                name="minDuration"
+                type="number"
+                min="1"
+                max="120"
+                value={values.minDuration}
+                onChange={handleChange}
+                onBlur={handleBlur}
+                error={errors.minDuration}
+                required
+              />
+              <Input
+                label="Max duration (months)"
+                name="maxDuration"
+                type="number"
+                min="1"
+                max="120"
+                value={values.maxDuration}
+                onChange={handleChange}
+                onBlur={handleBlur}
+                error={errors.maxDuration}
+                required
+              />
+            </div>
           </div>
 
           <Textarea

@@ -82,18 +82,19 @@ public class ClaimServiceImpl implements ClaimService {
             throw new BusinessException("Claim can be raised only on active policy");
         }
 
+        // Use the customer's selected coverage (not the plan max) for claim validation
         if (request.getClaimAmount()
-                .compareTo(policy.getPlan().getCoverageAmount()) > 0) {
+                .compareTo(policy.getSelectedCoverageAmount()) > 0) {
 
-            log.warn("Claim amount {} exceeds coverage amount {}",
+            log.warn("Claim amount {} exceeds selected coverage amount {}",
                     request.getClaimAmount(),
-                    policy.getPlan().getCoverageAmount());
+                    policy.getSelectedCoverageAmount());
 
             throw new BusinessException("Claim amount exceeds coverage");
         }
         List<ClaimStatus> approvedStatuses = Collections.singletonList(ClaimStatus.APPROVED);
         Double approvedClaimsTotal = claimRepository.getApprovedClaimAmountByPolicyId(policy.getId(), approvedStatuses);
-        Double coverageAmount = policy.getPlan().getCoverageAmount();
+        Double coverageAmount = policy.getSelectedCoverageAmount();
 
         Double remainingCoverage = coverageAmount - approvedClaimsTotal;
         if (remainingCoverage < 0) remainingCoverage = 0.0;
@@ -277,7 +278,7 @@ public class ClaimServiceImpl implements ClaimService {
 
         List<ClaimStatus> approvedStatuses = Collections.singletonList(ClaimStatus.APPROVED);
         Double approvedClaimsTotal = claimRepository.getApprovedClaimAmountByPolicyId(policy.getId(), approvedStatuses);
-        Double coverageAmount = policy.getPlan().getCoverageAmount();
+        Double coverageAmount = policy.getSelectedCoverageAmount();
 
         Double remainingCoverage = coverageAmount - approvedClaimsTotal;
         if (remainingCoverage < 0) remainingCoverage = 0.0;
@@ -537,10 +538,10 @@ public class ClaimServiceImpl implements ClaimService {
             if (plan != null) {
                 response.setPlanDetails(ClaimResponseDto.PlanDetailsDto.builder()
                         .planName(plan.getPlanName())
-                        .coverageAmount(plan.getCoverageAmount())
-                        .premiumAmount(plan.getPremiumAmount())
+                        .coverageAmount(po.getSelectedCoverageAmount())   // customer's actual selected coverage
+                        .premiumAmount(po.getCalculatedPremiumAmount())   // calculated per-period premium
                         .premiumType(plan.getPremiumType() != null ? plan.getPremiumType().name() : null)
-                        .duration(plan.getDuration())
+                        .duration(po.getSelectedDuration())               // customer's selected duration
                         .termsAndConditions(plan.getTermsAndConditions())
                         .build());
             }
@@ -570,7 +571,10 @@ public class ClaimServiceImpl implements ClaimService {
 
                     PolicyPlan histPlan = histPolicy != null ? histPolicy.getPlan() : null;
                     String histPlanName = histPlan != null ? histPlan.getPlanName() : "N/A";
-                    Double histCoverage = histPlan != null ? histPlan.getCoverageAmount() : 0.0;
+                    // Use selectedCoverageAmount from policy if available, else max from plan
+                    Double histCoverage = histPolicy != null && histPolicy.getSelectedCoverageAmount() != null
+                            ? histPolicy.getSelectedCoverageAmount()
+                            : (histPlan != null ? histPlan.getMaxCoverageAmount() : 0.0);
 
                     history.add(ClaimResponseDto.ClaimHistoryDto.builder()
                             .claimNumber(histClaim.getClaimNumber())
@@ -594,7 +598,8 @@ public class ClaimServiceImpl implements ClaimService {
 
                 // 3. Finalize Plan Summary calculations
                 if (plan != null) {
-                    double remaining = plan.getCoverageAmount() - approvedPolicyClaimAmount;
+                    double selectedCoverage = po.getSelectedCoverageAmount() != null ? po.getSelectedCoverageAmount() : 0.0;
+                    double remaining = selectedCoverage - approvedPolicyClaimAmount;
                     response.setPlanSummary(ClaimResponseDto.PlanSummaryDto.builder()
                             .totalPreviousClaims(policyClaimsCount)
                             .totalPreviousClaimAmount(approvedPolicyClaimAmount)

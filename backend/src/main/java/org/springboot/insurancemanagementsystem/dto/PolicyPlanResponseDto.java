@@ -12,9 +12,10 @@ public class PolicyPlanResponseDto {
     private Long PolicyPlanId;
     private String productName;
     private String planName;
-    private Double coverageAmount;
-    private Double premiumAmount;
+    private Double maxCoverageAmount;
+    private Double minCoverageAmount;
     private String premiumType;
-    private Integer duration;
+    private Integer maxDuration;
+    private Integer minDuration;
     private boolean active;
 }

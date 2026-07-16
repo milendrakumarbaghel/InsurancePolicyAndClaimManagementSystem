@@ -100,7 +100,7 @@ export default function PolicyDetailPage() {
         }
       />
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 mb-8">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 mb-6">
         <Card>
           <p className="text-xs uppercase tracking-wider text-ink-400 font-semibold">Status</p>
           <div className="mt-2"><Stamp status={policy.status} /></div>
@@ -115,6 +115,29 @@ export default function PolicyDetailPage() {
           <p className="text-xs uppercase tracking-wider text-ink-400 font-semibold">Total premium paid</p>
           <p className="mt-2 font-mono-data text-lg font-semibold text-ink-900 dark:text-white">
             {formatCurrency(policy.totalPremiumPaid)}
+          </p>
+        </Card>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 mb-8">
+        <Card>
+          <p className="text-xs uppercase tracking-wider text-ink-400 font-semibold">Selected coverage</p>
+          <p className="mt-2 font-mono-data text-lg font-semibold text-ink-900 dark:text-white">
+            {formatCurrency(policy.selectedCoverageAmount)}
+          </p>
+        </Card>
+        <Card>
+          <p className="text-xs uppercase tracking-wider text-ink-400 font-semibold">Policy duration</p>
+          <p className="mt-2 font-mono-data text-lg font-semibold text-ink-900 dark:text-white">
+            {policy.selectedDuration} months
+          </p>
+        </Card>
+        <Card>
+          <p className="text-xs uppercase tracking-wider text-ink-400 font-semibold">
+            {policy.planPremiumType ? toTitleCase(policy.planPremiumType) : "Per-period"} premium
+          </p>
+          <p className="mt-2 font-mono-data text-lg font-semibold text-harbor-600 dark:text-harbor-400">
+            {formatCurrency(policy.calculatedPremiumAmount)}
           </p>
         </Card>
       </div>

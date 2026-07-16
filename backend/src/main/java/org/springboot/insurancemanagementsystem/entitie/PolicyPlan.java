@@ -24,14 +24,19 @@ public class PolicyPlan {
 
     private String planName;
 
-    private Double coverageAmount;
+    private Double maxCoverageAmount;
+    private Double minCoverageAmount;
+
+    /** Kept nullable – no longer set by admin; plans use dynamic pricing. */
+    @Column(nullable = true)
     private Double premiumAmount;
 
     @Enumerated(EnumType.STRING)
     @Column(length = 15)
     private PremiumType premiumType;
 
-    private Integer duration;
+    private Integer maxDuration;
+    private Integer minDuration;
 
     @Column(length = 2000)
     private String termsAndConditions;
