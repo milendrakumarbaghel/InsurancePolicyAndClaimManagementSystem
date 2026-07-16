@@ -15,7 +15,7 @@ export default function ClaimLifecycle() {
         </h2>
 
         <div className="mt-12 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 relative">
-          <div className="hidden lg:block absolute top-6 left-[12%] right-[12%] h-px bg-linear-to-r from-harbor-300 via-gold-400 to-harbor-300 dark:from-harbor-700 dark:via-gold-600 dark:to-harbor-700" />
+          <div className="hidden lg:block absolute top-10 left-[1%] right-[20%] h-px bg-linear-to-r from-harbor-300 via-gold-400 to-harbor-300 dark:from-harbor-700 dark:via-gold-600 dark:to-harbor-700" />
           {stages.map((stage) => (
             <div key={stage.n} className="relative">
               <span className="font-mono-data text-3xl font-semibold text-gold-500">{stage.n}</span>

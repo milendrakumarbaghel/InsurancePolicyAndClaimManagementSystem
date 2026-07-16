@@ -143,7 +143,7 @@ export default function PlanFormPage() {
 
           <div className="grid grid-cols-2 gap-4">
             <Input
-              label="Coverage amount (₹)"
+              label="Maximum coverage amount (₹)"
               name="coverageAmount"
               type="number"
               min="1"
@@ -179,7 +179,7 @@ export default function PlanFormPage() {
               required
             />
             <Input
-              label="Duration (months)"
+              label="Maximum duration (months)"
               name="duration"
               type="number"
               min="1"

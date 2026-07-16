@@ -47,14 +47,14 @@ export const STATUS_STYLES = {
 };
 
 export const DOCUMENT_TYPE_SUGGESTIONS = [
-  "Medical Bill",
-  "Police Report",
-  "Repair Estimate",
-  "Death Certificate",
-  "Identity Proof",
-  "Photograph",
-  "Invoice",
-  "Other",
+  { value: "Medical Bill", label: "Medical Bill" },
+  { value: "Police Report", label: "Police Report" },
+  { value: "Repair Estimate", label: "Repair Estimate" },
+  { value: "Death Certificate", label: "Death Certificate" },
+  { value: "Identity Proof", label: "Identity Proof" },
+  { value: "Photograph", label: "Photograph" },
+  { value: "Invoice", label: "Invoice" },
+  { value: "Other", label: "Other" },
 ];
 
 export const ALLOWED_RELATIONS = [

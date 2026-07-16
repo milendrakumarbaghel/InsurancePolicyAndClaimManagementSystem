@@ -16,7 +16,7 @@ export default function DashboardTopbar({ onMenuClick }) {
   };
 
   return (
-    <header className="sticky top-0 z-20 flex items-center justify-between border-b border-ink-200 dark:border-ink-800 bg-white/90 dark:bg-ink-950/90 backdrop-blur px-4 sm:px-6 py-3.5">
+    <header className="sticky top-0 z-20 flex items-center justify-between border-b border-ink-200 dark:border-ink-800 bg-white/90 dark:bg-ink-950/90 backdrop-blur px-4 sm:px-6 py-4.25">
       <button onClick={onMenuClick} className="lg:hidden rounded-lg p-2 text-ink-600 dark:text-ink-300 hover:bg-ink-100 dark:hover:bg-ink-800">
         <Menu className="h-5 w-5" />
       </button>

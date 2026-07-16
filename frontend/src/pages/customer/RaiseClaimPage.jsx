@@ -396,21 +396,16 @@ export default function RaiseClaimPage() {
                       }
                       error={documentErrors[index]?.documentName}
                     />
-                    <Input
+                    <Select
                       label="Document type"
-                      placeholder="Medical Bill"
-                      list={`doc-type-suggestions-${index}`}
+                      placeholder="Select type"
+                      options={DOCUMENT_TYPE_SUGGESTIONS}
                       value={doc.documentType}
                       onChange={(e) =>
                         updateDocument(index, "documentType", e.target.value)
                       }
                       error={documentErrors[index]?.documentType}
                     />
-                    <datalist id={`doc-type-suggestions-${index}`}>
-                      {DOCUMENT_TYPE_SUGGESTIONS.map((s) => (
-                        <option key={s} value={s} />
-                      ))}
-                    </datalist>
                     <Input
                       label="Document summary"
                       placeholder="Enter a description of this document"
@@ -455,11 +450,11 @@ export default function RaiseClaimPage() {
                                   "documentName",
                                   file.name,
                                 );
-                                let docType = "Medical Bill";
+                                let docType = "Other";
                                 if (file.type.includes("pdf"))
-                                  docType = "PDF Document";
+                                  docType = "Invoice";
                                 else if (file.type.includes("image"))
-                                  docType = "Image Scan";
+                                  docType = "Photograph";
                                 updateDocument(index, "documentType", docType);
                               }
                             }}

@@ -4,7 +4,7 @@ import Button from "../common/Button";
 
 export default function Hero() {
   return (
-    <section className="relative overflow-hidden">
+    <section className="relative overflow-hidden -mt-8">
       <div className="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_15%_10%,var(--color-harbor-100),transparent_45%)] dark:bg-[radial-gradient(circle_at_15%_10%,var(--color-harbor-900),transparent_45%)]" />
 
       <div className="mx-auto grid max-w-7xl grid-cols-1 items-center gap-14 px-5 sm:px-8 py-16 sm:py-24 lg:grid-cols-2">
@@ -13,7 +13,7 @@ export default function Hero() {
             <ShieldCheck className="h-3.5 w-3.5" /> Policy & claim management, unified
           </span>
 
-          <h1 className="mt-6 font-display text-4xl sm:text-5xl lg:text-6xl font-semibold leading-[1.08] tracking-tight text-ink-900 dark:text-white">
+          <h1 className="mt-2 font-display text-4xl sm:text-5xl lg:text-6xl font-semibold leading-[1.08] tracking-tight text-ink-900 dark:text-white">
             Every policy.
             <br />
             Every claim.
