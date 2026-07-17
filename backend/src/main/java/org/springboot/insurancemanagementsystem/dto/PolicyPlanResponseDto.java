@@ -10,6 +10,7 @@ import lombok.*;
 @Builder
 public class PolicyPlanResponseDto {
     private Long PolicyPlanId;
+    private Long productId;
     private String productName;
     private String planName;
     private Double maxCoverageAmount;
@@ -17,5 +18,7 @@ public class PolicyPlanResponseDto {
     private String premiumType;
     private Integer maxDuration;
     private Integer minDuration;
+    private String termsAndConditions;
     private boolean active;
 }
+

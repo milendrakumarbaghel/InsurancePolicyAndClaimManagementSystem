@@ -253,13 +253,17 @@ public class PolicyPlanServiceImpl implements PolicyPlanService {
 
         PolicyPlanResponseDto dto = new PolicyPlanResponseDto();
         dto.setPolicyPlanId(plan.getId());
-        dto.setProductName(plan.getProduct().getProductName());
+        if (plan.getProduct() != null) {
+            dto.setProductId(plan.getProduct().getId());
+            dto.setProductName(plan.getProduct().getProductName());
+        }
         dto.setPlanName(plan.getPlanName());
         dto.setMaxCoverageAmount(plan.getMaxCoverageAmount());
         dto.setMinCoverageAmount(plan.getMinCoverageAmount());
         dto.setPremiumType(plan.getPremiumType() != null ? plan.getPremiumType().name() : null);
         dto.setMaxDuration(plan.getMaxDuration());
         dto.setMinDuration(plan.getMinDuration());
+        dto.setTermsAndConditions(plan.getTermsAndConditions());
         dto.setActive(plan.isActive());
 
         return dto;

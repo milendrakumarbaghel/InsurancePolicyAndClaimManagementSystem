@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import toast from "react-hot-toast";
-import { Save } from "lucide-react";
+import { ArrowLeft, Save } from "lucide-react";
 import Card from "../../components/common/Card";
 import PageHeader from "../../components/common/PageHeader";
 import Input from "../../components/common/Input";
@@ -115,26 +115,43 @@ export default function PlanFormPage() {
     if (!isEdit) return;
     planService
       .getById(planId)
-      .then((data) =>
+      .then((data) => {
+        let foundProductId = data.productId ? String(data.productId) : "";
+        if (!foundProductId && data.productName && products.length > 0) {
+          const matched = products.find((p) => p.productName === data.productName);
+          if (matched) foundProductId = String(matched.productId);
+        }
         setValues((prev) => ({
           ...prev,
-          planName: data.planName,
-          maxCoverageAmount: data.maxCoverageAmount,
-          minCoverageAmount: data.minCoverageAmount,
-          premiumType: data.premiumType,
-          maxDuration: data.maxDuration,
-          minDuration: data.minDuration,
-          active: data.active,
-        }))
-      )
+          productId: foundProductId || prev.productId,
+          planName: data.planName || "",
+          maxCoverageAmount: data.maxCoverageAmount ?? "",
+          minCoverageAmount: data.minCoverageAmount ?? "",
+          premiumType: data.premiumType || "",
+          maxDuration: data.maxDuration ?? "",
+          minDuration: data.minDuration ?? "",
+          termsAndConditions: data.termsAndConditions || "",
+          active: data.active ?? true,
+        }));
+      })
       .catch((err) => toast.error(getErrorMessage(err, "Could not load plan.")))
       .finally(() => setIsLoadingPlan(false));
-  }, [planId, isEdit, setValues]);
+  }, [planId, isEdit, products, setValues]);
 
   if (isLoadingPlan) return <Spinner label="Loading plan…" />;
 
   return (
     <div className="max-w-2xl">
+      <div className="mb-2">
+        <button
+          type="button"
+          onClick={() => navigate(-1)}
+          className="inline-flex items-center gap-1.5 text-sm font-medium text-ink-500 hover:text-harbor-600 dark:text-ink-400 dark:hover:text-harbor-400 transition-colors"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          Back
+        </button>
+      </div>
       <PageHeader
         eyebrow="Catalog"
         title={isEdit ? "Edit Plan" : "New Plan"}
@@ -149,12 +166,11 @@ export default function PlanFormPage() {
             label="Product"
             name="productId"
             placeholder="Select a product"
-            options={products.map((p) => ({ value: p.productId, label: p.productName }))}
-            value={values.productId}
+            options={products.map((p) => ({ value: String(p.productId), label: p.productName }))}
+            value={String(values.productId || "")}
             onChange={handleChange}
             onBlur={handleBlur}
             error={errors.productId}
-            disabled={isEdit}
             required
           />
 
