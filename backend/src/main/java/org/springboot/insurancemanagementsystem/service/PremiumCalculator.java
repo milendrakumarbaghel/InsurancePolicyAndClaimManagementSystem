@@ -9,13 +9,14 @@ import org.springframework.stereotype.Component;
  * <h3>Formula</h3>
  * <pre>
  *   annualRate      = 2 % of coverageAmount
- *   durationFactor  = sqrt(selectedDurationMonths / 12.0)
+ *   durationFactor  = sqrt(12.0 / selectedDurationMonths)
  *   annualPremium   = coverageAmount × 0.02 × durationFactor
  *   perPeriodAmount = annualPremium / periodsPerYear
  * </pre>
  *
- * The {@code durationFactor} gently rewards longer policies: a 12-month
- * policy has factor 1.0, a 24-month policy has factor ~1.41, etc.
+ * The {@code durationFactor} rewards longer policies with a discount:
+ * a 12-month policy has factor 1.0, a 24-month policy has factor ~0.707 (lower rate),
+ * a 6-month policy has factor ~1.414 (higher rate).
  *
  * <h3>Periods per year by premium type</h3>
  * <ul>
@@ -40,7 +41,7 @@ public class PremiumCalculator {
                             int durationMonths,
                             PremiumType premiumType) {
 
-        double durationFactor  = Math.sqrt(durationMonths / 12.0);
+        double durationFactor  = Math.sqrt(12.0 / durationMonths);
         double annualPremium   = coverageAmount * 0.02 * durationFactor;
         int    periodsPerYear  = periodsPerYear(premiumType);
         double perPeriod       = annualPremium / periodsPerYear;
